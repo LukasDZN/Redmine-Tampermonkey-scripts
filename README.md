@@ -1,1 +1,1 @@
-"# Redmine-Tampermonkey-scripts" 
+# Redmine-Tampermonkey-scripts
