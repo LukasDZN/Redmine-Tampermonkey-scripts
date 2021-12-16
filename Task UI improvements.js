@@ -12,7 +12,7 @@
 // @match        redmine.tribepayments.com/issues/8*
 // @match        redmine.tribepayments.com/issues/9*
 // @require      http://code.jquery.com/jquery-latest.js
-// @downloadURL  https://raw.githubusercontent.com/LukasDZN/Redmine-Tampermonkey-scripts/main/UI%20improvements.js
+// @downloadURL  https://raw.githubusercontent.com/LukasDZN/Redmine-Tampermonkey-scripts/main/Task%20UI%20improvements.js
 // @grant        GM_addStyle
 // ==/UserScript==
 
