@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         UI Improvements
 // @namespace    http://your.homepage/
-// @version      0.1
+// @version      0.2
 // @description  enter something useful
 // @author       You
 // @match        redmine.tribepayments.com/issues/1*
