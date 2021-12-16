@@ -120,11 +120,3 @@ GM_addStyle(`
 $("#content > div:nth-child(1) > a.icon.icon-edit").addClass("fill");
 
 
-
-
-
-
-
-
-
-
