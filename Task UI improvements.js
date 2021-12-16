@@ -1,9 +1,7 @@
 // ==UserScript==
-// @name         UI Improvements
-// @namespace    http://your.homepage/
-// @version      0.2
-// @description  enter something useful
-// @author       You
+// @name         Task UI improvements
+// @version      0.3
+// @author       ld
 // @match        redmine.tribepayments.com/issues/1*
 // @match        redmine.tribepayments.com/issues/2*
 // @match        redmine.tribepayments.com/issues/3*
@@ -14,6 +12,7 @@
 // @match        redmine.tribepayments.com/issues/8*
 // @match        redmine.tribepayments.com/issues/9*
 // @require      http://code.jquery.com/jquery-latest.js
+// @downloadURL  https://raw.githubusercontent.com/LukasDZN/Redmine-Tampermonkey-scripts/main/UI%20improvements.js
 // @grant        GM_addStyle
 // ==/UserScript==
 
