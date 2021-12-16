@@ -1,7 +1,10 @@
 // ==UserScript==
 // @name         Wiki UI redesign
+// @version      0.1
+// @author       ld
 // @match        https://redmine.tribepayments.com/projects/*/wiki*
 // @require      http://code.jquery.com/jquery-latest.js
+// @downloadURL  https://raw.githubusercontent.com/LukasDZN/Redmine-Tampermonkey-scripts/main/Wiki%20UI%20redesign.user.js
 // @grant        GM_addStyle
 // ==/UserScript==
 
@@ -46,7 +49,6 @@ GM_addStyle(`
     color: darkblue;
     -webkit-text-stroke: 1px darkblue;
 }
-
 `);
 
 // Removing unncessary elements
@@ -71,52 +73,4 @@ div.wiki pre {
     white-space: pre-wrap;
     background-color: #fff;
     }
-
 `);
-
-
-
-// - This is for me only (removing the export as html, pdf, csv hyperlinks --
-
-$("p.other-formats").remove()
-
-// ----------------- Beautify the Edit button -------------------------------
-
-GM_addStyle(`
-.fill, input[type="submit"] {
-    all: initial !important;
-    font-family: courier,arial,helvetica !important;
-    margin: 50px 7px 0px 7px !important;
-    font-size: 16px !important;
-    font-weight: 200 !important;
-    letter-spacing: 0px !important;
-    padding: 10px 7px 10px 7px !important;
-    outline: 0 !important;
-    border: 1px solid black !important;
-    cursor: pointer !important;
-    position: relative !important;
-    background-color: transparent !important;
-    z-index: 0 !important;
-    zoom: 0.15
-    }
-.fill::after {
-    content: "" !important;
-    background-color: #ffe54c !important;
-    width: 100% !important;
-    position: absolute !important;
-    z-index: -1 !important;
-    height: 100% !important;
-    top: 6px !important;
-    left: 6px !important;
-    transition: 0.15s !important;
-    }
-.fill:hover::after {
-    top: 0px !important;
-    left: 0px !important;
-    }
-`);
-
-// Prettify the Edit button
-$("#content > div:nth-child(1) > a.icon.icon-edit").addClass("fill");
-
-

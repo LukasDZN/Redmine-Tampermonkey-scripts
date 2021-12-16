@@ -7,7 +7,7 @@
 // @match        redmine.tribepayments.com/issues/4*
 // @match        redmine.tribepayments.com/issues/5*
 // @match        redmine.tribepayments.com/issues/6*
-// @require      http://code.jquery.com/jquery-latest.js
+// @require      http://code.jquery.com/jquery-latest.user.js
 // ==/UserScript==
 
 
@@ -57,10 +57,6 @@ $(function(){
 
     // Prepare list
     const tags = [
-        'eToro-p0',
-        'eToro-p1',
-        'eToro-p2',
-        'eToro-p3',
         'Hotfix',
         'goLiveBlocker'
     ];

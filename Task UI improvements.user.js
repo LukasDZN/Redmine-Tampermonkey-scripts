@@ -12,42 +12,35 @@
 // @match        redmine.tribepayments.com/issues/8*
 // @match        redmine.tribepayments.com/issues/9*
 // @require      http://code.jquery.com/jquery-latest.js
-// @downloadURL  https://raw.githubusercontent.com/LukasDZN/Redmine-Tampermonkey-scripts/main/Task%20UI%20improvements.js
+// @downloadURL  https://raw.githubusercontent.com/LukasDZN/Redmine-Tampermonkey-scripts/main/Task%20UI%20improvements.user.js
 // @grant        GM_addStyle
 // ==/UserScript==
 
+// --- User guide ----------------------------------------------------------------
+
+// * You can enable/disable or customize certain features by changing the variable constants in the config category below.
+// * Tasks can be edited by pressing 'alt + q' and submited by pressing 'alt + w'
+
+
+
+// --- User-specific config ------------------------------------------------------
+
+// Custom note field that sticks to the right side of the screen
+const enableCustomNoteEntryField = true; // Enable/disable by putting in either 'true' or 'false'
+
+// Task page UI design
+const enableCustomTaskPageDesign = true; // Enable/disable by putting in either 'true' or 'false'
+
+// --- Imports -------------------------------------------------------------------
 
 var $ = window.jQuery;
 
 //-------------------------- REMOVING UI ELEMENTS --------------------------------
 
-let removeClassesList = [".icon-time-add", ".icon-comment", ".next-prev-links", "#content > p", "#main-menu > ul", "#top-menu > ul > li:nth-child(1) > a", "#top-menu > ul > li:nth-child(4) > a"];
+let removeClassesList = [".icon-time-add", ".icon-comment", ".next-prev-links"];
 removeClassesList.forEach(className => document.querySelectorAll(className).forEach(e => e.remove()));
 
 document.querySelectorAll('#add_to_important_list').forEach(e => e.remove());
-
-// Make the text in the footer invisible (need footer in order for the copy button to work
-
-GM_addStyle(`
-.whiteText {
-    color: white;
-}
-`);
-
-$("#footer").addClass("whiteText");
-
-// "My page" and "Projects" hyperlink style -------------------------------------
-
-/*
-GM_addStyle(`
-.topMenuStyle {
-    font-family: "Inter", sans-serif;
-    font-size: 0.7 vw !important;
-}
-`);
-
-$("#top-menu").addClass("topMenuStyle");
-*/
 
 // --------------- SEARCH BAR LENGTHENING ----------------------------------------
 
@@ -195,7 +188,7 @@ $(function copyButton() {
     taskName.append(btn)
 });
 
-// --------------- END OF COPY BUTTON ----------------------
+// --------------- All buttons ----------------------
 
 /**
  * Assign issue to me
@@ -297,195 +290,193 @@ $(function statusPendingMD() {
 // Pretiffy the bottom of the page Edit button
 // $("#content > div:nth-child(6) > a.icon.icon-edit").addClass("fill");
 
-// --------------------------- WIKI rework (description area) -------------------------------
+// --------------------------- Task details page rework (description, notes, etc.) -------------------------------
 
-GM_addStyle(`
-div.wiki {
-    /*font-family: 'Roboto', sans-serif;*/
-    font-size: 16px;
-    border-radius: 10px;
-    box-shadow: rgba(6, 24, 44, 0.2) 0px 0px 0px 2px, rgba(6, 24, 44, 0.45) 0px 4px 6px -1px, rgba(255, 255, 255, 0.08) 0px 1px 0px inset !important;
-    background-color: white;
-    padding-left: 14px !important;
-    padding-right: 14px !important;
-    padding-top: 5px !important;
-    padding-bottom: 8px !important;
-    margin-top: 12px !important;
-    margin-bottom: 12px !important;
+if (enableCustomTaskPageDesign == true) {
+
+    GM_addStyle(`
+    div.wiki {
+        /*font-family: 'Roboto', sans-serif;*/
+        font-size: 16px;
+        border-radius: 10px;
+        box-shadow: rgba(6, 24, 44, 0.2) 0px 0px 0px 2px, rgba(6, 24, 44, 0.45) 0px 4px 6px -1px, rgba(255, 255, 255, 0.08) 0px 1px 0px inset !important;
+        background-color: white;
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+        padding-top: 5px !important;
+        padding-bottom: 8px !important;
+        margin-top: 12px !important;
+        margin-bottom: 12px !important;
+        }
+
+    p {
+        margin-top: 10px !important;
+        margin-bottom: 10px !important;
     }
 
-p {
-    margin-top: 10px !important;
-    margin-bottom: 10px !important;
-}
+    div.issue {
+        background: #FEF5E7;
+        border: 1px solid black;
+        }
 
-div.issue {
-    background: #FEF5E7;
-    border: 1px solid black;
+    /* Top bar of the whole page that is initially blue */
+    div#header {
+        background-color: gray;
+        }
+    `);
+
+    // --------- Edit -> Description ----------------------------
+
+    // Always show 'Description' area after pressing the 'Edit' button
+    $("#issue_description_and_toolbar").show();
+
+    $("textarea#issue_description").addClass("descriptionArea fontsize16");
+
+
+
+    // Wrapping text (sometimes if there's preformatted text in the description,
+    // it creates a long horizontal scrollbar which is difficult to read.
+    GM_addStyle(`
+
+    .descriptionArea {
+        word-wrap: normal !important;
+        white-space: pre-wrap !important;
+        background-color: #fff !important;
+        }
+
+    h2 {
+        font-size: 18px !important;
     }
 
-/* Top bar of the whole page that is initially blue */
-div#header {
-    background-color: gray;
-    }
-`);
-
-// Edit -> Description ----------------------------
-
-// Always show 'Description' area after pressing the 'Edit' button
-$("#issue_description_and_toolbar").show();
-
-$("textarea#issue_description").addClass("descriptionArea fontsize16");
-
-
-
-// Wrapping text (sometimes if there's preformatted text in the description,
-// it creates a long horizontal scrollbar which is difficult to read.
-
-GM_addStyle(`
-
-.descriptionArea {
-    word-wrap: normal !important;
-    white-space: pre-wrap !important;
-    background-color: #fff !important;
+    .fontsize16 {
+        font-size: 16px !important;
+        height: 400px !important;
     }
 
-h2 {
-    font-size: 18px !important;
-}
+    `);
 
-.fontsize16 {
-    font-size: 16px !important;
-    height: 400px !important;
-}
+    $("div.wiki pre").addClass("descriptionArea");
 
-`);
-
-$("div.wiki pre").addClass("descriptionArea");
-
-// Hide and Unhide attachments ----------------------------
-// $("div.attachments").hide();
-
-
-// ------------------- SUBMIT BUTTON ----------------------
-
-// $("submit").addClass("fill submitButton"); // not working
+};
 
 // ------------------- STICKY NOTE TEXTBOX ----------------
 
-GM_addStyle(`
+if (enableCustomNoteEntryField == true) {
 
-/* This is the outer part of the Note text box*/
-.stickyNotes {
-    position: fixed !important;
-    bottom: 0 !important;
-    right: 20px !important;
-    width: 800px !important;
-    background: #283747 !important;
-    border-radius: 10px !important;
-    box-shadow: rgba(0, 0, 0, 0.25) 0px 0.0625em 0.0625em, rgba(0, 0, 0, 0.25) 0px 0.125em 0.5em, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset !important;
-    /*font-family: Lato, "Helvetica Neue", Helvetica, sans-serif !important;
-    font-size: 16px !important;*/
+    GM_addStyle(`
+
+    /* This is the outer part of the Note text box*/
+    .stickyNotes {
+        position: fixed !important;
+        bottom: 0 !important;
+        right: 20px !important;
+        width: 800px !important;
+        background: #283747 !important;
+        border-radius: 10px !important;
+        box-shadow: rgba(0, 0, 0, 0.25) 0px 0.0625em 0.0625em, rgba(0, 0, 0, 0.25) 0px 0.125em 0.5em, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset !important;
+        /*font-family: Lato, "Helvetica Neue", Helvetica, sans-serif !important;
+        font-size: 16px !important;*/
+        }
+
+    textarea#issue_notes {
+        font-size: 16px !important;
+        }
+
+    /* Set 'Private notes' text to be white (because it's on black background). */
+    fieldset.stickyNotes {
+        color: #fff !important;
+        }
+
+    `);
+
+    $("#issue-form > div > fieldset:nth-child(3)").addClass("stickyNotes");
+
+    // Dealing with Textarea Height
+    function calcHeight(value) {
+    let numberOfLineBreaks = (value.match(/\n/g) || []).length;
+    // min-height + lines x line-height
+    let newHeight = 40 + numberOfLineBreaks * 19 // Change the first number to adjust the initial height
+    if (newHeight > 850) {
+        newHeight = 850};
+    return newHeight;
     }
 
-textarea#issue_notes {
-    font-size: 16px !important;
-    }
+    let textArea = document.querySelector("#issue_notes"); // select the text note inner field
 
-/* Set 'Private notes' text to be white (because it's on black background). */
-fieldset.stickyNotes {
-    color: #fff !important;
-    }
+    // Initial height
+    $("#issue_notes").val("\n\n\n\n\n"); // Populate the text area with newlines
+    $('textarea').prop('selectionEnd', 1); // text-cursor position (2nd line from the top)
+    textArea.style.height = calcHeight(textArea.value) + "px";
 
-`);
-
-$("#issue-form > div > fieldset:nth-child(3)").addClass("stickyNotes");
-
-// Dealing with Textarea Height
-function calcHeight(value) {
-  let numberOfLineBreaks = (value.match(/\n/g) || []).length;
-  // min-height + lines x line-height
-  let newHeight = 40 + numberOfLineBreaks * 19 // Change the first number to adjust the initial height
-  if (newHeight > 850) {
-      newHeight = 850};
-  return newHeight;
-}
-
-let textArea = document.querySelector("#issue_notes"); // select the text note inner field
-
-// Initial height
-$("#issue_notes").val("\n\n\n\n\n"); // Populate the text area with newlines
-$('textarea').prop('selectionEnd', 1); // text-cursor position (2nd line from the top)
-textArea.style.height = calcHeight(textArea.value) + "px";
-
-// Constantly recalculating the height
-textArea.addEventListener("keyup", () => {
-  textArea.style.height = calcHeight(textArea.value) + "px";
-});
-
-// Remove the "Notes" title fromm textbox top
-document.querySelector("#issue-form > div > fieldset.stickyNotes > legend").remove()
-
-// Add a submit button to the Note area
-/**
- * Note submit button
- */
-$(function noteSubmit() {
-    // Identify div to add the button to
-    let noteArea = $(".stickyNotes");
-
-    // a button is equal to
-    let btn = $('<input type="submit" name="commit" value="Submit" data-disable-with="Submit">');
-    // a button's on-click action is
-    btn.click(function(){
-        $('#issue-form').submit();
+    // Constantly recalculating the height
+    textArea.addEventListener("keyup", () => {
+    textArea.style.height = calcHeight(textArea.value) + "px";
     });
-    // Add the button
-    noteArea.append(btn)
-});
 
-// Add a hide button to the Note area
-/**
- * Note hide button
- */
-GM_addStyle(`
+    // Remove the "Notes" title fromm textbox top
+    document.querySelector("#issue-form > div > fieldset.stickyNotes > legend").remove()
 
-.stickyButton {
-    position: fixed !important;
-    bottom: 0 !important;
-    }
+    // Add a submit button to the Note area
+    /**
+     * Note submit button
+     */
+    $(function noteSubmit() {
+        // Identify div to add the button to
+        let noteArea = $(".stickyNotes");
 
-`);
-
-$(function noteHide() {
-    // Initially, the noteHidden value should be false, and the button for showing, shouldn't be visible
-    let noteHidden = ""
-
-    // Identify div to add the button to
-    let noteArea = $(".stickyNotes");
-
-    // a button is equal to
-    let btnHide = $('<input type="button" value="Hide">');
-    // a button's on-click action is
-    btnHide.click(function(){
-        noteHidden = true;
-        $("#issue-form > div > fieldset.stickyNotes").hide();
-    });
-    // Add the button
-    noteArea.append(btnHide)
-
-    if (noteHidden == true) {
-        let minimizedBtn = $('<input type="button" class="stickyButton" value="Show note">');
+        // a button is equal to
+        let btn = $('<input type="submit" name="commit" value="Submit" data-disable-with="Submit">');
         // a button's on-click action is
-        minimizedBtn.click(function(){
-            noteHidden = false;
-            $("#issue-form > div > fieldset.stickyNotes").show();
+        btn.click(function(){
+            $('#issue-form').submit();
         });
         // Add the button
-        $("div#footer").append(minimizedBtn)
-    };
-});
+        noteArea.append(btn)
+    });
 
+    // Add a hide button to the Note area
+    /**
+     * Note hide button
+     */
+    GM_addStyle(`
+
+    .stickyButton {
+        position: fixed !important;
+        bottom: 0 !important;
+        }
+
+    `);
+
+    $(function noteHide() {
+        // Initially, the noteHidden value should be false, and the button for showing, shouldn't be visible
+        let noteHidden = ""
+
+        // Identify div to add the button to
+        let noteArea = $(".stickyNotes");
+
+        // a button is equal to
+        let btnHide = $('<input type="button" value="Hide">');
+        // a button's on-click action is
+        btnHide.click(function(){
+            noteHidden = true;
+            $("#issue-form > div > fieldset.stickyNotes").hide();
+        });
+        // Add the button
+        noteArea.append(btnHide)
+
+        if (noteHidden == true) {
+            let minimizedBtn = $('<input type="button" class="stickyButton" value="Show note">');
+            // a button's on-click action is
+            minimizedBtn.click(function(){
+                noteHidden = false;
+                $("#issue-form > div > fieldset.stickyNotes").show();
+            });
+            // Add the button
+            $("div#footer").append(minimizedBtn)
+        };
+    });
+
+};
 
 // ------------------- Post-release -> Skip both ----------------
 
@@ -562,7 +553,3 @@ highlight(
 */
 
 // https://stackoverflow.com/questions/25487402/javascript-select-nested-class-element/25487543
-
-
-
-
