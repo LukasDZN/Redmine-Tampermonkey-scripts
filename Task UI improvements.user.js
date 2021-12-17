@@ -35,6 +35,16 @@ const enableCustomTaskPageDesign = true; // Enable/disable by putting in either 
 
 var $ = window.jQuery;
 
+// --- Detect project ------------------------------------------------------------
+
+let taskTitle = $("head > title").text().slice(-28);
+
+if (taskTitle.includes("Support - ")) {
+    var taskType = "Support";
+} else {
+    var taskType = "Development";
+};
+
 //-------------------------- REMOVING UI ELEMENTS --------------------------------
 
 let removeClassesList = [".icon-time-add", ".icon-comment", ".next-prev-links"];
@@ -190,105 +200,137 @@ $(function copyButton() {
 
 // --------------- All buttons ----------------------
 
-/**
- * Assign issue to me
- */
-$(function assignToMe() {
-    // Identify div to add the button to
-    let topHorizontalToolbar = buttonLocation
 
-    // a button is equal to
-    let btn = $('<a class="fill assignToMe">Assign to me</a>');
-    // a button's on-click action is
-    btn.click(function(){
-        $("#issue_assigned_to_id").val(186);
-        $('#issue-form').submit();
+if (taskType == "Support") {
+    /**
+     * Assign issue to me
+     */
+    $(function assignToMe() {
+        // Identify div to add the button to
+        let topHorizontalToolbar = buttonLocation
+
+        // a button is equal to
+        let btn = $('<a class="fill assignToMe">Assign to me</a>');
+        // a button's on-click action is
+        btn.click(function(){
+            $("#issue_assigned_to_id").val(186);
+            $('#issue-form').submit();
+        });
+        // Add the button
+        topHorizontalToolbar.append(btn)
     });
-    // Add the button
-    topHorizontalToolbar.append(btn)
-});
 
-/**
- * Button to set status to In progress by TM
- */
+    /**
+     * Button to set status to In progress by TM
+     */
 
-$(function statusInProgressTM() {
-    // Identify div to add the button to
-    let topHorizontalToolbar = buttonLocation
+    $(function statusInProgressTM() {
+        // Identify div to add the button to
+        let topHorizontalToolbar = buttonLocation
 
-    // a button is equal to
-    // let btn = $('<input type="button" value="In progress (LT-TM)">');
-    let btn = $('<a class="fill statusInProgressTM">In progress (LT-TM)</a>');
-    // a button's on-click action is
-    btn.click(function(){
-        $("#issue_status_id").val(25);
-        $('#issue-form').submit();
+        // a button is equal to
+        // let btn = $('<input type="button" value="In progress (LT-TM)">');
+        let btn = $('<a class="fill statusInProgressTM">In progress (LT-TM)</a>');
+        // a button's on-click action is
+        btn.click(function(){
+            $("#issue_status_id").val(25);
+            $('#issue-form').submit();
+        });
+        // Add the button
+        topHorizontalToolbar.append(btn)
     });
-    // Add the button
-    topHorizontalToolbar.append(btn)
-});
 
-/**
- * Button to set status to APP team
- */
-$(function statusPendingApp() {
-    // Identify div to add the button to
-    let topHorizontalToolbar = buttonLocation
+    /**
+     * Button to set status to APP team
+     */
+    $(function statusPendingApp() {
+        // Identify div to add the button to
+        let topHorizontalToolbar = buttonLocation
 
-    // a button is equal to
-    // let btn = $('<input type="button" value="Pending (LT-APP)">');
-    let btn = $('<a class="fill PendingApp">Pending (LT-APP)</a>');
-    // a button's on-click action is
-    btn.click(function(){
-        $("#issue_status_id").val(29);
-        $('#issue-form').submit();
+        // a button is equal to
+        // let btn = $('<input type="button" value="Pending (LT-APP)">');
+        let btn = $('<a class="fill PendingApp">Pending (LT-APP)</a>');
+        // a button's on-click action is
+        btn.click(function(){
+            $("#issue_status_id").val(29);
+            $('#issue-form').submit();
+        });
+        // Add the button
+        topHorizontalToolbar.append(btn)
     });
-    // Add the button
-    topHorizontalToolbar.append(btn)
-});
 
-/**
- * Button to set status to resolved
- */
-$(function statusResolved() {
-    // Identify div to add the button to
-    let topHorizontalToolbar = buttonLocation
+    /**
+     * Button to set status to resolved
+     */
+    $(function statusResolved() {
+        // Identify div to add the button to
+        let topHorizontalToolbar = buttonLocation
 
-    // a button is equal to
-    // let btn = $('<input type="button" value="Resolved">');
-    let btn = $('<a class="fill Resolved">Resolved</a>');
-    // a button's on-click action is
-    btn.click(function(){
-        $("#issue_status_id").val(3);
-        $('#issue-form').submit();
+        // a button is equal to
+        // let btn = $('<input type="button" value="Resolved">');
+        let btn = $('<a class="fill Resolved">Resolved</a>');
+        // a button's on-click action is
+        btn.click(function(){
+            $("#issue_status_id").val(3);
+            $('#issue-form').submit();
+        });
+        // Add the button
+        topHorizontalToolbar.append(btn)
     });
-    // Add the button
-    topHorizontalToolbar.append(btn)
-});
 
-/**
- * Button to set status to Pending MD-OPS
- */
-$(function statusPendingMD() {
-    // Identify div to add the button to
-    let topHorizontalToolbar = buttonLocation
+    /**
+     * Button to set status to Pending MD-OPS
+     */
+    $(function statusPendingMD() {
+        // Identify div to add the button to
+        let topHorizontalToolbar = buttonLocation
 
-    // a button is equal to
-    // let btn = $('<input type="button" value="Pending (MD-OPS)">');
-    let btn = $('<a class="fill PendingMd">Pending (MD-OPS)</a>');
-    // a button's on-click action is
-    btn.click(function(){
-        $("#issue_status_id").val(28);
-        $('#issue-form').submit();
+        // a button is equal to
+        // let btn = $('<input type="button" value="Pending (MD-OPS)">');
+        let btn = $('<a class="fill PendingMd">Pending (MD-OPS)</a>');
+        // a button's on-click action is
+        btn.click(function(){
+            $("#issue_status_id").val(28);
+            $('#issue-form').submit();
+        });
+        // Add the button
+        topHorizontalToolbar.append(btn)
     });
-    // Add the button
-    topHorizontalToolbar.append(btn)
-});
+};
+
+
+// ------------------- Post-release -> Skip both ----------------
+// Displayed on "Development" tasks only
+
+if (taskType == "Development") {
+    $(function setPostReleaseFieldsToSkip() {
+        // Identify div to add the button to
+        // let div = document.querySelector("#content > div.issue.tracker-4.status-5.priority-2.priority-high4.closed.child.details > div.attributes > div:nth-child(2) > div:nth-child(2) > div.cf_118.attribute")
+        let div = $("#content > h2");
+
+        // a button is equal to
+        // let btn = $('<input type="button" value="Resolved">');
+        // let btn = $('<input type="button" class="fill Resolved" value="Skip both">');
+        let btn = $('<a class="fill Resolved">Skip both</a>');
+        // a button's on-click action is
+        btn.click(function(){
+            $("#issue_custom_field_values_122").val("Skip");
+            $("#issue_custom_field_values_123").val("Skip");
+            $('#issue-form').submit();
+        });
+        // Add the button
+        div.append(btn)
+    });
+};
+
+
 
 // Prettify the Edit button
 // $("#content > div:nth-child(1) > a.icon.icon-edit").addClass("fill");
 // Pretiffy the bottom of the page Edit button
 // $("#content > div:nth-child(6) > a.icon.icon-edit").addClass("fill");
+
+
 
 // --------------------------- Task details page rework (description, notes, etc.) -------------------------------
 
@@ -331,7 +373,6 @@ if (enableCustomTaskPageDesign == true) {
     $("#issue_description_and_toolbar").show();
 
     $("textarea#issue_description").addClass("descriptionArea fontsize16");
-
 
 
     // Wrapping text (sometimes if there's preformatted text in the description,
@@ -389,6 +430,16 @@ if (enableCustomNoteEntryField == true) {
 
     `);
 
+    GM_addStyle(`
+
+    .showButton {
+        position: fixed !important;
+        bottom: 0 !important;
+        }
+
+    `);
+
+    // Add Note text area
     $("#issue-form > div > fieldset:nth-child(3)").addClass("stickyNotes");
 
     // Dealing with Textarea Height
@@ -438,68 +489,54 @@ if (enableCustomNoteEntryField == true) {
     /**
      * Note hide button
      */
-    GM_addStyle(`
 
-    .stickyButton {
-        position: fixed !important;
-        bottom: 0 !important;
-        }
+     GM_addStyle(`
 
-    `);
+     .hideButton {
+         margin-left: 5px !important;
+         }
+ 
+     `);
 
     $(function noteHide() {
-        // Initially, the noteHidden value should be false, and the button for showing, shouldn't be visible
-        let noteHidden = ""
 
         // Identify div to add the button to
         let noteArea = $(".stickyNotes");
 
         // a button is equal to
-        let btnHide = $('<input type="button" value="Hide">');
-        // a button's on-click action is
+        let btnHide = $('<input type="button" class="hideButton" value="Hide">');
+
+        // "Hide" button's onClick action
         btnHide.click(function(){
-            noteHidden = true;
+
+            // onClick -> Hide the text area
             $("#issue-form > div > fieldset.stickyNotes").hide();
+            $("#footer > input:nth-child(5)").hide();
+
+            // Add "Show note" button
+            $(function unhideNote() {
+
+                let minimizedBtn = $('<input type="button" class="showButton Resolved" value="Show note">');
+                // a button's on-click action is
+                minimizedBtn.click(function(){
+                    $("#issue-form > div > fieldset.stickyNotes").show();
+                });
+
+                // Add the button
+                $("div#footer").append(minimizedBtn);
+            });
         });
+
         // Add the button
         noteArea.append(btnHide)
 
-        if (noteHidden == true) {
-            let minimizedBtn = $('<input type="button" class="stickyButton" value="Show note">');
-            // a button's on-click action is
-            minimizedBtn.click(function(){
-                noteHidden = false;
-                $("#issue-form > div > fieldset.stickyNotes").show();
-            });
-            // Add the button
-            $("div#footer").append(minimizedBtn)
-        };
     });
 
 };
 
-// ------------------- Post-release -> Skip both ----------------
-
-
-$(function setPostReleaseFieldsToSkip() {
-    // Identify div to add the button to
-    // let div = document.querySelector("#content > div.issue.tracker-4.status-5.priority-2.priority-high4.closed.child.details > div.attributes > div:nth-child(2) > div:nth-child(2) > div.cf_118.attribute")
-    let div = $("#content > h2");
-
-    // a button is equal to
-    // let btn = $('<input type="button" value="Resolved">');
-    // let btn = $('<input type="button" class="fill Resolved" value="Skip both">');
-    let btn = $('<a class="fill Resolved">Skip both</a>');
-    // a button's on-click action is
-    btn.click(function(){
-        $("#issue_custom_field_values_122").val("Skip");
-        $("#issue_custom_field_values_123").val("Skip");
-        $('#issue-form').submit();
-    });
-    // Add the button
-    div.append(btn)
-});
-
+// ------------------------------------------------------------
+// --- Global -------------------------------------------------
+// ------------------------------------------------------------
 
 // -------------------------- Keyboard shortcut for Edit and Submit (alt + q and alt + w) ---------------
 
@@ -509,6 +546,58 @@ try {
 } catch(e) {
     console.log(e)
 };
+
+try {
+    document.querySelector("#content > div:nth-child(2) > a.icon.icon-edit").accessKey = "q"; // Edit task when shortcut Alt + q is pressed (when "Successful update." is displayed)
+    document.querySelector("#issue-form > input[type=submit]:nth-child(7)").accessKey = "w"; // Save task when shortcut Alt + w is pressed
+} catch(e) {
+    // console.log(e)
+};
+
+
+
+// --- Potential features ------------------------------------------------------------------------------
+
+// - Add a search feature to the fields when editing a task [assignee, reported by, ]
+
+// function addSearch() {
+//     let allMultiSelects = $('.list_cf.check_box_group');
+//     allMultiSelects.each(function (i, el) {
+//         let multiselect = $(el);
+//         var customSearch = $("<input>", {"type": "text", "class": "custom-search-input", "placeholder": "Search...", "style": "width: 100%; max-width: 100%;"});
+//         multiselect.prepend(customSearch);
+//         customSearch.val(activeSearch);
+//         filterProjects(multiselect, activeSearch);
+
+//         customSearch.on('input', function (e) {
+//             let searchText = $(e.target).val();
+//             if (searchText === '') {
+//                 showAllProjects(multiselect);
+//             } else {
+//                 filterProjects(multiselect, searchText);
+//             }
+//         });
+//     });
+// }
+
+// $("#issue_custom_field_values_39").addClass("custom-search-input");
+
+// - Create rules for highlighting fields [WIP below]
+
+
+
+
+// --- Non-important features ---
+
+// - Save Note field to local storage, so that when you come back to a page - it is saved.
+
+
+
+// --- Bugs ---
+
+// - "Show note" button is displayed over "Hide" button on larger screens.
+
+
 
 // -------------------------- Highlight fields of interest ----------------------------------------------
 // (highlights a field in the general task view page, function must select the field and values that

@@ -57,7 +57,7 @@ $(function(){
 
     // Prepare list
     const tags = [
-        'Hotfix',
+        'groomed',
         'goLiveBlocker'
     ];
 
