@@ -532,6 +532,7 @@ if (enableCustomNoteEntryField == true) {
         let btn = $('<input type="submit" name="commit" value="Submit" data-disable-with="Submit">');
         // a button's on-click action is
         btn.click(function(){
+            clearNoteFromLocalStorage();
             $('#issue-form').submit();
         });
         // Add the button
@@ -540,7 +541,7 @@ if (enableCustomNoteEntryField == true) {
 
     // --- Save note content to Local Storage ------------------------------------------
 
-    var RedmineTaskNumber = window.location.href.split('/issues/')[1];
+    var RedmineTaskNumber = window.location.href.split('/issues/')[1].substring(0, 5);
 
     // Set Item
     /* localStorage.setItem(key, value); */
@@ -554,7 +555,9 @@ if (enableCustomNoteEntryField == true) {
     document.querySelector("#issue_notes").value = localStorage.getItem(RedmineTaskNumber);
 
     // Local storage for this particular page is cleared upon clicking "Submit"
-    // TO DO
+    function clearNoteFromLocalStorage() {
+        localStorage.removeItem(RedmineTaskNumber);
+    };
 
 
     // --- Add a hide button to the Note area ------------------------------------------
@@ -608,7 +611,7 @@ if (enableCustomNoteEntryField == true) {
 };
 
 // ------------------------------------------------------------
-// --- Global -------------------------------------------------
+// --- All pages ----------------------------------------------
 // ------------------------------------------------------------
 
 // -------------------------- Keyboard shortcut for Edit and Submit (alt + q and alt + w) ---------------
@@ -616,15 +619,18 @@ if (enableCustomNoteEntryField == true) {
 try {
     document.querySelector("#content > div:nth-child(6) > a.icon.icon-edit").accessKey = "q"; // Edit task when shortcut Alt + q is pressed
     document.querySelector("#issue-form > input[type=submit]:nth-child(7)").accessKey = "w"; // Save task when shortcut Alt + w is pressed
+    document.querySelector("#issue-form > input[type=submit]:nth-child(7)").addEventListener("click", function() {clearNoteFromLocalStorage();}); // Clear local storage when clicking "Submit"
 } catch(e) {
     console.log(e)
-};
 
-try {
-    document.querySelector("#content > div:nth-child(2) > a.icon.icon-edit").accessKey = "q"; // Edit task when shortcut Alt + q is pressed (when "Successful update." is displayed)
-    document.querySelector("#issue-form > input[type=submit]:nth-child(7)").accessKey = "w"; // Save task when shortcut Alt + w is pressed
-} catch(e) {
-    // console.log(e)
+    try {
+        document.querySelector("#content > div:nth-child(2) > a.icon.icon-edit").accessKey = "q"; // Edit task when shortcut Alt + q is pressed (when "Successful update." is displayed)
+        document.querySelector("#issue-form > input[type=submit]:nth-child(7)").accessKey = "w"; // Save task when shortcut Alt + w is pressed
+        document.querySelector("#issue-form > input[type=submit]:nth-child(7)").addEventListener("click", function() {clearNoteFromLocalStorage();}); // Clear local storage when clicking "Submit"
+    } catch(e) {
+        console.log('try 2 ');
+        console.log(e)
+    };
 };
 
 
