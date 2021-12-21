@@ -16,20 +16,32 @@
 // @grant        GM_addStyle
 // ==/UserScript==
 
+
+
+
 // --- User guide ----------------------------------------------------------------
 
-// * You can enable/disable or customize certain features by changing the variable constants in the config category below.
-// * Tasks can be edited by pressing 'alt + q' and submited by pressing 'alt + w'
-
-
+// * Customization: You can enable/disable or customize certain features by changing the variable constants in the config category below this one.
+// * New keyboard shortcuts: Tasks can be edited by pressing 'alt + q' and submited by pressing 'alt + w'
+// * Unsubmitted notes will now be saved automatically
 
 // --- User-specific config ------------------------------------------------------
 
 // Custom note field that sticks to the right side of the screen
 const enableCustomNoteEntryField = true; // Enable/disable by putting in either 'true' or 'false'
 
-// Task page UI design
+// Task details page UI design
 const enableCustomTaskPageDesign = true; // Enable/disable by putting in either 'true' or 'false'
+// If the above "Task details page" is enabled, you can choose custom CSS colours (https://htmlcolorcodes.com/) for:
+// Header
+var headerColor = '#808080';
+// Task details
+var taskDetailsColor = '#FEF5E7';
+// Task details width (possible option for 70)
+var contentWidthPercent = 100;
+
+
+
 
 // --- Imports -------------------------------------------------------------------
 
@@ -47,7 +59,7 @@ if (taskTitle.includes("Support - ")) {
 
 //-------------------------- REMOVING UI ELEMENTS --------------------------------
 
-let removeClassesList = [".icon-time-add", ".icon-comment", ".next-prev-links"];
+let removeClassesList = [".icon-time-add", ".icon-comment", ".next-prev-links", "#content > p"];
 removeClassesList.forEach(className => document.querySelectorAll(className).forEach(e => e.remove()));
 
 document.querySelectorAll('#add_to_important_list').forEach(e => e.remove());
@@ -349,22 +361,48 @@ if (enableCustomTaskPageDesign == true) {
         padding-bottom: 8px !important;
         margin-top: 12px !important;
         margin-bottom: 12px !important;
-        }
+    }
+
+    /* Page Global CSS */
+    .tab-content {
+        border: none !important;
+    }
+
+    #footer {
+        border-top: none !important;
+        color: white !important;
+    }
+
+    #footer > a {
+        color: white !important;
+    }
+
+    /*
+    input {
+        font-family: Inter, "Helvetica Neue", Helvetica, sans-serif;
+        background-color: #80cc74;
+    }
+    */
 
     p {
         margin-top: 10px !important;
         margin-bottom: 10px !important;
     }
 
+    #content {
+        max-width: ${contentWidthPercent}vw !important;
+    }
+
     div.issue {
-        background: #FEF5E7;
-        border: 1px solid black;
-        }
+        background: ${taskDetailsColor};
+        /* border: 1px solid black; */
+    }
 
     /* Top bar of the whole page that is initially blue */
     div#header {
-        background-color: gray;
-        }
+        background-color: ${headerColor};
+    }
+
     `);
 
     // --------- Edit -> Description ----------------------------
@@ -411,63 +449,78 @@ if (enableCustomNoteEntryField == true) {
         position: fixed !important;
         bottom: 0 !important;
         right: 20px !important;
-        width: 800px !important;
+        min-width: 800px !important;
+        max-width: 1600px !important;
+        width: 40vw !important;
         background: #283747 !important;
         border-radius: 10px !important;
         box-shadow: rgba(0, 0, 0, 0.25) 0px 0.0625em 0.0625em, rgba(0, 0, 0, 0.25) 0px 0.125em 0.5em, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset !important;
-        /*font-family: Lato, "Helvetica Neue", Helvetica, sans-serif !important;
-        font-size: 16px !important;*/
-        }
+    }
 
     textarea#issue_notes {
-        font-size: 16px !important;
-        }
+        font-size: 1.3em;
+        font-family: Inter, "Helvetica Neue", Helvetica, sans-serif !important;
+    }
 
     /* Set 'Private notes' text to be white (because it's on black background). */
     fieldset.stickyNotes {
         color: #fff !important;
-        }
+    }
 
     `);
 
     GM_addStyle(`
 
     .showButton {
-        position: fixed !important;
-        bottom: 0 !important;
-        }
+        position: fixed;
+        bottom: 0;
+        background-color: #283747;
+        color: white;
+        border-radius: 10px;
+        min-width: 100px;
+        min-height: 30px;
+        font-family: Inter, "Helvetica Neue", Helvetica, sans-serif;
+    }
+
+    .showButton:hover {
+        background-color: #283747;
+        box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.25);
+    }
 
     `);
 
-    // Add Note text area
+    // --- Add Note text area --------------------------------------------------------
     $("#issue-form > div > fieldset:nth-child(3)").addClass("stickyNotes");
 
     // Dealing with Textarea Height
     function calcHeight(value) {
-    let numberOfLineBreaks = (value.match(/\n/g) || []).length;
-    // min-height + lines x line-height
-    let newHeight = 40 + numberOfLineBreaks * 19 // Change the first number to adjust the initial height
-    if (newHeight > 850) {
-        newHeight = 850};
-    return newHeight;
+        let numberOfLineBreaks = (value.match(/\n/g) || []).length;
+        // min-height + lines x line-height
+        let newHeight = 45 + numberOfLineBreaks * 20 // Change the first number to adjust the initial height
+        if (newHeight > 850) {
+            newHeight = 850};
+        if (newHeight < 165) {
+            newHeight = 165};
+        return newHeight;
     }
 
     let textArea = document.querySelector("#issue_notes"); // select the text note inner field
 
     // Initial height
-    $("#issue_notes").val("\n\n\n\n\n"); // Populate the text area with newlines
+    $("#issue_notes").val("\n\n\n\n\n\n"); // Populate the text area with newlines
     $('textarea').prop('selectionEnd', 1); // text-cursor position (2nd line from the top)
     textArea.style.height = calcHeight(textArea.value) + "px";
 
-    // Constantly recalculating the height
+    // Constantly recalculating the height & Saving the textarea value to local storage
     textArea.addEventListener("keyup", () => {
-    textArea.style.height = calcHeight(textArea.value) + "px";
+        textArea.style.height = calcHeight(textArea.value) + "px";
+        saveNoteToLocalStorage();
     });
 
-    // Remove the "Notes" title fromm textbox top
+    // Remove the "Notes" title from textbox top
     document.querySelector("#issue-form > div > fieldset.stickyNotes > legend").remove()
 
-    // Add a submit button to the Note area
+    // --- Add a submit button to the Note area ---------------------------------------
     /**
      * Note submit button
      */
@@ -485,16 +538,35 @@ if (enableCustomNoteEntryField == true) {
         noteArea.append(btn)
     });
 
-    // Add a hide button to the Note area
+    // --- Save note content to Local Storage ------------------------------------------
+
+    var RedmineTaskNumber = window.location.href.split('/issues/')[1];
+
+    // Set Item
+    /* localStorage.setItem(key, value); */
+    function saveNoteToLocalStorage() {
+        localStorage.setItem(RedmineTaskNumber, document.querySelector("#issue_notes").value);
+    };
+
+    // Retrieve
+    /* let lastname = localStorage.getItem(key); */
+    // On-load --> set the textarea to the last saved value
+    document.querySelector("#issue_notes").value = localStorage.getItem(RedmineTaskNumber);
+
+    // Local storage for this particular page is cleared upon clicking "Submit"
+    // TO DO
+
+
+    // --- Add a hide button to the Note area ------------------------------------------
     /**
      * Note hide button
      */
 
      GM_addStyle(`
 
-     .hideButton {
-         margin-left: 5px !important;
-         }
+    .hideButton {
+        margin-left: 5px !important;
+    }
  
      `);
 
@@ -520,6 +592,7 @@ if (enableCustomNoteEntryField == true) {
                 // a button's on-click action is
                 minimizedBtn.click(function(){
                     $("#issue-form > div > fieldset.stickyNotes").show();
+                    $("#footer > input").hide();
                 });
 
                 // Add the button
@@ -560,6 +633,16 @@ try {
 
 // - Add a search feature to the fields when editing a task [assignee, reported by, ]
 
+/*
+Input would be an Object = {
+    "conditions": ["AND", "OR", "NOT"],
+    "assignee": ["me", "John Doe"],
+
+
+
+
+*/
+
 // function addSearch() {
 //     let allMultiSelects = $('.list_cf.check_box_group');
 //     allMultiSelects.each(function (i, el) {
@@ -589,13 +672,13 @@ try {
 
 // --- Non-important features ---
 
-// - Save Note field to local storage, so that when you come back to a page - it is saved.
+// - [DONE] Save Note field to local storage, so that when you come back to a page - it is saved.
 
 
 
 // --- Bugs ---
 
-// - "Show note" button is displayed over "Hide" button on larger screens.
+// - [DONE] "Show note" button is displayed over "Hide" button on larger screens.
 
 
 
