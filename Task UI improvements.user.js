@@ -27,14 +27,17 @@
 
 // --- User-specific config ------------------------------------------------------
 
+// Choose your role type, in order for the script to display the appropriate Support ticket status buttons
+var userRole = 'OPS'; // Possible values: 'PM', 'OPS', 'BOTH'. Default value: 'OPS'.
+
 // Custom note field that sticks to the right side of the screen
-const enableCustomNoteEntryField = true; // Enable/disable by putting in either 'true' or 'false'
+var enableCustomNoteEntryField = true; // Enable/disable by putting in either 'true' or 'false'
 
 // Task details page UI design
-const enableCustomTaskPageDesign = true; // Enable/disable by putting in either 'true' or 'false'
+var enableCustomTaskPageDesign = true; // Enable/disable by putting in either 'true' or 'false'
 // If the above "Task details page" is enabled, you can choose custom CSS colours (https://htmlcolorcodes.com/) for:
 // Header
-var headerColor = '#808080';
+var headerColorCss = `` // Possible value example:  "background-color:'#808080';"  or any gradient from here: https://cssgradient.io/ or https://uigradients.com/
 // Task details
 var taskDetailsColor = '#FEF5E7';
 // Task details width (possible option for 70)
@@ -49,6 +52,7 @@ var $ = window.jQuery;
 
 // --- Detect project ------------------------------------------------------------
 
+// Make sure that parsed keywords in the main text title are avoided.
 let taskTitle = $("head > title").text().slice(-28);
 
 if (taskTitle.includes("Support - ")) {
@@ -64,6 +68,14 @@ removeClassesList.forEach(className => document.querySelectorAll(className).forE
 
 document.querySelectorAll('#add_to_important_list').forEach(e => e.remove());
 
+// Remove ' |' before Edit
+
+GM_addStyle(`
+.contextual {
+    color: white;
+}
+`);
+
 // --------------- SEARCH BAR LENGTHENING ----------------------------------------
 
 GM_addStyle(`
@@ -76,11 +88,14 @@ $("#q").addClass("searchLength");
 
 // ---------------------------- BUTTONS -----------------------------------------
 
+// All button location (top bar)
+let buttonLocation = $("#content > h2");
+
 GM_addStyle(`
 /* optional - add  "input[type="submit"]' as a selector below in order to style the submit button */
 .fill {
     font-family: "Inter", sans-serif!important;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     line-height: 1.15385;
     background-color: #e1ecf4;
@@ -93,7 +108,8 @@ GM_addStyle(`
     display: inline-block;
     margin: 0;
     max-width: 200px;
-    padding: 0.5vw .8em;
+    min-width: 60px;
+    padding: 8px 4px;
     outline: none;
     position: relative;
     text-align: center;
@@ -112,49 +128,60 @@ GM_addStyle(`
     text-decoration: none;
     box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.25);
     /* -webkit-text-stroke: 0.03vw #0d3d61; */
-    }
+}
 
+/* Roles: BOTH, PM, OPS */
 .assignToMe {
     background-color: #D5F5E3;
-    }
-.statusInProgressTM {
-    background-color: #F9E79F;
-    }
-.PendingApp {
-    background-color: #EDBB99;
-    }
-.Resolved {
-    background-color: #85C1E9;
-    }
-.PendingMd {
-    background-color: #EBDEF0;
-    }
-
-/* Submit button */
-/*
-input[type="submit"] {
-    background-color: #D5F5E3;
 }
-*/
+
+/* Roles: PM */
+.inProgressPm {
+    background-color: #F9E79F;
+}
+.pendingOps {
+    background-color: #DCF5A8;
+}
+.pendingApp {
+    background-color: #EDBB99;
+}
+.pendingDevops {
+    background-color: #AEB6BF;
+}
+.pendingInfra {
+    background-color: #D4E6F1;
+}
+.resolved {
+    background-color: #85C1E9;
+}
+
+/* Roles: Ops */
+.new {
+    background-color: #6DFF95;
+}
+.inProgressOps {
+    background-color: #F9E79F;
+}
+.pendingPm {
+    background-color: #EDBB99;
+}
+.feedback {
+    background-color: #FF9388;
+}
+.closed {
+    background-color: #BBBBBB;
+}
+
+/* Edit button */
+a.icon.icon-edit.fill {
+    background-color: #4D75B2;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    padding-left: 20px;
+    padding-right: 20px;
+    color: white;
+}
 `);
-
-/* Notes:
-- !important is necessary to override all elements -> using CSS id and all:initial; doesn't fully help.
-*/
-
-let buttonStyleLib = $(`
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
-`);
-$("head").prepend(buttonStyleLib)
-
-// Good font example https://developer.mozilla.org/en-US/docs/Web/CSS/::after --> search for "Simple usage"
-
-// --------------------------------------------------------------
-
-// All button location (top bar)
-let buttonLocation = $("#content > h2");
 
 // --------------------------- COPY feature next to task title --------------------------
 
@@ -165,8 +192,8 @@ GM_addStyle(`
 }
 
 .flashBG {
-    margin-right: 10vh !important;
-    margin-left: 1vh !important;
+    margin-right: 16px !important;
+    margin-left: 8px !important;
 }
 
 `);
@@ -175,18 +202,21 @@ GM_addStyle(`
  * Button to copy task hyperlink to clipboard
  */
 
-$(function copyButton() {
+function copyButton() {
     // Identify div to add the button to
     let taskName = $("#content > h2");
 
     // Preparing content to write to clipboard
     let pageUrl = window.location.href;
     let taskTitle = $("head > title").text().slice(0, -17); // Turn header element into text, then remove " - TribePayments" part of the string
+    // Remove the " - <Project name>" from the end of the string
+    let cleanedStringEndingIndex = taskTitle.lastIndexOf(" - ");
+    let cleanedTaskTitle = taskTitle.substring(0, cleanedStringEndingIndex);
 
     // Create a hyperlink
-    $("#footer").append(`<a href="${pageUrl}" style="color: white">${taskTitle}</a>`)
+    $("#footer").append(`<a href="${pageUrl}" style="color: white">${cleanedTaskTitle}</a>`)
 
-    // This is a working solution that copies a hyperlink, but need to understand how it works | Source: https://stackoverflow.com/questions/53003980/how-to-copy-a-hypertext-link-into-clipboard-with-javascript-and-preserve-its-lin
+    // This is a working solution that copies a hyperlink | Source: https://stackoverflow.com/questions/53003980/how-to-copy-a-hypertext-link-into-clipboard-with-javascript-and-preserve-its-lin
     const onClick = evt => {
       const link = document.querySelector("#footer > a:nth-child(2)"); // select hypterlink to copy from DOM
       const range = document.createRange();
@@ -208,113 +238,83 @@ $(function copyButton() {
     });
     // Add the button
     taskName.append(btn)
-});
+};
+
+copyButton();
 
 // --------------- All buttons ----------------------
 
-
 if (taskType == "Support") {
+
+    // Universal status button function
+    function addStatusButton(statusClassName, buttonText, statusId) {
+        // Identify div to add the button to
+        let topHorizontalToolbar = buttonLocation
+        // a button is equal to
+        let btn = $(`<a class="fill ${statusClassName}">${buttonText}</a>`);
+        // a button's on-click action is
+        btn.click(function(){
+            $("#issue_status_id").val(statusId);
+            $('#issue-form').submit();
+        });
+        // Add the button
+        topHorizontalToolbar.append(btn)
+    }
+
     /**
      * Assign issue to me
      */
-    $(function assignToMe() {
+    function assignToMe(userRole) {
         // Identify div to add the button to
         let topHorizontalToolbar = buttonLocation
-
         // a button is equal to
         let btn = $('<a class="fill assignToMe">Assign to me</a>');
         // a button's on-click action is
-        btn.click(function(){
-            $("#issue_assigned_to_id").val(186);
-            $('#issue-form').submit();
-        });
-        // Add the button
-        topHorizontalToolbar.append(btn)
-    });
 
-    /**
-     * Button to set status to In progress by TM
-     */
+        if (userRole == "PM" || userRole == "BOTH") {
+            btn.click(function(){
+                $("#issue_assigned_to_id").val(186);
+                $('#issue-form').submit();
+            });
+            // Add the button
+            topHorizontalToolbar.append(btn)
+        } else if (userRole == "OPS" || userRole == "BOTH") {
+            // Currently there's no way to assign Ops assignee as 'Me'
+            // btn.click(function(){
+                //     $("#issue_assigned_to_id").val(<id>);
+            // }
+            // Add the button
+            // topHorizontalToolbar.append(btn)
+        };
+    };
 
-    $(function statusInProgressTM() {
-        // Identify div to add the button to
-        let topHorizontalToolbar = buttonLocation
+    // Create an Assign to me button for BOTH and PM roles
+    assignToMe(userRole);
 
-        // a button is equal to
-        // let btn = $('<input type="button" value="In progress (LT-TM)">');
-        let btn = $('<a class="fill statusInProgressTM">In progress (LT-TM)</a>');
-        // a button's on-click action is
-        btn.click(function(){
-            $("#issue_status_id").val(25);
-            $('#issue-form').submit();
-        });
-        // Add the button
-        topHorizontalToolbar.append(btn)
-    });
+    // Adding buttons for specified user roles
+    if (userRole == "PM" || userRole == "BOTH") {
+        addStatusButton("inProgressPm", "In progress (LT-PM)", 25);
+        addStatusButton("pendingOps", "Pending (LT-OPS)", 28);
+        addStatusButton("pendingApp", "Pending (LT-APP)", 29);
+        addStatusButton("pendingDevops", "Pending (DevOps)", 34);
+        addStatusButton("pendingInfra", "Pending (Infra)", 32);
+        addStatusButton("resolved", "Resolved", 3);
+    }
+    if (userRole == "OPS" || userRole == "BOTH") {
+        addStatusButton("new", "New", 1);
+        addStatusButton("inProgressOps", "In progress (LT-OPS)", 27);
+        addStatusButton("pendingPm", "Pending (LT-PM)", 30);
+        addStatusButton("feedback", "Feedback", 4);
+        addStatusButton("closed", "Closed", 5);
+    }
 
-    /**
-     * Button to set status to APP team
-     */
-    $(function statusPendingApp() {
-        // Identify div to add the button to
-        let topHorizontalToolbar = buttonLocation
-
-        // a button is equal to
-        // let btn = $('<input type="button" value="Pending (LT-APP)">');
-        let btn = $('<a class="fill PendingApp">Pending (LT-APP)</a>');
-        // a button's on-click action is
-        btn.click(function(){
-            $("#issue_status_id").val(29);
-            $('#issue-form').submit();
-        });
-        // Add the button
-        topHorizontalToolbar.append(btn)
-    });
-
-    /**
-     * Button to set status to resolved
-     */
-    $(function statusResolved() {
-        // Identify div to add the button to
-        let topHorizontalToolbar = buttonLocation
-
-        // a button is equal to
-        // let btn = $('<input type="button" value="Resolved">');
-        let btn = $('<a class="fill Resolved">Resolved</a>');
-        // a button's on-click action is
-        btn.click(function(){
-            $("#issue_status_id").val(3);
-            $('#issue-form').submit();
-        });
-        // Add the button
-        topHorizontalToolbar.append(btn)
-    });
-
-    /**
-     * Button to set status to Pending MD-OPS
-     */
-    $(function statusPendingMD() {
-        // Identify div to add the button to
-        let topHorizontalToolbar = buttonLocation
-
-        // a button is equal to
-        // let btn = $('<input type="button" value="Pending (MD-OPS)">');
-        let btn = $('<a class="fill PendingMd">Pending (MD-OPS)</a>');
-        // a button's on-click action is
-        btn.click(function(){
-            $("#issue_status_id").val(28);
-            $('#issue-form').submit();
-        });
-        // Add the button
-        topHorizontalToolbar.append(btn)
-    });
 };
 
 
 // ------------------- Post-release -> Skip both ----------------
 // Displayed on "Development" tasks only
 
-if (taskType == "Development") {
+if (taskType == "Development" && userRole == "PM" || userRole == "BOTH") {
     $(function setPostReleaseFieldsToSkip() {
         // Identify div to add the button to
         // let div = document.querySelector("#content > div.issue.tracker-4.status-5.priority-2.priority-high4.closed.child.details > div.attributes > div:nth-child(2) > div:nth-child(2) > div.cf_118.attribute")
@@ -338,29 +338,47 @@ if (taskType == "Development") {
 
 
 // Prettify the Edit button
-// $("#content > div:nth-child(1) > a.icon.icon-edit").addClass("fill");
+try {
+    $("#content > div:nth-child(1) > a.icon.icon-edit").addClass("fill");
+} catch (error) {
+    console.log("Couldn't prettify the Edit button");
+};
+
 // Pretiffy the bottom of the page Edit button
-// $("#content > div:nth-child(6) > a.icon.icon-edit").addClass("fill");
-
-
+try {
+    $("#content > div:nth-child(6) > a.icon.icon-edit").addClass("fill");
+} catch (error) {
+    console.log("Couldn't prettify the Edit button");
+};
 
 // --------------------------- Task details page rework (description, notes, etc.) -------------------------------
+
+
+$("#content > div.issue.tracker-19.status-5.priority-3.priority-high3.closed.created-by-me.details > div.attributes > div:nth-child(2) > div:nth-child(2) > div.cf_25.attribute > div.value > div").addClass('mrDiv');
 
 if (enableCustomTaskPageDesign == true) {
 
     GM_addStyle(`
     div.wiki {
         /*font-family: 'Roboto', sans-serif;*/
-        font-size: 16px;
+        font-size: 15px;
         border-radius: 10px;
         box-shadow: rgba(6, 24, 44, 0.2) 0px 0px 0px 2px, rgba(6, 24, 44, 0.45) 0px 4px 6px -1px, rgba(255, 255, 255, 0.08) 0px 1px 0px inset !important;
         background-color: white;
         padding-left: 14px !important;
         padding-right: 14px !important;
-        padding-top: 5px !important;
+        padding-top: 8px !important;
         padding-bottom: 8px !important;
         margin-top: 12px !important;
         margin-bottom: 12px !important;
+        margin-left: 6px !important;
+        margin-right: 6px !important;
+    }
+
+    /* MR div */
+    div.cf_25.attribute > div.value > div {
+        box-shadow: unset !important;
+        background-color: ${taskDetailsColor};
     }
 
     /* Page Global CSS */
@@ -400,7 +418,7 @@ if (enableCustomTaskPageDesign == true) {
 
     /* Top bar of the whole page that is initially blue */
     div#header {
-        background-color: ${headerColor};
+        ${headerColorCss};
     }
 
     `);
@@ -559,6 +577,12 @@ if (enableCustomNoteEntryField == true) {
         localStorage.removeItem(RedmineTaskNumber);
     };
 
+    // Add the clearNoteFromLocalStorage function to the submit buttons
+    try {
+        document.querySelector("#issue-form > input[type=submit]:nth-child(7)").addEventListener("click", function() {clearNoteFromLocalStorage();}); // Clear local storage when clicking "Submit" }
+    } catch(e) {
+        document.querySelector("#issue-form > input[type=submit]:nth-child(7)").addEventListener("click", function() {clearNoteFromLocalStorage();}); // Clear local storage when clicking "Submit"}
+    };
 
     // --- Add a hide button to the Note area ------------------------------------------
     /**
@@ -570,7 +594,7 @@ if (enableCustomNoteEntryField == true) {
     .hideButton {
         margin-left: 5px !important;
     }
- 
+
      `);
 
     $(function noteHide() {
@@ -619,14 +643,12 @@ if (enableCustomNoteEntryField == true) {
 try {
     document.querySelector("#content > div:nth-child(6) > a.icon.icon-edit").accessKey = "q"; // Edit task when shortcut Alt + q is pressed
     document.querySelector("#issue-form > input[type=submit]:nth-child(7)").accessKey = "w"; // Save task when shortcut Alt + w is pressed
-    document.querySelector("#issue-form > input[type=submit]:nth-child(7)").addEventListener("click", function() {clearNoteFromLocalStorage();}); // Clear local storage when clicking "Submit"
 } catch(e) {
     console.log(e)
 
     try {
         document.querySelector("#content > div:nth-child(2) > a.icon.icon-edit").accessKey = "q"; // Edit task when shortcut Alt + q is pressed (when "Successful update." is displayed)
         document.querySelector("#issue-form > input[type=submit]:nth-child(7)").accessKey = "w"; // Save task when shortcut Alt + w is pressed
-        document.querySelector("#issue-form > input[type=submit]:nth-child(7)").addEventListener("click", function() {clearNoteFromLocalStorage();}); // Clear local storage when clicking "Submit"
     } catch(e) {
         console.log('try 2 ');
         console.log(e)
