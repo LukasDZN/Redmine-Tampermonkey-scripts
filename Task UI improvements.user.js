@@ -187,7 +187,7 @@ input[type="submit"] {
     text-align: center;
     font-size: 12px;
     font-weight: 600;
-    background-color: #A8E99A;
+    background-color: #05DCA2;
     padding-top: 8px;
     padding-bottom: 12px;
     padding-left: 20px;
@@ -198,11 +198,11 @@ input[type="submit"] {
     margin-right: 10px;
     min-width: 70px;
     min-height: 30px;
-    color: #0E1152;
+    color: white;
 }
 
 input[type="submit"]:hover {
-    background-color: #A8E99A;
+    background-color: #05DCA2;
     text-decoration: none;
     box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.25);
 `);
