@@ -93,7 +93,7 @@ let buttonLocation = $("#content > h2");
 
 GM_addStyle(`
 /* optional - add  "input[type="submit"]' as a selector below in order to style the submit button */
-.fill {
+.fill, input[type="submit"]{
     font-family: "Inter", sans-serif!important;
     font-size: 12px;
     font-weight: 600;
@@ -181,6 +181,30 @@ a.icon.icon-edit.fill {
     padding-right: 20px;
     color: white;
 }
+
+/* Submit button */
+input[type="submit"] {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: #A8E99A;
+    padding-top: 8px;
+    padding-bottom: 12px;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    min-width: 70px;
+    min-height: 30px;
+    color: #0E1152;
+}
+
+input[type="submit"]:hover {
+    background-color: #A8E99A;
+    text-decoration: none;
+    box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.25);
 `);
 
 // --------------------------- COPY feature next to task title --------------------------
