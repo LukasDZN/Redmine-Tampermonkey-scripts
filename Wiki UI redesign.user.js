@@ -1,8 +1,11 @@
 // ==UserScript==
 // @name         Wiki UI redesign
+// @version      0.1
+// @author       ld
 // @match        https://redmine.tribepayments.com/projects/*/wiki*
 // @require      http://code.jquery.com/jquery-latest.js
 // @grant        GM_addStyle
+// @downloadURL  https://github.com/LukasDZN/Redmine-Tampermonkey-scripts/raw/main/Wiki%20UI%20redesign.user.js
 // ==/UserScript==
 
 var $ = window.jQuery;
