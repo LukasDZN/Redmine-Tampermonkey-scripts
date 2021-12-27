@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Wiki UI redesign
-// @version      0.1
+// @version      1.0.0
 // @author       ld
 // @match        https://redmine.tribepayments.com/projects/*/wiki*
 // @require      http://code.jquery.com/jquery-latest.js
