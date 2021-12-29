@@ -28,7 +28,7 @@
 // --- User-specific config ------------------------------------------------------
 
 // Choose your role type, in order for the script to display the appropriate Support ticket status buttons
-var userRole = 'OPS'; // Possible values: 'PM', 'OPS', 'BOTH'. Default value: 'OPS'.
+var userRole = 'PM'; // Possible values: 'PM', 'OPS', 'BOTH'. Default value: 'OPS'.
 
 // Custom note field that sticks to the right side of the screen
 var enableCustomNoteEntryField = true; // Enable/disable by putting in either 'true' or 'false'
@@ -60,6 +60,10 @@ if (taskTitle.includes("Support - ")) {
 } else {
     var taskType = "Development";
 };
+
+// User ID
+var myUserLink = $('#loggedas a').attr('href');
+var myID = myUserLink.match(/(\d*)$/i)[0];
 
 //-------------------------- REMOVING UI ELEMENTS --------------------------------
 
@@ -254,7 +258,7 @@ function copyButton() {
     };
 
     // a button is equal to
-    let btn = $('<a class="fill buttonToCopy flashBG"> copy</a>');
+    let btn = $('<a class="fill buttonToCopy flashBG"> copy link</a>');
     // a button's on-click action is
     btn.click(function(){
         // navigator.clipboard.writeText(link)
@@ -297,7 +301,7 @@ if (taskType == "Support") {
 
         if (userRole == "PM" || userRole == "BOTH") {
             btn.click(function(){
-                $("#issue_assigned_to_id").val(186);
+                $("#issue_assigned_to_id").val(myID);
                 $('#issue-form').submit();
             });
             // Add the button
@@ -538,11 +542,11 @@ if (enableCustomNoteEntryField == true) {
     function calcHeight(value) {
         let numberOfLineBreaks = (value.match(/\n/g) || []).length;
         // min-height + lines x line-height
-        let newHeight = 45 + numberOfLineBreaks * 20 // Change the first number to adjust the initial height
+        let newHeight = numberOfLineBreaks * 20 // Change the first number to adjust the initial height
         if (newHeight > 850) {
             newHeight = 850};
-        if (newHeight < 165) {
-            newHeight = 165};
+        if (newHeight < 200) {
+            newHeight = 200};
         return newHeight;
     }
 
@@ -668,14 +672,13 @@ try {
     document.querySelector("#content > div:nth-child(6) > a.icon.icon-edit").accessKey = "q"; // Edit task when shortcut Alt + q is pressed
     document.querySelector("#issue-form > input[type=submit]:nth-child(7)").accessKey = "w"; // Save task when shortcut Alt + w is pressed
 } catch(e) {
-    console.log(e)
+    console.log('First block: ' + e)
 
     try {
         document.querySelector("#content > div:nth-child(2) > a.icon.icon-edit").accessKey = "q"; // Edit task when shortcut Alt + q is pressed (when "Successful update." is displayed)
         document.querySelector("#issue-form > input[type=submit]:nth-child(7)").accessKey = "w"; // Save task when shortcut Alt + w is pressed
     } catch(e) {
-        console.log('try 2 ');
-        console.log(e)
+        console.log('Second block: ' + e);
     };
 };
 
@@ -718,6 +721,26 @@ Input would be an Object = {
 // $("#issue_custom_field_values_39").addClass("custom-search-input");
 
 // - Create rules for highlighting fields [WIP below]
+
+
+/*
+Copy --> Copy URL
+Assign to me --> neveikia - paskiria Laura
+buttonai --> laura skiria tik individualiems devams (dropdowna tam paciam div'e padaryt kad eitu pasirinkt) - bet kai pirma kart paskiri tai poto jau nebereik paskirt, kai 10 kart statusas eina back and forth. 
+
+- Custom queries --> padaryt kad eitu pasirinkt pagal hyperlink title kuriuos displayint. Pvz laura nori isfiltruot kad rodytu tik TM-ISAC-ACQ: * <- wildcard, bei kad nerodytu, "TM-ISAC-ACQ: My requests"
+- Kur vienas komentaras atrodo keistai, bet kur daug komentaru ten px. --> paklaust del dizaino? --> paieskot pavyzdziu
+
+By default, update --> checkmarkas nuimtas.
+
+status highlightinima galima pridet (bendrai tekste).
+
+
+
+note'as --> neissisaugo foto jeigu 
+
+Galimai fontas per didelis - gal pamazint -> padaryt configurable?
+*/
 
 
 
