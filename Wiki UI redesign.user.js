@@ -1,73 +1,68 @@
 // ==UserScript==
 // @name         Wiki UI redesign
-// @version      1.0.0
+// @version      1.0.1
 // @author       ld
 // @match        https://redmine.tribepayments.com/projects/*/wiki*
 // @require      http://code.jquery.com/jquery-latest.js
 // @grant        GM_addStyle
 // @downloadURL  https://github.com/LukasDZN/Redmine-Tampermonkey-scripts/raw/main/Wiki%20UI%20redesign.user.js
+// @run-at       document-start
 // ==/UserScript==
-
-var $ = window.jQuery;
 
 //-------------------------- WIKI INDEX PAGE --------------------------------
 
 GM_addStyle(`
-#header {
-   background: rgb(2,0,36);
-   background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(136,0,255,1) 100%);
-}
+    #header {
+    background: rgb(2,0,36);
+    background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(136,0,255,1) 100%);
+    }
 
-.wiki.wiki-page {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    width: 50%;
-    max-width: 800px;
-    font-family: "Inter", sans-serif;
-    font-size: 16px;
-    text-align: left;
-}
+    .wiki.wiki-page {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 50%;
+        max-width: 800px;
+        font-family: "Inter", sans-serif;
+        font-size: 16px;
+        text-align: left;
+    }
 
-.wiki.wiki-page h1 {
-    font-size: 28px;
-}
+    .wiki.wiki-page h1 {
+        font-size: 28px;
+    }
 
-.wiki.wiki-page h2 {
-    font-size: 22px;
-}
+    .wiki.wiki-page h2 {
+        font-size: 22px;
+    }
 
-.wiki.wiki-page h3 {
-    font-size: 18px;
-}
+    .wiki.wiki-page h3 {
+        font-size: 18px;
+    }
 
-.wiki.wiki-page a {
-    line-height: 1.5;
-}
+    .wiki.wiki-page a {
+        line-height: 1.5;
+    }
 
-.wiki.wiki-page a:hover {
-    text-decoration: none;
-    color: darkblue;
-    -webkit-text-stroke: 0.5px darkblue;
-}
+    .wiki.wiki-page a:hover {
+        text-decoration: none;
+        color: darkblue;
+        -webkit-text-stroke: 0.5px darkblue;
+    }
 
 
-/* TOC */
-div.wiki ul.toc {
-    background-color: #EDEDFF;
-    border-radius: 10px;
-    overflow-wrap: break-word;
-}
+    /* TOC */
+    div.wiki ul.toc {
+        background-color: #EDEDFF;
+        border-radius: 10px;
+        overflow-wrap: break-word;
+    }
 
-div.wiki ul.toc a {
-    font-size: 14px;
-}
+    div.wiki ul.toc a {
+        font-size: 14px;
+    }
 
-`);
-
-// Removing unncessary elements
-let removeClassesList = [".wiki-anchor", "#footer"]
-removeClassesList.forEach(className => document.querySelectorAll(className).forEach(e => e.remove()));
+    `);
 
 //-------------------------- WIKI INNER PAGE --------------------------------
 
@@ -88,22 +83,6 @@ div.wiki pre {
     background-color: #fff;
 }
 `);
-
-
-
-
-
-
-
-
-
-
-// --- Private changes below ------------------------------------------------
-
-
-// - This is for me only (removing the export as html, pdf, csv hyperlinks --
-
-$("p.other-formats").remove()
 
 // ----------------- Beautify the Edit button -------------------------------
 
@@ -141,5 +120,13 @@ GM_addStyle(`
     }
 `);
 
+var $ = window.jQuery;
+
+// Removing the export as html, pdf, csv hyperlinks
+$("p.other-formats").remove()
 // Prettify the Edit button
 $("#content > div:nth-child(1) > a.icon.icon-edit").addClass("fill");
+
+// Removing unncessary elements
+let removeClassesList = [".wiki-anchor", "#footer"]
+removeClassesList.forEach(className => document.querySelectorAll(className).forEach(e => e.remove()));
