@@ -122,11 +122,16 @@ GM_addStyle(`
 
 var $ = window.jQuery;
 
-// Removing the export as html, pdf, csv hyperlinks
-$("p.other-formats").remove()
-// Prettify the Edit button
-$("#content > div:nth-child(1) > a.icon.icon-edit").addClass("fill");
+document.onreadystatechange = function () {
+    // Possible values: 'loading', 'interactive', 'complete'
+    if (document.readyState === "interactive") {
+        // Removing the export as html, pdf, csv hyperlinks
+        $("p.other-formats").remove()
+        // Prettify the Edit button
+        $("#content > div:nth-child(1) > a.icon.icon-edit").addClass("fill");
 
-// Removing unncessary elements
-let removeClassesList = [".wiki-anchor", "#footer"]
-removeClassesList.forEach(className => document.querySelectorAll(className).forEach(e => e.remove()));
+        // Removing unncessary elements
+        let removeClassesList = [".wiki-anchor", "#footer"]
+        removeClassesList.forEach(className => document.querySelectorAll(className).forEach(e => e.remove()));
+    }
+}
