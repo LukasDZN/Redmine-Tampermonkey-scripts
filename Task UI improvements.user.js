@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Task UI improvements
-// @version      0.3
+// @version      0.4
 // @author       ld
 // @match        redmine.tribepayments.com/issues/1*
 // @match        redmine.tribepayments.com/issues/2*
