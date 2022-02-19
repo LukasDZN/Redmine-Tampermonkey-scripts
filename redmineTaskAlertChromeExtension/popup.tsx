@@ -39,11 +39,11 @@ element>element	div > p	Selects all <p> elements where the parent is a <div> ele
 
 // --- Config ----------------------------------------------------------------------
 
-// Can't request everyone to put in their API key because it's too much of a hassle
 var redmineApiToken = "97f301157f2afdc96676e988ceb58eea2d78602c";
 
-var fieldSchema = {
-  status: {
+var fieldSchema = [
+  {
+    fieldName: "status",
     displayName: "Status",
     value: {
       type: "dropdown",
@@ -56,71 +56,214 @@ var fieldSchema = {
       ],
     },
   },
-  mr_status: {
+  {
+    fieldName: "mr_status",
     displayName: "MR Status",
     value: {
       type: "dropdown",
       options: ["NONE", "WIP", "REVIEW", "DONE"],
     },
   },
-  test_status: {
+  {
+    fieldName: "test_status",
     displayName: "Test status",
     value: {
       type: "dropdown",
       options: ["not tested", "tested"],
     },
   },
-  deployed_in_sandbox: {
+  {
+    fieldName: "deployed_in_sandbox",
     displayName: "Deployed in Sandbox",
     value: {
       type: "dropdown",
       options: ["Empty", "Not empty"],
     },
   },
-  deployed_in_live: {
+  {
+    fieldName: "deployed_in_live",
     displayName: "Deployed in Live",
     value: {
       type: "dropdown",
       options: ["Empty", "Not empty"],
     },
   },
+];
+
+// Global variables
+
+var fieldDiv: any;
+var valueDiv: any;
+var redmineTaskNumberDiv: any;
+
+var activeAlertIdDiv: any;
+var activeAlertFieldDiv: any;
+var activeAlertValueDiv: any;
+var activeAlertDeleteDiv: any;
+
+var activeAlertsListDiv: any;
+
+var addButton: any;
+
+// --- Helper functions ------------------------------------------------------------
+
+/**
+ * @description - Displays all the items in the localStorage
+ * @param {object} localStorageItems - Object containing all the items in the localStorage
+ * @returns {void}
+ */
+/*
+ * If status is not triggered, then display it.
+ * Also add "delete" button.
+ */
+const displayLocalStorageItems = (localStorageItems: any) => {
+  try { activeAlertsListDiv.innerHTML = ""; } catch (error) {  };
+  for (let key in localStorageItems) {
+    let value = localStorageItems[key];
+
+    if (value.triggeredInThePast === "no") {
+      activeAlertsListDiv?.insertAdjacentHTML(
+        "beforeend",
+        `
+        <div class="activeAlert flex-container flex">
+          <div id="activeAlertId">${key}</div>
+          <div id="activeAlertField">${value.fieldToCheck}</div>
+          <div id="activeAlertValue">${value.valueToCheck}</div>
+          <button id="activeAlertDelete" onclick="deleteItemFromLocalStorage(${key})">Delete</button>
+        </div>
+      `
+      );
+    }
+  }
 };
 
-let valueDiv = document.querySelector("#field");
+// --- Add/Preview/Delete alerts using Local Storage -------------------------------
 
-for (let i of Object.values(fieldSchema)) {
-  // --- Insert "field" dropdown options
+// --- @testing
+let dummyItemObject1TaskID = "64503"; // Currently in mr_status: "REVIEW"
+let dummyItemObject1: any = {
+  itemAddedOnDate: new Date(),
+  fieldToCheck: "status",
+  valueToCheck: "In progress",
+  triggeredInThePast: "no",
+  triggeredAtDate: "",
+};
+// Expected result: Triggered, because status is Resolved.
 
-  console.log(i);
+let dummyItemObject2TaskID = "64503";
+let dummyItemObject2: any = {
+  itemAddedOnDate: new Date(2022, 1, 1),
+  fieldToCheck: "mr_status",
+  valueToCheck: "DONE",
+  triggeredInThePast: "no",
+  triggeredAtDate: "",
+};
+// Expected result: Not triggered, because mr_status is at REVIEW stage.
 
-  // // Insert "field value" dropdown options
-  // // for option in options
-  // if (type === "dropdown") {
-  //   for ()
+// @feature
+// --> Statuses need to have numbers assigned
+/*
+Let's say that we're looking for when status == "REVIEW",
+but in the span of time when the task status is being checked
+it goes from WIP to DONE (or when your PC is turned off 
+before work).
 
-  //   if option === "Empty" {
+0 NONE <-- When adding a new item
+1 WIP 
+2 REVIEW <-- Expected 
+3 DONE <-- Current
+*/
 
-  //   valueDiv?.insertAdjacentHTML('beforeend', `<option value="${value}">${value}</option>`);
-  // } else {
-  //   // @feature
-  // }
-}
+const getAndParseLocalStorageItems = () => {
+  // Init an object to store all the items
+  let localStorageItems: any = {};
+  // Get an array of all the localStorage keys (i.e. task IDs)
+  var arrayOfKeys = Object.keys(localStorage);
+  // For every key in the array, get the value and display it
+  for (let key of arrayOfKeys) {
+    try {
+      // Console log raw keys and values
+      // console.log(key); // log keys
+      // console.log(localStorage.getItem(key)); // log values
+
+      let valueString: string | null = localStorage.getItem(key);
+      let valueObject = JSON.parse(valueString!);
+
+      // console.log(
+      //   "key: " +
+      //     key +
+      //     " | " +
+      //     "valueObject.fieldToCheck: " +
+      //     valueObject.fieldToCheck
+      // );
+      localStorageItems[key] = valueObject;
+    } catch (error) {
+      console.log("displayLocalStorageItems ERROR: " + error);
+    }
+  }
+  return localStorageItems;
+};
 
 // ---------------------------------------------------------------------------------
 
-// --- Get current Redmine page details --------------------------------------------
-/**
- * If possible (if the currently loaded page is a Redmine task page), then get task
- * details. It needs to happen after the page loads. If the page is not a Redmine
- * task page or it is a support task @feature, then skip this part.
- */
+// --- General ---------------------------------------------------------------------
 
-// -- Auto-fill details from the current development task page data ----------------
-try {
-  // Check if the page has loaded before attempting to retrieve values
-  document.onreadystatechange = function () {
-    // Possible values: 'loading', 'interactive', 'complete'
-    if (document.readyState === "interactive") {
+// Check if the page has loaded before attempting to retrieve values
+document.onreadystatechange = function () {
+  // --- Adding Field and Value dropdowns --------------------------------------------
+
+  if (document.readyState === "complete") {
+    // --- Get divs from the DOM
+    // Get field div
+    fieldDiv = document.getElementById("field") as HTMLInputElement; // Casting — or more properly, type assertion
+    // Get value div
+    valueDiv = document.getElementById("addValue") as HTMLInputElement;
+    // Get redmine task number div
+    redmineTaskNumberDiv = document.getElementById(
+      "task_id_input"
+    ) as HTMLInputElement;
+    // Get active alert id div
+    activeAlertIdDiv = document.getElementById(
+      "activeAlertId"
+    ) as HTMLInputElement;
+    // Get active alert field div
+    activeAlertFieldDiv = document.getElementById(
+      "activeAlertField"
+    ) as HTMLInputElement;
+    // Get active alert value div
+    activeAlertValueDiv = document.getElementById(
+      "activeAlertValue"
+    ) as HTMLInputElement;
+    // Get active alert delete div
+    activeAlertDeleteDiv = document.getElementById(
+      "activeAlertDelete"
+    ) as HTMLInputElement;
+    // Get active alerts div
+    activeAlertsListDiv = document.getElementById(
+      "activeAlertsList"
+    ) as HTMLDivElement;
+    // Get add button
+    addButton = document.getElementById("addButton") as HTMLButtonElement;
+
+    // --- Populate field with schema fieldname and displayname
+    fieldSchema.forEach((fieldObject) => {
+      // --- Insert "field" dropdown options
+      fieldDiv?.insertAdjacentHTML(
+        "beforeend",
+        `<option value="${fieldObject.fieldName}">${fieldObject.displayName}</option>`
+      );
+    });
+
+    // --- Get current Redmine page details --------------------------------------------
+    /**
+     * If possible (if the currently loaded page is a Redmine task page), then get task
+     * details. It needs to happen after the page loads. If the page is not a Redmine
+     * task page or it is a support task @feature, then skip this part.
+     */
+
+    // -- Auto-fill details from the current development task page data ----------------
+
+    try {
       var taskType: string;
 
       // --- Detect project --------------------------------------------------
@@ -161,27 +304,78 @@ try {
         var redmineDeployedToSandbox: string | null | undefined =
           document.querySelector(".cf_11.attribute > .value")?.textContent;
         /*
-                console.log(redmineTaskStatus)
-                console.log(redmineTestStatus)
-                console.log(redmineMrStatus)
-                console.log(redmineDeployedToSandbox)
-                */
+              console.log(redmineTaskStatus)
+              console.log(redmineTestStatus)
+              console.log(redmineMrStatus)
+              console.log(redmineDeployedToSandbox)
+              */
         // Deployed to Live status
         // --> this is unnecessary, as there are no more assumptions to make if the task
         // is deployed to live
         // -
+
+        // Soft-set input values
+        redmineTaskNumberDiv.value = redmineTaskNumber;
       } else if (taskType === "Support") {
         // @feature
       }
+    } catch (error) {
+      console.log(error);
     }
-  };
-} catch (error) {
-  //   console.log(error);
-}
 
-// // ---------------------------------------------------------------------------------
+    // --- Get initial selected field
+    var selectedField = fieldDiv.value;
+    // console.log("selectedField log: " + selectedField); //@testing
+
+    // --- Insert "field value" dropdown options
+    // Source: https://stackoverflow.com/questions/3364493/how-do-i-clear-all-options-in-a-dropdown-box
+    function removeOptions(selectElement: any) {
+      var i,
+        L = selectElement.options.length - 1;
+      for (i = L; i >= 0; i--) {
+        selectElement.remove(i);
+      }
+    }
+
+    function insertOptions(currentlySelectedField: string) {
+      fieldSchema.forEach((fieldObject) => {
+        // console.log(`${currentlySelectedField} AND ${fieldObject.fieldName}`); //@testing
+        if (currentlySelectedField === fieldObject.fieldName) {
+          if (fieldObject.value.type === "dropdown") {
+            for (let option of fieldObject.value.options) {
+              valueDiv?.insertAdjacentHTML(
+                "beforeend",
+                `<option value="${option}">${option}</option>`
+              ); // MR name and value matches -> both are "MERGED" for example.
+            }
+          } else if (fieldObject.value.type === "text") {
+            // @feature --> add text input field
+          }
+        }
+      });
+    }
+    insertOptions(selectedField);
+    // attach a change event listener to the field drop-down
+    // Source: https://stackoverflow.com/questions/29802104/javascript-change-drop-down-box-options-based-on-another-drop-down-box-value
+    fieldDiv.addEventListener("change", function () {
+      removeOptions(valueDiv);
+      insertOptions(fieldDiv.value);
+      // console.log('fieldDiv: ' + fieldDiv.value); //@testing
+      // console.log('valueDiv: ' + valueDiv.value); //@testing
+    });
+
+    // --- Display Active alerts on load -----------------------------------------------
+    displayLocalStorageItems(getAndParseLocalStorageItems());
+    
+    addButton.addEventListener("click", saveItemToLocalStorage());
+  // ------------------------------------------------------------------------------------
+
+  // --- End of General -----------------------------------------------------------------
+  };
+};
 
 // // --- Validate data ---------------------------------------------------------------
+// @notMvp - fields are predefined except for task ID
 
 // // // -- 'Add task' button availability (disabled if input is not valid)
 // // // Disabled by default. Enabled when validation is passed.
@@ -203,6 +397,7 @@ try {
 // // ---------------------------------------------------------------------------------
 
 // // --- User analytics --------------------------------------------------------------
+// @notMvp - for my own use only at first
 
 // // -- User ID (for user analytics)
 // /** Send data whenever a user creates a new alert.
@@ -241,33 +436,156 @@ try {
 
 // // ---------------------------------------------------------------------------------
 
-// // --- Add/Preview/Delete alerts using Local Storage -------------------------------
+displayLocalStorageItems(getAndParseLocalStorageItems());
 
-// // TODO
+/**
+ * @description - This function is not called anywhere at the moment.
+ */
+const clearLocalStorage = () => {
+  localStorage.clear();
+};
 
-// // // Set Item
-// // /* localStorage.setItem(key, value); */
-// // function saveNoteToLocalStorage() {
-// //   localStorage.setItem(
-// //     RedmineTaskNumber,
-// //     document.querySelector("#issue_notes").value
-// //   );
-// // }
+// Save Item
+/* localStorage.setItem(key, value); */
+function saveItemToLocalStorage() {
+  // Build object with most recent data
+  let itemObject: any = {
+    itemAddedOnDate: new Date(),
+    fieldToCheck: fieldDiv.value,
+    valueToCheck: valueDiv.value,
+    triggeredInThePast: "no",
+    triggeredAtDate: "",
+  };
+  let itemObjectString = JSON.stringify(itemObject);
+  /*
+  @param {string} key name
+  @param {string} value
+  */
+  localStorage.setItem(redmineTaskNumberDiv.value, itemObjectString);
 
-// // // Retrieve
-// // /* let lastname = localStorage.getItem(key); */
-// // // On-load --> set the textarea to the last saved value
-// // document.querySelector("#issue_notes").value =
-// //   localStorage.getItem(RedmineTaskNumber);
+  displayLocalStorageItems(getAndParseLocalStorageItems());
 
-// // // Local storage for this particular page is cleared upon clicking "Submit"
-// // function clearNoteFromLocalStorage() {
-// //   localStorage.removeItem(RedmineTaskNumber);
-// // }
+  // Clear input fields
+  redmineTaskNumberDiv.value = "";
 
-// // ---------------------------------------------------------------------------------
+  // Refresh "Active alerts" display list
+}
+
+// Retrieve
+// document.querySelector("#issue_notes").value =
+//   localStorage.getItem(RedmineTaskNumber);
+
+/**
+ * @description - This function is called when "Delete" button is clicked.
+ * @param {string} taskID
+ * Local storage docs: https://developer.mozilla.org/en-US/docs/Web/API/Storage
+ */
+function deleteItemFromLocalStorage(redmineTaskNumber: string) {
+  localStorage.removeItem(redmineTaskNumber);
+  // Refresh "Active alerts" display list
+  displayLocalStorageItems(getAndParseLocalStorageItems());
+}
+
+// ---------------------------------------------------------------------------------
 
 // // --- Send a request to Redmine every 3 minutes -----------------------------------
+
+const sleep = (ms: number) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+};
+
+// @testing task IDs
+// 64448 - Resolved - not tested - DONE - Empty - Empty
+// 66453 - Resolved - not tested - DONE - Empty - Empty
+// 50245 - New      - not tested - Closed - Empty - Empty
+
+
+// Extension script CORS privilege:
+// https://stackoverflow.com/questions/48615701/why-can-tampermonkeys-gm-xmlhttprequest-perform-a-cors-request
+const sendRequest = async (taskId: string) => {
+  try {
+    const redmineResponse = await fetch(
+      `https://redmine.tribepayments.com/issues/${taskId}.json`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "X-Redmine-API-Key": redmineApiToken,
+        },
+        body: null,
+      }
+    );
+    return redmineResponse;
+  } catch (error) {
+    console.log("ERROR in sendRequest func" + error);
+    return "ERROR in sendRequest func";
+  }
+};
+
+setInterval(async () => {
+  console.log("something is happening");
+  // for each item in localStorage with status triggeredInThePast == "no"
+  let localStorageItems = getAndParseLocalStorageItems();
+  for (let key in localStorageItems) {
+    if (localStorageItems[key].triggeredInThePast === "no") {
+      sendRequest(key);
+      console.log(key); // @testing
+      console.log("something"); // @testing
+      await sleep(300);
+    }
+  }
+}, 5000); // @testing - 5 seconds
+// }, 180000); // 3 minutes
+
+// Raise an alert via Desktop notification
+// @feature - can add text with changes what happened to the ticket
+function raiseAlert(taskId: number) {
+  // Source for notification standard: https://notifications.spec.whatwg.org/#using-events
+
+  // Let's check if the browser supports notifications
+  if (!("Notification" in window)) {
+    alert("This browser does not support desktop notification");
+  }
+
+  // Let's check whether notification permissions have already been granted
+  else if (Notification.permission === "granted") {
+    // If it's okay let's create a notification
+    var notification = new Notification(`
+        Task ID: ${taskId} has triggered an alert.
+      `);
+    window
+      .open(`https://redmine.tribepayments.com/issues/${taskId}`, "_blank")
+      ?.focus();
+  }
+
+  // Otherwise, we need to ask the user for permission
+  else if (Notification.permission !== "denied") {
+    Notification.requestPermission().then(function (permission) {
+      // If the user accepts, let's create a notification
+      if (permission === "granted") {
+        // var notification = new Notification("Hi there!");
+      }
+    });
+  }
+  // At last, if the user has denied notifications, and you
+  // want to be respectful there is no need to bother them any more.
+
+  // // Plan B:
+  // // Open Window on pop-up:
+  // window.open(`https://redmine.tribepayments.com/issues/${taskId}`, '_blank')?.focus();
+
+  // // Do not allow to close window without confirming:
+  // window.addEventListener('beforeunload', function (e) {
+  //   // Cancel the event
+  //   e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
+  //   // Chrome requires returnValue to be set
+  //   e.returnValue = '';
+  // });
+}
+
+// --- Comparing values to Local Storage --------------------------------------------
 
 // // Need to handle (when sending only. Writing and reading to memory is raw.)
 // options: [
@@ -275,31 +593,6 @@ try {
 //   "Not empty"
 // ],
 
-// var dummyDataLocalStorage1 = {
-//   [new Date().getTime()]: {
-//     date: new Date("08/02/2022"),
-//     redmineTaskNumber: "61253",
-//     redmineTaskStatus: "Resolved",
-//     redmineMrStatus: "NONE",
-//     redmineTestStatus: "not tested",
-//     redmineDeployedToSandboxStatus: "",
-//   },
-//   [new Date().getTime() - 2563]: {
-//     date: new Date("06/02/2022"),
-//     redmineTaskNumber: "61685",
-//     redmineTaskStatus: "In progress",
-//     redmineMrStatus: "WIP",
-//     redmineTestStatus: "not tested",
-//     redmineDeployedToSandboxStatus: "",
-//   },
-// };
-
-// // dummyDataLocalStorage1['54512314'].RedmineTaskStatus === "Resolved";
-
-// // Sending a request
-// function redmineRequest() {}
-
-// // Comparing values to Local Storage
 // function checkIfTriggerred() {
 //   // Get value from local storage
 
@@ -313,7 +606,35 @@ try {
 //   // <option value="status">-</option>
 // }
 
-// // Raise an alert
-// function raiseAlert() {}
 
-// // ---------------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------------
+
+/* 
+------------------------------------------------------------------------------
+--- ARCHIVE ------------------------------------------------------------------
+------------------------------------------------------------------------------
+
+var dummyDataLocalStorage1 = {
+  [new Date().getTime()]: {
+    itemAddedOnDate: new Date("08/02/2022"),
+    redmineTaskNumber: "61253",
+    redmineTaskStatus: "Resolved",
+    redmineMrStatus: "NONE",
+    redmineTestStatus: "not tested",
+    redmineDeployedToSandboxStatus: "",
+    triggeredInThePast: "yes",
+    triggeredAtDate: "08/02/2022",
+  },
+  [new Date().getTime() - 2563]: {
+    date: new Date("06/02/2022"),
+    redmineTaskNumber: "61685",
+    redmineTaskStatus: "In progress",
+    redmineMrStatus: "WIP",
+    redmineTestStatus: "not tested",
+    redmineDeployedToSandboxStatus: "",
+    triggered: "no",
+  },
+};
+
+*/

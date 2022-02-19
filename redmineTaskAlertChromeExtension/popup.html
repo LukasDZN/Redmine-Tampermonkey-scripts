@@ -17,7 +17,8 @@
       /* Modal Structure */
       html,
       body {
-        font-family: "Open Sans", sans-serif;
+        /* font-family: "Open Sans", sans-serif; */
+        font-family: "Menlo", monospace;
         font-size: 14px;
         margin: 0;
         min-height: 180px;
@@ -27,7 +28,7 @@
 
       h1 {
         font-family: "Menlo", monospace;
-        font-size: 22px;
+        font-size: 24px;
         font-weight: 400;
         margin: 0;
         color: #2f5876;
@@ -77,16 +78,20 @@
         display: flex;
         justify-content: space-between;
         padding: 10px 22px;
+        background-color: #FFA07A;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        /* text-align: left;
+        align-items: flex-start; */
       }
 
       .flex {
         opacity: 1;
         transition: opacity 0.2s ease-in-out;
-        width: 120px;
       }
 
       .flex:hover {
-        opacity: 0.4;
+        opacity: 0.7;
       }
 
       /* ld custom */
@@ -114,8 +119,9 @@
     </div>
     <div class="modal-content">
       <p>
-        Select task ID, the desired field and its value. When the selected
-        criteria is trigerred - you will receive a notification.
+        Select task ID, the desired field and its value (value must be equal to
+        or be greater than selected). When the selected criteria is trigerred -
+        you will receive a notification.
       </p>
     </div>
 
@@ -130,32 +136,21 @@
       <div class="flex-container">
         <div class="flex">
           <label for="task_id_input">Task ID:</label>
-          <input type="text" id="task_id_input" name="task_id_input" />
+          <input type="text" id="task_id_input" name="task_id_input" required />
         </div>
 
         <div class="flex">
           <label for="field">Field:</label>
-          <select name="field" id="field">
-            <option value="Status">Status</option>
-            <option value="test_status">Test status</option>
-            <option value="mr_status">MR status</option>
-            <option value="deployed_in_sandbox">Deployed in Sandbox</option>
-            <option value="deployed_in_live">Deployed in Live</option>
-          </select>
+          <select name="field" id="field" required></select>
         </div>
 
         <div class="flex">
           <label for="addValue">Value:</label>
-          <select name="addValue" id="addValue">
-            <option value="status">-</option>
-          </select>
+          <select name="addValue" id="addValue" required></select>
         </div>
 
         <div class="flex">
-          <a href="#" onclick="addTaskAlert()">
-            <i class="fa fa-plus-circle" aria-hidden="true"></i>
-            Add
-          </a>
+          <button id="addButton">Add</button>
         </div>
       </div>
     </div>
@@ -167,40 +162,17 @@
       <p>Active alerts</p>
     </div>
 
-    <div>
-      <div class="flex-container">
-        <div class="flex">
-          <label for="task_id_input">Task ID:</label>
-          <input type="text" id="task_id_input" name="task_id_input" />
+    <section class="activeAlerts">
+      <div id="activeAlertsList">
+        <!-- <div class="activeAlert flex">
+          <div id="activeAlertId"></div>
+          <div id="activeAlertField"></div>
+          <div id="activeAlertValue"></div>
+          <div id="activeAlertDelete"></div>
+          </div> -->
         </div>
-
-        <div class="flex">
-          <label for="field">Choose a field:</label>
-          <select name="field" id="field">
-            <option value="status">Status</option>
-            <option value="test_status">Test status</option>
-            <option value="mr_status">MR status</option>
-            <option value="deployed_in_sandbox">Deployed in Sandbox</option>
-            <option value="deployed_in_live">Deployed in Live</option>
-          </select>
-        </div>
-
-        <div class="flex">
-          <a href="#" onclick="addTaskAlert()">
-            <i class="fa fa-plus-circle" aria-hidden="true"></i>
-            Add task alert
-          </a>
-        </div>
-
-        <!-- Hidden until an entry is created -->
-        <!-- <div class="flex">
-                <a href="#" onclick="removeTaskAlert()">
-                    <i class="fa fa-minus-circle" aria-hidden="true"></i>
-                    Remove task alert
-                </a>
-            </div> -->
       </div>
-    </div>
+    </section>
 
     <hr />
 
