@@ -31,5 +31,6 @@ View related: https://chrome.google.com/webstore/detail/redmine-notification/cen
 
 
 
-
+Chrome Extension API:
+https://developer.chrome.com/docs/extensions/reference/
 

@@ -62,13 +62,23 @@ function highlightWord(word) {
 	}
 }
 
+// @testing
+// let today = new Date(2022, 0, 20, 16, 59);
+// let todayBeforeMeet = new Date(2022, 0, 20, 16, 59).setHours(15, 55); // (hours, minutes, seconds)
+// let todayAfterMeet = new Date(2022, 0, 20, 16, 59).setHours(17, 5);
+
+// Actual today's date values:
 let today = new Date();
 let todayBeforeMeet = new Date().setHours(15, 55); // (hours, minutes, seconds)
 let todayAfterMeet = new Date().setHours(17, 5);
+
 if (today.getDay() === 4) {
 	if (today > todayBeforeMeet && today < todayAfterMeet) {
 		// Parse through keyword list and highlight items
-		wordList.forEach((element) => highlightWord(element));
+		setInterval(
+			() => wordList.forEach((element) => highlightWord(element)),
+			2000
+		);
 	}
 }
 

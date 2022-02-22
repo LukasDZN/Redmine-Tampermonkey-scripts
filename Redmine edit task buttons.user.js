@@ -38,7 +38,7 @@ var headerColorCss = ``; // Possible value example:  "background-color:'#808080'
 // Task details
 var taskDetailsColor = '#FEF5E7';
 // Task details width (possible option for 70)
-var contentWidthPercent = 100;
+var contentWidthPercent = 50;
 
 // --- Imports -------------------------------------------------------------------
 
@@ -69,6 +69,9 @@ document.onreadystatechange = function () {
 			'.icon-comment',
 			'.next-prev-links',
 			'#content > p',
+			'#add_to_important_list',
+			'icon-fav-off',
+			'#sidebar',
 		];
 		removeClassesList.forEach((className) =>
 			document.querySelectorAll(className).forEach((e) => e.remove())
@@ -154,6 +157,10 @@ document.onreadystatechange = function () {
 		let buttonLocation = $('#content > h2');
 
 		GM_addStyle(`
+        #main {
+            align-self: center;
+        }
+
         /* optional - add  "input[type="submit"]' as a selector below in order to style the submit button */
         .fill, input[type="submit"]{
             font-family: "Inter", sans-serif!important;
@@ -200,6 +207,9 @@ document.onreadystatechange = function () {
         /* Roles: PM */
         .inProgressPm {
             background-color: #F9E79F;
+        }
+        .pendingImpl {
+            background-color: #D8B5FF;
         }
         .pendingOps {
             background-color: #DCF5A8;
@@ -386,6 +396,7 @@ document.onreadystatechange = function () {
 			// Adding buttons for specified user roles
 			if (userRole == 'PM' || userRole == 'BOTH') {
 				addStatusButton('inProgressPm', 'In progress (LT-PM)', 25);
+				addStatusButton('pendingImpl', 'Pending (MD-IMPL)', 36);
 				addStatusButton('pendingOps', 'Pending (LT-OPS)', 28);
 				addStatusButton('pendingApp', 'Pending (LT-APP)', 29);
 				addStatusButton('pendingDevops', 'Pending (DevOps)', 34);

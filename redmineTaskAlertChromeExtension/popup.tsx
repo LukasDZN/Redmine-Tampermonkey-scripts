@@ -35,6 +35,8 @@ element>element	div > p	Selects all <p> elements where the parent is a <div> ele
 // - @todo
 // - @feature
 
+// To do list example html/js/css: https://github.com/TylerPottsDev/yt-js-task-list-2021
+
 // ---------------------------------------------------------------------------------
 
 // --- Config ----------------------------------------------------------------------
@@ -104,6 +106,7 @@ var activeAlertDeleteDiv: any;
 var activeAlertsListDiv: any;
 
 var addButton: any;
+var clearButton: any;
 
 // --- Helper functions ------------------------------------------------------------
 
@@ -117,7 +120,9 @@ var addButton: any;
  * Also add "delete" button.
  */
 const displayLocalStorageItems = (localStorageItems: any) => {
-  try { activeAlertsListDiv.innerHTML = ""; } catch (error) {  };
+  try {
+    activeAlertsListDiv.innerHTML = "";
+  } catch (error) {}
   for (let key in localStorageItems) {
     let value = localStorageItems[key];
 
@@ -189,19 +194,32 @@ const getAndParseLocalStorageItems = () => {
       let valueString: string | null = localStorage.getItem(key);
       let valueObject = JSON.parse(valueString!);
 
-      // console.log(
-      //   "key: " +
-      //     key +
-      //     " | " +
-      //     "valueObject.fieldToCheck: " +
-      //     valueObject.fieldToCheck
-      // );
+      console.log(
+        "key: " +
+          key +
+          " | " +
+          "valueObject.fieldToCheck: " +
+          valueObject.fieldToCheck
+      );
       localStorageItems[key] = valueObject;
     } catch (error) {
       console.log("displayLocalStorageItems ERROR: " + error);
     }
   }
   return localStorageItems;
+};
+
+/**
+ * @description - This function is not called anywhere at the moment.
+ */
+ const clearLocalStorage = () => {
+  localStorage.clear();
+};
+
+const sleep = (ms: number) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 };
 
 // ---------------------------------------------------------------------------------
@@ -244,6 +262,9 @@ document.onreadystatechange = function () {
     ) as HTMLDivElement;
     // Get add button
     addButton = document.getElementById("addButton") as HTMLButtonElement;
+    // Get clear button
+    clearButton = document.getElementById("clearButton") as HTMLButtonElement;
+    clearButton.addEventListener("click", () => clearLocalStorage());
 
     // --- Populate field with schema fieldname and displayname
     fieldSchema.forEach((fieldObject) => {
@@ -281,7 +302,7 @@ document.onreadystatechange = function () {
       } else {
         taskType = "Development";
       }
-
+      console.log('TASKTITLE' + taskTitle)
       // If the project has been found and it is equal to "Development", then try
       // to get other relevant task details.
       if (taskType === "Development") {
@@ -366,12 +387,12 @@ document.onreadystatechange = function () {
 
     // --- Display Active alerts on load -----------------------------------------------
     displayLocalStorageItems(getAndParseLocalStorageItems());
-    
-    addButton.addEventListener("click", saveItemToLocalStorage());
-  // ------------------------------------------------------------------------------------
 
-  // --- End of General -----------------------------------------------------------------
-  };
+    addButton.addEventListener("click", () => saveItemToLocalStorage());
+    // ------------------------------------------------------------------------------------
+
+    // --- End of General -----------------------------------------------------------------
+  }
 };
 
 // // --- Validate data ---------------------------------------------------------------
@@ -438,13 +459,6 @@ document.onreadystatechange = function () {
 
 displayLocalStorageItems(getAndParseLocalStorageItems());
 
-/**
- * @description - This function is not called anywhere at the moment.
- */
-const clearLocalStorage = () => {
-  localStorage.clear();
-};
-
 // Save Item
 /* localStorage.setItem(key, value); */
 function saveItemToLocalStorage() {
@@ -490,18 +504,6 @@ function deleteItemFromLocalStorage(redmineTaskNumber: string) {
 
 // // --- Send a request to Redmine every 3 minutes -----------------------------------
 
-const sleep = (ms: number) => {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-};
-
-// @testing task IDs
-// 64448 - Resolved - not tested - DONE - Empty - Empty
-// 66453 - Resolved - not tested - DONE - Empty - Empty
-// 50245 - New      - not tested - Closed - Empty - Empty
-
-
 // Extension script CORS privilege:
 // https://stackoverflow.com/questions/48615701/why-can-tampermonkeys-gm-xmlhttprequest-perform-a-cors-request
 const sendRequest = async (taskId: string) => {
@@ -524,20 +526,22 @@ const sendRequest = async (taskId: string) => {
   }
 };
 
-setInterval(async () => {
-  console.log("something is happening");
-  // for each item in localStorage with status triggeredInThePast == "no"
-  let localStorageItems = getAndParseLocalStorageItems();
-  for (let key in localStorageItems) {
-    if (localStorageItems[key].triggeredInThePast === "no") {
-      sendRequest(key);
-      console.log(key); // @testing
-      console.log("something"); // @testing
-      await sleep(300);
-    }
-  }
-}, 5000); // @testing - 5 seconds
-// }, 180000); // 3 minutes
+// setInterval(async () => {
+//   console.log("something is happening");
+//   // for each item in localStorage with status triggeredInThePast == "no"
+//   let localStorageItems = getAndParseLocalStorageItems();
+//   for (let key in localStorageItems) {
+//     if (localStorageItems[key].triggeredInThePast === "no") {
+//       sendRequest(key);
+//       console.log(key); // @testing
+//       console.log("something"); // @testing
+//       await sleep(300);
+//     }
+//   }
+// }, 20000); // @testing - 5 seconds
+// // }, 180000); // 3 minutes
+
+
 
 // Raise an alert via Desktop notification
 // @feature - can add text with changes what happened to the ticket
@@ -585,6 +589,10 @@ function raiseAlert(taskId: number) {
   // });
 }
 
+// ---------------------------------------------------------------------------------
+
+
+
 // --- Comparing values to Local Storage --------------------------------------------
 
 // // Need to handle (when sending only. Writing and reading to memory is raw.)
@@ -606,9 +614,10 @@ function raiseAlert(taskId: number) {
 //   // <option value="status">-</option>
 // }
 
-
-
 // ---------------------------------------------------------------------------------
+
+
+
 
 /* 
 ------------------------------------------------------------------------------
