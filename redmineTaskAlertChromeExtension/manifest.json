@@ -15,5 +15,9 @@
       "css": ["main.css"]
     }
   ],
-  "permissions": ["notifications"]
+  "permissions": ["notifications", "tabs", "activeTab"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  }
 }

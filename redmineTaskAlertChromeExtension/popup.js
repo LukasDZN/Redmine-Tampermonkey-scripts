@@ -9,7 +9,6 @@
 // https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#modifying-network-requests
 // Google sheets - Append row API documentation
 // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
-// alert('hi')
 // -- Misc learning ---------------------------------------------------------------
 // The difference between querySelector() and querySelectorAll() is that querySelector() returns a single object with the first HTML element that matches the 'selectors', but querySelectorAll() returns an array of objects with all the HTML elements that match the 'selectors'.
 /*
@@ -46,7 +45,7 @@ var fieldSchema = [
     },
     {
         fieldName: "mr_status",
-        displayName: "MR Status",
+        displayName: "MR status",
         value: {
             type: "dropdown",
             options: ["NONE", "WIP", "REVIEW", "DONE"],
@@ -62,7 +61,7 @@ var fieldSchema = [
     },
     {
         fieldName: "deployed_in_sandbox",
-        displayName: "Deployed in Sandbox",
+        displayName: "Deployed in sandbox",
         value: {
             type: "dropdown",
             options: ["Empty", "Not empty"],
@@ -70,7 +69,7 @@ var fieldSchema = [
     },
     {
         fieldName: "deployed_in_live",
-        displayName: "Deployed in Live",
+        displayName: "Deployed in live",
         value: {
             type: "dropdown",
             options: ["Empty", "Not empty"],
@@ -86,6 +85,7 @@ var activeAlertFieldDiv;
 var activeAlertValueDiv;
 var activeAlertDeleteDiv;
 var activeAlertsListDiv;
+var triggeredAlertsListDiv;
 var addButton;
 var clearButton;
 // --- Helper functions ------------------------------------------------------------
@@ -101,22 +101,41 @@ var clearButton;
 const displayLocalStorageItems = (localStorageItems) => {
     try {
         activeAlertsListDiv.innerHTML = "";
+        triggeredAlertsListDiv.innerHTML = "";
     }
     catch (error) { }
     for (let key in localStorageItems) {
-        let value = localStorageItems[key];
-        if (value.triggeredInThePast === "no") {
-            activeAlertsListDiv === null || activeAlertsListDiv === void 0 ? void 0 : activeAlertsListDiv.insertAdjacentHTML("beforeend", `
-        <div class="activeAlert flex-container flex">
-          <div id="activeAlertId">${key}</div>
-          <div id="activeAlertField">${value.fieldToCheck}</div>
-          <div id="activeAlertValue">${value.valueToCheck}</div>
-          <button id="activeAlertDelete" onclick="deleteItemFromLocalStorage(${key})">Delete</button>
-        </div>
-      `);
+        try {
+            let value = localStorageItems[key];
+            if (value.triggeredInThePast === "no") {
+                activeAlertsListDiv === null || activeAlertsListDiv === void 0 ? void 0 : activeAlertsListDiv.insertAdjacentHTML("beforeend", `
+            <div class="activeAlert flex-container flex">
+              <div id="activeAlertId">${key}</div>
+              <div id="activeAlertField">${value.fieldToCheck}</div>
+              <div id="activeAlertValue">${value.valueToCheck}</div>
+              <button id="activeAlertDelete${key}" >Delete</button>
+            </div>
+          `);
+                let deleteButton = document.getElementById(`activeAlertDelete${key}`);
+                deleteButton.addEventListener("click", () => deleteItemFromLocalStorage(key));
+            }
+            else if (value.triggeredInThePast === "yes") {
+                triggeredAlertsListDiv === null || triggeredAlertsListDiv === void 0 ? void 0 : triggeredAlertsListDiv.insertAdjacentHTML("beforeend", `
+            <div class="activeAlert flex-container flex">
+              <div id="activeAlertId">${key}</div>
+              <div id="activeAlertField">${value.fieldToCheck}</div>
+              <div id="activeAlertValue">${value.valueToCheck}</div>
+              <div id="activeAlertValue">${value.triggeredAtDate}</div>
+            </div>
+          `);
+            }
         }
+        catch (error) { }
     }
 };
+// Detecting active chrome tab (href does not work for extensions)
+// Source: https://stackoverflow.com/questions/54821584/chrome-extension-code-to-get-current-active-tab-url-and-detect-any-url-update-in
+// @ts-ignore
 // --- Add/Preview/Delete alerts using Local Storage -------------------------------
 // --- @testing
 let dummyItemObject1TaskID = "64503"; // Currently in mr_status: "REVIEW"
@@ -167,7 +186,10 @@ const getAndParseLocalStorageItems = () => {
                 key +
                 " | " +
                 "valueObject.fieldToCheck: " +
-                valueObject.fieldToCheck);
+                valueObject.fieldToCheck +
+                " | " +
+                "triggered in the past?: " +
+                valueObject.triggeredInThePast);
             localStorageItems[key] = valueObject;
         }
         catch (error) {
@@ -192,7 +214,6 @@ const sleep = (ms) => {
 // Check if the page has loaded before attempting to retrieve values
 document.onreadystatechange = function () {
     // --- Adding Field and Value dropdowns --------------------------------------------
-    var _a, _b, _c, _d;
     if (document.readyState === "complete") {
         // --- Get divs from the DOM
         // Get field div
@@ -211,15 +232,17 @@ document.onreadystatechange = function () {
         activeAlertDeleteDiv = document.getElementById("activeAlertDelete");
         // Get active alerts div
         activeAlertsListDiv = document.getElementById("activeAlertsList");
+        // Get triggered alerts div
+        triggeredAlertsListDiv = document.getElementById("triggeredAlertsList");
         // Get add button
         addButton = document.getElementById("addButton");
         // Get clear button
         clearButton = document.getElementById("clearButton");
-        clearButton.addEventListener("click", () => clearLocalStorage());
+        // clearButton.addEventListener("click", () => clearLocalStorage()); // @temp
         // --- Populate field with schema fieldname and displayname
         fieldSchema.forEach((fieldObject) => {
             // --- Insert "field" dropdown options
-            fieldDiv === null || fieldDiv === void 0 ? void 0 : fieldDiv.insertAdjacentHTML("beforeend", `<option value="${fieldObject.fieldName}">${fieldObject.displayName}</option>`);
+            fieldDiv === null || fieldDiv === void 0 ? void 0 : fieldDiv.insertAdjacentHTML("beforeend", `<option value="${fieldObject.displayName}">${fieldObject.displayName}</option>`);
         });
         // --- Get current Redmine page details --------------------------------------------
         /**
@@ -237,49 +260,69 @@ document.onreadystatechange = function () {
              * Input: "Task #63383: ISAC-IS-CORE: Add TransLink field to the Currency Exchange XML Issuer Report - ISAC-ISS - Tribe Payments"
              * Output: " - ISAC-ISS - Tribe Payments"
              */
-            let taskTitle = document.title.slice(-28);
-            if (taskTitle.includes("Support - ")) {
+            // let taskTitle: string = document.title.slice(-28);
+            // This needs to be implemented via background.js script.
+            // https://stackoverflow.com/questions/19758028/chrome-extension-get-dom-content
+            // var taskTitle: string | null | undefined =
+            //   document.querySelector("#content > h2")?.textContent
+            var taskTitle = "Development"; // @temp
+            if (taskTitle === null || taskTitle === void 0 ? void 0 : taskTitle.includes("Support request #")) {
                 taskType = "Support";
             }
             else {
                 taskType = "Development";
             }
-            console.log('TASKTITLE' + taskTitle);
+            // console.log('TASKTITLE: ' + taskTitle)
             // If the project has been found and it is equal to "Development", then try
             // to get other relevant task details.
             if (taskType === "Development") {
                 // Task ID
-                var redmineTaskNumber = window.location.href
-                    .split("/issues/")[1]
-                    .substring(0, 5);
-                // Status
-                var redmineTaskStatus = (_a = document.querySelector(".status.attribute > .value")) === null || _a === void 0 ? void 0 : _a.textContent;
-                // MR status
-                var redmineMrStatus = (_b = document.querySelector(".cf_26.attribute > .value")) === null || _b === void 0 ? void 0 : _b.textContent;
-                // Test status
-                var redmineTestStatus = (_c = document.querySelector(".cf_4.attribute > .value")) === null || _c === void 0 ? void 0 : _c.textContent;
-                // Deployed to Sandbox status
-                // Note: Empty field returns an empty string.
-                var redmineDeployedToSandbox = (_d = document.querySelector(".cf_11.attribute > .value")) === null || _d === void 0 ? void 0 : _d.textContent;
-                /*
-                      console.log(redmineTaskStatus)
-                      console.log(redmineTestStatus)
-                      console.log(redmineMrStatus)
-                      console.log(redmineDeployedToSandbox)
-                      */
-                // Deployed to Live status
-                // --> this is unnecessary, as there are no more assumptions to make if the task
-                // is deployed to live
-                // -
-                // Soft-set input values
-                redmineTaskNumberDiv.value = redmineTaskNumber;
+                var redmineTaskNumber = "";
+                // @ts-ignore
+                chrome.tabs.query({ active: true, currentWindow: true }, // @ts-ignore
+                function (tabs) {
+                    try {
+                        redmineTaskNumber = tabs[0].url
+                            .split("/issues/")[1]
+                            .substring(0, 5);
+                        // Soft-set input values
+                        redmineTaskNumberDiv.value = redmineTaskNumber;
+                    }
+                    catch (error) {
+                        // console.log("redmineTaskNumber ERROR: " + error);
+                    }
+                });
+                // // Status
+                // var redmineTaskStatus: string | null | undefined =
+                //   document.querySelector(".status.attribute > .value")?.textContent;
+                // // MR status
+                // var redmineMrStatus: string | null | undefined = document.querySelector(
+                //   ".cf_26.attribute > .value"
+                // )?.textContent;
+                // // Test status
+                // var redmineTestStatus: string | null | undefined =
+                //   document.querySelector(".cf_4.attribute > .value")?.textContent;
+                // // Deployed to Sandbox status
+                // // Note: Empty field returns an empty string.
+                // var redmineDeployedToSandbox: string | null | undefined =
+                //   document.querySelector(".cf_11.attribute > .value")?.textContent;
+                // /*
+                //       console.log(redmineTaskStatus)
+                //       console.log(redmineTestStatus)
+                //       console.log(redmineMrStatus)
+                //       console.log(redmineDeployedToSandbox)
+                //       */
+                // // Deployed to Live status
+                // // --> this is unnecessary, as there are no more assumptions to make if the task
+                // // is deployed to live
+                // // -
             }
             else if (taskType === "Support") {
                 // @feature
             }
         }
         catch (error) {
-            console.log(error);
+            // console.log(error);
         }
         // --- Get initial selected field
         var selectedField = fieldDiv.value;
@@ -295,7 +338,7 @@ document.onreadystatechange = function () {
         function insertOptions(currentlySelectedField) {
             fieldSchema.forEach((fieldObject) => {
                 // console.log(`${currentlySelectedField} AND ${fieldObject.fieldName}`); //@testing
-                if (currentlySelectedField === fieldObject.fieldName) {
+                if (currentlySelectedField === fieldObject.displayName) {
                     if (fieldObject.value.type === "dropdown") {
                         for (let option of fieldObject.value.options) {
                             valueDiv === null || valueDiv === void 0 ? void 0 : valueDiv.insertAdjacentHTML("beforeend", `<option value="${option}">${option}</option>`); // MR name and value matches -> both are "MERGED" for example.
@@ -391,10 +434,10 @@ function saveItemToLocalStorage() {
     @param {string} value
     */
     localStorage.setItem(redmineTaskNumberDiv.value, itemObjectString);
+    // Refresh "Active alerts" display list
     displayLocalStorageItems(getAndParseLocalStorageItems());
     // Clear input fields
     redmineTaskNumberDiv.value = "";
-    // Refresh "Active alerts" display list
 }
 // Retrieve
 // document.querySelector("#issue_notes").value =
@@ -410,123 +453,4 @@ function deleteItemFromLocalStorage(redmineTaskNumber) {
     displayLocalStorageItems(getAndParseLocalStorageItems());
 }
 // ---------------------------------------------------------------------------------
-// // --- Send a request to Redmine every 3 minutes -----------------------------------
-// Extension script CORS privilege:
-// https://stackoverflow.com/questions/48615701/why-can-tampermonkeys-gm-xmlhttprequest-perform-a-cors-request
-const sendRequest = async (taskId) => {
-    try {
-        const redmineResponse = await fetch(`https://redmine.tribepayments.com/issues/${taskId}.json`, {
-            method: "GET",
-            headers: {
-                Accept: "application/json",
-                "X-Redmine-API-Key": redmineApiToken,
-            },
-            body: null,
-        });
-        return redmineResponse;
-    }
-    catch (error) {
-        console.log("ERROR in sendRequest func" + error);
-        return "ERROR in sendRequest func";
-    }
-};
-// setInterval(async () => {
-//   console.log("something is happening");
-//   // for each item in localStorage with status triggeredInThePast == "no"
-//   let localStorageItems = getAndParseLocalStorageItems();
-//   for (let key in localStorageItems) {
-//     if (localStorageItems[key].triggeredInThePast === "no") {
-//       sendRequest(key);
-//       console.log(key); // @testing
-//       console.log("something"); // @testing
-//       await sleep(300);
-//     }
-//   }
-// }, 20000); // @testing - 5 seconds
-// // }, 180000); // 3 minutes
-// Raise an alert via Desktop notification
-// @feature - can add text with changes what happened to the ticket
-function raiseAlert(taskId) {
-    // Source for notification standard: https://notifications.spec.whatwg.org/#using-events
-    var _a;
-    // Let's check if the browser supports notifications
-    if (!("Notification" in window)) {
-        alert("This browser does not support desktop notification");
-    }
-    // Let's check whether notification permissions have already been granted
-    else if (Notification.permission === "granted") {
-        // If it's okay let's create a notification
-        var notification = new Notification(`
-        Task ID: ${taskId} has triggered an alert.
-      `);
-        (_a = window
-            .open(`https://redmine.tribepayments.com/issues/${taskId}`, "_blank")) === null || _a === void 0 ? void 0 : _a.focus();
-    }
-    // Otherwise, we need to ask the user for permission
-    else if (Notification.permission !== "denied") {
-        Notification.requestPermission().then(function (permission) {
-            // If the user accepts, let's create a notification
-            if (permission === "granted") {
-                // var notification = new Notification("Hi there!");
-            }
-        });
-    }
-    // At last, if the user has denied notifications, and you
-    // want to be respectful there is no need to bother them any more.
-    // // Plan B:
-    // // Open Window on pop-up:
-    // window.open(`https://redmine.tribepayments.com/issues/${taskId}`, '_blank')?.focus();
-    // // Do not allow to close window without confirming:
-    // window.addEventListener('beforeunload', function (e) {
-    //   // Cancel the event
-    //   e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
-    //   // Chrome requires returnValue to be set
-    //   e.returnValue = '';
-    // });
-}
-// ---------------------------------------------------------------------------------
-// --- Comparing values to Local Storage --------------------------------------------
-// // Need to handle (when sending only. Writing and reading to memory is raw.)
-// options: [
-//   "Empty",
-//   "Not empty"
-// ],
-// function checkIfTriggerred() {
-//   // Get value from local storage
-//   // Display value in the DOM
-//   var addValueDiv = document
-//     .querySelector("#addValue")
-//     .appendChild(document.createElement("<hr>"));
-//   // Source: https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild
-//   // document.createElement('block').appendChild( document.createElement('b') );
-//   // <option value="status">-</option>
-// }
-// ---------------------------------------------------------------------------------
-/*
-------------------------------------------------------------------------------
---- ARCHIVE ------------------------------------------------------------------
-------------------------------------------------------------------------------
-
-var dummyDataLocalStorage1 = {
-  [new Date().getTime()]: {
-    itemAddedOnDate: new Date("08/02/2022"),
-    redmineTaskNumber: "61253",
-    redmineTaskStatus: "Resolved",
-    redmineMrStatus: "NONE",
-    redmineTestStatus: "not tested",
-    redmineDeployedToSandboxStatus: "",
-    triggeredInThePast: "yes",
-    triggeredAtDate: "08/02/2022",
-  },
-  [new Date().getTime() - 2563]: {
-    date: new Date("06/02/2022"),
-    redmineTaskNumber: "61685",
-    redmineTaskStatus: "In progress",
-    redmineMrStatus: "WIP",
-    redmineTestStatus: "not tested",
-    redmineDeployedToSandboxStatus: "",
-    triggered: "no",
-  },
-};
-
-*/
+var myWorker = new Worker('background.js');
