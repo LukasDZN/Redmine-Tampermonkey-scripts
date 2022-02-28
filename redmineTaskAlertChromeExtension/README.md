@@ -53,6 +53,9 @@ In addition to dedicated and shared web workers, there are other types of worker
 - ServiceWorkers essentially act as proxy servers that sit between web applications, and the browser and network (when available). They are intended to (amongst other things) enable the creation of effective offline experiences, intercepting network requests and taking appropriate action based on whether the network is available and updated assets reside on the server. They will also allow access to push notifications and background sync APIs.
 - Audio Worklet provide the ability for direct scripted audio processing to be done in a worklet (a lightweight version of worker) context.
 
+Communication between service worker and main client -> Broadcast channel API (easier method):
+https://stackoverflow.com/questions/40887635/access-localstorage-from-service-worker
+
 
 
 
@@ -71,3 +74,11 @@ https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_worke
 
 Travesty Media video:
 https://www.youtube.com/watch?v=ksXwaWHCW6k&ab_channel=TraversyMedia
+
+# Last session notes:
+- Importing has been postponed because it is too tedious.
+- Service workers seems to be able to successfully receive messages from the main script. -> need worker to parse the data correctly -> see if it can successfully create an alert
+- Why is popup js being called so many times?
+- Why are there errors in the general page console (meanwhile popup console is clear/okay)
+- Send information back to main script in order to update the localStorage
+- Final testing -> does the script keep properly functioning while popup is closed? (even when browsing websites different than Redmine)

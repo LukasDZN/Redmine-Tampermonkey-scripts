@@ -37,9 +37,19 @@ element>element	div > p	Selects all <p> elements where the parent is a <div> ele
 
 // ---------------------------------------------------------------------------------
 
+const broadcastChannel1 = new BroadcastChannel('channel1');
+
+broadcastChannel1.onmessage = (event) => {
+  // When service worker requests for localStorage items -> send the data back
+  // if (event.data === "getLocalStorageItems") {
+    console.log("Message received by main popup script: broadcastChannel1.onmessage: " + event.data);
+    broadcastChannel1.postMessage(getAndParseLocalStorageItems()); // what is the format that is sent? Should message be parsed?
+  // }
+}
+
 // --- Config ----------------------------------------------------------------------
 
-var redmineApiToken = "97f301157f2afdc96676e988ceb58eea2d78602c";
+export const redmineApiToken = "97f301157f2afdc96676e988ceb58eea2d78602c";
 
 var fieldSchema = [
   {
@@ -203,7 +213,7 @@ before work).
 3 DONE <-- Current
 */
 
-const getAndParseLocalStorageItems = () => {
+export const getAndParseLocalStorageItems = () => {
   // Init an object to store all the items
   let localStorageItems: any = {};
   // Get an array of all the localStorage keys (i.e. task IDs)
@@ -243,7 +253,7 @@ const clearLocalStorage = () => {
   localStorage.clear();
 };
 
-const sleep = (ms: number) => {
+export const sleep = (ms: number) => {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });

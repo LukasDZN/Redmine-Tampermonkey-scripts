@@ -1,4 +1,3 @@
-"use strict";
 // --- Notes ------------------------------------------------------------------------
 // chrome://extensions/ --> turn on developer mode and choose "load unpacked"
 // then locate the folder of your extension
@@ -26,8 +25,16 @@ element>element	div > p	Selects all <p> elements where the parent is a <div> ele
 // - @feature
 // To do list example html/js/css: https://github.com/TylerPottsDev/yt-js-task-list-2021
 // ---------------------------------------------------------------------------------
+const broadcastChannel1 = new BroadcastChannel('channel1');
+broadcastChannel1.onmessage = (event) => {
+    // When service worker requests for localStorage items -> send the data back
+    // if (event.data === "getLocalStorageItems") {
+    console.log("Message received by main popup script: broadcastChannel1.onmessage: " + event.data);
+    broadcastChannel1.postMessage(getAndParseLocalStorageItems()); // what is the format that is sent? Should message be parsed?
+    // }
+};
 // --- Config ----------------------------------------------------------------------
-var redmineApiToken = "97f301157f2afdc96676e988ceb58eea2d78602c";
+export const redmineApiToken = "97f301157f2afdc96676e988ceb58eea2d78602c";
 var fieldSchema = [
     {
         fieldName: "status",
@@ -108,7 +115,7 @@ const displayLocalStorageItems = (localStorageItems) => {
         try {
             let value = localStorageItems[key];
             if (value.triggeredInThePast === "no") {
-                activeAlertsListDiv === null || activeAlertsListDiv === void 0 ? void 0 : activeAlertsListDiv.insertAdjacentHTML("beforeend", `
+                activeAlertsListDiv?.insertAdjacentHTML("beforeend", `
             <div class="activeAlert flex-container flex">
               <div id="activeAlertId">${key}</div>
               <div id="activeAlertField">${value.fieldToCheck}</div>
@@ -120,7 +127,7 @@ const displayLocalStorageItems = (localStorageItems) => {
                 deleteButton.addEventListener("click", () => deleteItemFromLocalStorage(key));
             }
             else if (value.triggeredInThePast === "yes") {
-                triggeredAlertsListDiv === null || triggeredAlertsListDiv === void 0 ? void 0 : triggeredAlertsListDiv.insertAdjacentHTML("beforeend", `
+                triggeredAlertsListDiv?.insertAdjacentHTML("beforeend", `
             <div class="activeAlert flex-container flex">
               <div id="activeAlertId">${key}</div>
               <div id="activeAlertField">${value.fieldToCheck}</div>
@@ -169,7 +176,7 @@ before work).
 2 REVIEW <-- Expected
 3 DONE <-- Current
 */
-const getAndParseLocalStorageItems = () => {
+export const getAndParseLocalStorageItems = () => {
     // Init an object to store all the items
     let localStorageItems = {};
     // Get an array of all the localStorage keys (i.e. task IDs)
@@ -204,7 +211,7 @@ const getAndParseLocalStorageItems = () => {
 const clearLocalStorage = () => {
     localStorage.clear();
 };
-const sleep = (ms) => {
+export const sleep = (ms) => {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
     });
@@ -242,7 +249,7 @@ document.onreadystatechange = function () {
         // --- Populate field with schema fieldname and displayname
         fieldSchema.forEach((fieldObject) => {
             // --- Insert "field" dropdown options
-            fieldDiv === null || fieldDiv === void 0 ? void 0 : fieldDiv.insertAdjacentHTML("beforeend", `<option value="${fieldObject.displayName}">${fieldObject.displayName}</option>`);
+            fieldDiv?.insertAdjacentHTML("beforeend", `<option value="${fieldObject.displayName}">${fieldObject.displayName}</option>`);
         });
         // --- Get current Redmine page details --------------------------------------------
         /**
@@ -266,7 +273,7 @@ document.onreadystatechange = function () {
             // var taskTitle: string | null | undefined =
             //   document.querySelector("#content > h2")?.textContent
             var taskTitle = "Development"; // @temp
-            if (taskTitle === null || taskTitle === void 0 ? void 0 : taskTitle.includes("Support request #")) {
+            if (taskTitle?.includes("Support request #")) {
                 taskType = "Support";
             }
             else {
@@ -341,7 +348,7 @@ document.onreadystatechange = function () {
                 if (currentlySelectedField === fieldObject.displayName) {
                     if (fieldObject.value.type === "dropdown") {
                         for (let option of fieldObject.value.options) {
-                            valueDiv === null || valueDiv === void 0 ? void 0 : valueDiv.insertAdjacentHTML("beforeend", `<option value="${option}">${option}</option>`); // MR name and value matches -> both are "MERGED" for example.
+                            valueDiv?.insertAdjacentHTML("beforeend", `<option value="${option}">${option}</option>`); // MR name and value matches -> both are "MERGED" for example.
                         }
                     }
                     else if (fieldObject.value.type === "text") {
@@ -454,3 +461,4 @@ function deleteItemFromLocalStorage(redmineTaskNumber) {
 }
 // ---------------------------------------------------------------------------------
 var myWorker = new Worker('background.js');
+// Service workers logs results to popup console

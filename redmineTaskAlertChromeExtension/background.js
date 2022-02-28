@@ -1,28 +1,102 @@
 "use strict";
-// import { getAndParseLocalStorageItems } from "./popup.js";
-// // ---------------------------------------------------------------------------------
-// // // --- Send a request to Redmine every 3 minutes -----------------------------------
-// // Extension script CORS privilege:
-// // https://stackoverflow.com/questions/48615701/why-can-tampermonkeys-gm-xmlhttprequest-perform-a-cors-request
-// const sendRequest = async (taskId: string) => {
-//   try {
-//     const redmineResponse = await fetch(
-//       `https://redmine.tribepayments.com/issues/${taskId}.json`,
-//       {
-//         method: "GET",
-//         headers: {
-//           Accept: "application/json",
-//           "X-Redmine-API-Key": redmineApiToken,
-//         },
-//         body: null,
-//       }
-//     );
-//     return redmineResponse;
-//   } catch (error) {
-//     console.log("ERROR in sendRequest func" + error);
-//     return "ERROR in sendRequest func";
-//   }
-// };
+const broadcastChannel1 = new BroadcastChannel('channel1');
+// import { getAndParseLocalStorageItems, redmineApiToken, sleep } from "./popup.js";
+const redmineApiToken = "97f301157f2afdc96676e988ceb58eea2d78602c";
+const sleep = (ms) => {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+};
+const getAndParseLocalStorageItems = () => {
+    // Init an object to store all the items
+    let localStorageItems = {};
+    // Get an array of all the localStorage keys (i.e. task IDs)
+    var arrayOfKeys = Object.keys(localStorage);
+    // For every key in the array, get the value and display it
+    for (let key of arrayOfKeys) {
+        try {
+            // Console log raw keys and values
+            // console.log(key); // log keys
+            // console.log(localStorage.getItem(key)); // log values
+            let valueString = localStorage.getItem(key);
+            let valueObject = JSON.parse(valueString);
+            console.log("key: " +
+                key +
+                " | " +
+                "valueObject.fieldToCheck: " +
+                valueObject.fieldToCheck +
+                " | " +
+                "triggered in the past?: " +
+                valueObject.triggeredInThePast);
+            localStorageItems[key] = valueObject;
+        }
+        catch (error) {
+            console.log("displayLocalStorageItems ERROR: " + error);
+        }
+    }
+    return localStorageItems;
+};
+// ---------------------------------------------------------------------------------
+// // --- Send a request to Redmine every 3 minutes -----------------------------------
+// Extension script CORS privilege:
+// https://stackoverflow.com/questions/48615701/why-can-tampermonkeys-gm-xmlhttprequest-perform-a-cors-request
+const sendRequest = async (taskId) => {
+    try {
+        const redmineResponse = await fetch(`https://redmine.tribepayments.com/issues/${taskId}.json`, {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+                "X-Redmine-API-Key": redmineApiToken,
+            },
+            body: null,
+        });
+        return redmineResponse;
+    }
+    catch (error) {
+        console.log("ERROR in sendRequest func" + error);
+        return "ERROR in sendRequest func";
+    }
+};
+// Raise an alert via Desktop notification
+// @feature - can add text with changes what happened to the ticket
+function raiseAlert(taskId) {
+    // Source for notification standard: https://notifications.spec.whatwg.org/#using-events
+    // Let's check if the browser supports notifications
+    if (!("Notification" in window)) {
+        alert("This browser does not support desktop notification");
+    }
+    // Let's check whether notification permissions have already been granted
+    else if (Notification.permission === "granted") {
+        // If it's okay let's create a notification
+        var notification = new Notification(`
+        Task ID: ${taskId} has triggered an alert.
+      `);
+        window
+            .open(`https://redmine.tribepayments.com/issues/${taskId}`, "_blank")
+            ?.focus();
+    }
+    // Otherwise, we need to ask the user for permission
+    else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(function (permission) {
+            // If the user accepts, let's create a notification
+            if (permission === "granted") {
+                // var notification = new Notification("Hi there!");
+            }
+        });
+    }
+    // At last, if the user has denied notifications, and you
+    // want to be respectful there is no need to bother them any more.
+    // // Plan B:
+    // // Open Window on pop-up:
+    // window.open(`https://redmine.tribepayments.com/issues/${taskId}`, '_blank')?.focus();
+    // // Do not allow to close window without confirming:
+    // window.addEventListener('beforeunload', function (e) {
+    //   // Cancel the event
+    //   e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
+    //   // Chrome requires returnValue to be set
+    //   e.returnValue = '';
+    // });
+}
 // setInterval(async () => {
 //   // for each item in localStorage with status triggeredInThePast == "no"
 //   let localStorageItems = getAndParseLocalStorageItems();
@@ -72,49 +146,26 @@
 //       await sleep(300);
 //     }
 //   }
-// }, 10000); // @testing - 5 seconds
-// // }, 180000); // 3 minutes
-// // Raise an alert via Desktop notification
-// // @feature - can add text with changes what happened to the ticket
-// function raiseAlert(taskId: string | number) {
-//   // Source for notification standard: https://notifications.spec.whatwg.org/#using-events
-//   // Let's check if the browser supports notifications
-//   if (!("Notification" in window)) {
-//     alert("This browser does not support desktop notification");
-//   }
-//   // Let's check whether notification permissions have already been granted
-//   else if (Notification.permission === "granted") {
-//     // If it's okay let's create a notification
-//     var notification = new Notification(`
-//         Task ID: ${taskId} has triggered an alert.
-//       `);
-//     window
-//       .open(`https://redmine.tribepayments.com/issues/${taskId}`, "_blank")
-//       ?.focus();
-//   }
-//   // Otherwise, we need to ask the user for permission
-//   else if (Notification.permission !== "denied") {
-//     Notification.requestPermission().then(function (permission) {
-//       // If the user accepts, let's create a notification
-//       if (permission === "granted") {
-//         // var notification = new Notification("Hi there!");
-//       }
-//     });
-//   }
-//   // At last, if the user has denied notifications, and you
-//   // want to be respectful there is no need to bother them any more.
-//   // // Plan B:
-//   // // Open Window on pop-up:
-//   // window.open(`https://redmine.tribepayments.com/issues/${taskId}`, '_blank')?.focus();
-//   // // Do not allow to close window without confirming:
-//   // window.addEventListener('beforeunload', function (e) {
-//   //   // Cancel the event
-//   //   e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
-//   //   // Chrome requires returnValue to be set
-//   //   e.returnValue = '';
-//   // });
-// }
-// // ---------------------------------------------------------------------------------
-setInterval(async () => {
-    console.log('Service worker hello');
-}, 50000);
+// }, 10000); // @testing - 10 seconds
+// ---------------------------------------------------------------------------------
+// console.log('Service worker first hello');
+// setInterval(async () => { 
+//   console.log('Service worker hello');
+// }, 50000); 
+// ---------------------------------------------------------------------------------
+// Service worker: GET localStorage items from main script
+// Service worker can't retrieve values from localStorage.
+// So, we need to send a request to the main script to retrieve localStorage items.
+// So the service workers acts as a trigger but not as the script that actually does the heavy lifting.
+// Send a request to the main script to retrieve localStorage items.
+broadcastChannel1.postMessage({ workerRequestType: "getLocalStorageItems" });
+// Receiving a response
+broadcastChannel1.onmessage = (event) => {
+    console.log('Service worker received response from main popup script');
+    let localStorageItems = event.data;
+    console.log(localStorageItems);
+};
+// ---
+// Once a request to Redmine triggers an alert, send updated localStorage value to the main script. 
+// Which will then actually update the localStorage value.
+// broadcastChannel1.postMessage({key: value});
