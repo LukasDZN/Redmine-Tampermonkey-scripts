@@ -37,15 +37,15 @@ element>element	div > p	Selects all <p> elements where the parent is a <div> ele
 
 // ---------------------------------------------------------------------------------
 
-// @ts-ignore
-const broadcastChannel1 = new BroadcastChannel('channel1');
+// // @ts-ignore
+// const broadcastChannel1 = new BroadcastChannel('channel1');
 
-broadcastChannel1.onmessage = (event) => {
-  // When service worker requests for localStorage items -> send the data back
-  console.log("Message received by main popup script: broadcastChannel1.onmessage: " + event.data);
-  checkIfTaskIsTriggered()
-  // broadcastChannel1.postMessage(getAndParseLocalStorageItems()); // what is the format that is sent? Should message be parsed?
-}
+// broadcastChannel1.onmessage = (event) => {
+//   // When service worker requests for localStorage items -> send the data back
+//   console.log("Message received by main popup script: broadcastChannel1.onmessage: " + event.data);
+//   checkIfTaskIsTriggered()
+//   // broadcastChannel1.postMessage(getAndParseLocalStorageItems()); // what is the format that is sent? Should message be parsed?
+// }
 
 // --- Config ----------------------------------------------------------------------
 
@@ -563,7 +563,8 @@ function deleteItemFromLocalStorage(redmineTaskNumber: string) {
 const sendRequest = async (taskId: string) => {
   try {
     const redmineResponse = await fetch(
-      `https://redmine.tribepayments.com/issues/${taskId}.json`,
+      // `https://redmine.tribepayments.com/issues/${taskId}.json`,
+      `https://tribeapp.website:5000/api/getRedmineTaskProxy/${taskId}`,
       {
         method: "GET",
         headers: {
@@ -680,9 +681,11 @@ const checkIfTaskIsTriggered = () => {
   }, 10000); // @testing - 10 seconds
 };
 
+checkIfTaskIsTriggered();
+
 // ---------------------------------------------------------------------------------
 
-var myWorker = new Worker('background.js');
-// note: service workers logs results to popup console
-// send message
-myWorker.postMessage(''); // meant for keeping the worker alive
+// var myWorker = new Worker('background.js');
+// // note: service workers logs results to popup console
+// // send message
+// myWorker.postMessage(''); // meant for keeping the worker alive

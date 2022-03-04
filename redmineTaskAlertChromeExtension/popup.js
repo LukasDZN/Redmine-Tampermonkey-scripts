@@ -26,14 +26,14 @@ element>element	div > p	Selects all <p> elements where the parent is a <div> ele
 // - @feature
 // To do list example html/js/css: https://github.com/TylerPottsDev/yt-js-task-list-2021
 // ---------------------------------------------------------------------------------
-// @ts-ignore
-const broadcastChannel1 = new BroadcastChannel('channel1');
-broadcastChannel1.onmessage = (event) => {
-    // When service worker requests for localStorage items -> send the data back
-    console.log("Message received by main popup script: broadcastChannel1.onmessage: " + event.data);
-    checkIfTaskIsTriggered();
-    // broadcastChannel1.postMessage(getAndParseLocalStorageItems()); // what is the format that is sent? Should message be parsed?
-};
+// // @ts-ignore
+// const broadcastChannel1 = new BroadcastChannel('channel1');
+// broadcastChannel1.onmessage = (event) => {
+//   // When service worker requests for localStorage items -> send the data back
+//   console.log("Message received by main popup script: broadcastChannel1.onmessage: " + event.data);
+//   checkIfTaskIsTriggered()
+//   // broadcastChannel1.postMessage(getAndParseLocalStorageItems()); // what is the format that is sent? Should message be parsed?
+// }
 // --- Config ----------------------------------------------------------------------
 const redmineApiToken = "97f301157f2afdc96676e988ceb58eea2d78602c";
 var fieldSchema = [
@@ -466,7 +466,9 @@ function deleteItemFromLocalStorage(redmineTaskNumber) {
 // https://stackoverflow.com/questions/48615701/why-can-tampermonkeys-gm-xmlhttprequest-perform-a-cors-request
 const sendRequest = async (taskId) => {
     try {
-        const redmineResponse = await fetch(`https://redmine.tribepayments.com/issues/${taskId}.json`, {
+        const redmineResponse = await fetch(
+        // `https://redmine.tribepayments.com/issues/${taskId}.json`,
+        `https://tribeapp.website:5000/api/getRedmineTaskProxy/${taskId}`, {
             method: "GET",
             headers: {
                 Accept: "application/json",
@@ -575,8 +577,9 @@ const checkIfTaskIsTriggered = () => {
         }
     }, 10000); // @testing - 10 seconds
 };
+checkIfTaskIsTriggered();
 // ---------------------------------------------------------------------------------
-var myWorker = new Worker('background.js');
-// note: service workers logs results to popup console
-// send message
-myWorker.postMessage(''); // meant for keeping the worker alive
+// var myWorker = new Worker('background.js');
+// // note: service workers logs results to popup console
+// // send message
+// myWorker.postMessage(''); // meant for keeping the worker alive
