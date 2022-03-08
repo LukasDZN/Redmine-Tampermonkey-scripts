@@ -2,7 +2,7 @@
 // @name         MISC-MONKEY convenience scripts
 // @match        redmine.tribepayments.com/*
 // @match        git.tribepayments.com/*
-// @version      1.0.47
+// @version      1.0.48
 // @downloadURL  https://misc.tribepayments.com/monkey/tribe.user.js
 // ==/UserScript==
 
@@ -35,12 +35,12 @@
             'In progress (LT-PM)': '#f5e295',
             'In progress (LT-APP)': '#f5e295',
             'In progress (LT-OPS)': '#f5e295',
-            'In progress (INFRA)': '#f5e295',
+            'In progress (DK-INFRA)': '#f5e295',
             'In progress (LT-DEVOPS)': '#f5e295',
             'Pending (LT-OPS)': '#f7f2dc',
             'Pending (LT-APP)': '#f7f2dc',
             'Pending (LT-PM)': '#f7f2dc',
-            'Pending (INFRA)': '#f7f2dc',
+            'Pending (DK-INFRA)': '#f7f2dc',
             'Pending (LT-DEVOPS)': '#f7f2dc',
         };
 
@@ -545,7 +545,7 @@
 
     const addAdditionalFunctionalityButtonsToReleatedTasks = () => {
         var issueId = getCurrentIssueId();
-        var relatedIssuesUrlTemplate = '/issues?utf8=✓&set_filter=1&f[]=relates&op[relates]==&v[relates][]=%%ISSUE_ID%%&f[]=&c[]=tracker&c[]=status&c[]=priority&c[]=subject&c[]=assigned_to&c[]=estimated_hours&c[]=spent_hours&c[]=done_ratio&c[]=updated_on&group_by=status&t[]=estimated_hours&t[]=spent_hours';
+        var relatedIssuesUrlTemplate = '/issues?utf8=✓&set_filter=1&f[]=relates&op[relates]==&v[relates][]=%%ISSUE_ID%%&f[]=&c[]=tracker&c[]=status&c[]=priority&c[]=subject&c[]=assigned_to&c[]=cf_8&c[]=cf_4&c[]=cf_26&c[]=estimated_hours&c[]=spent_hours&c[]=done_ratio&c[]=updated_on&group_by=status&t[]=estimated_hours&t[]=spent_hours';
 
         // add "Filter" button
         var divLinks = $("#relations > .contextual");
@@ -555,7 +555,7 @@
         // add only to "release" tracker issues
         if ($('select#issue_tracker_id option:selected').val() == releaseTrackerID) {
             // add "Filter non-RFC" button
-            var relatedNonRFCIssuesUrlTemplate = '/issues?utf8=✓&set_filter=1&f[]=relates&op[relates]==&v[relates][]=%%ISSUE_ID%%&f[]=tracker_id&op[tracker_id]=!&v[tracker_id][]=%%ISSUE_TRACKER_ID%%&f[]=&c[]=tracker&c[]=status&c[]=priority&c[]=cf_4&c[]=cf_8&c[]=subject&c[]=assigned_to&c[]=estimated_hours&c[]=spent_hours&c[]=done_ratio&c[]=updated_on&group_by=status&t[]=estimated_hours&t[]=spent_hours';
+            var relatedNonRFCIssuesUrlTemplate = '/issues?utf8=✓&set_filter=1&f[]=relates&op[relates]==&v[relates][]=%%ISSUE_ID%%&f[]=tracker_id&op[tracker_id]=!&v[tracker_id][]=%%ISSUE_TRACKER_ID%%&f[]=&c[]=tracker&c[]=status&c[]=priority&c[]=subject&c[]=assigned_to&c[]=cf_8&c[]=cf_4&c[]=cf_26&c[]=estimated_hours&c[]=spent_hours&c[]=done_ratio&c[]=updated_on&group_by=status&t[]=estimated_hours&t[]=spent_hours';
             var relatedNonRFCIssuesUrl = relatedNonRFCIssuesUrlTemplate.replace('%%ISSUE_ID%%', issueId).replace('%%ISSUE_TRACKER_ID%%', rfcTrackerID);
             divLinks.append(' |<a href="'+relatedNonRFCIssuesUrl+'">Filter non-RFC</a>');
 

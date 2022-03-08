@@ -50,36 +50,36 @@ var STATUS = {
 };
 
 var RU_TEXT = {
-    START_REVIEW: 'Начать ревью',
-    REVIEW_PASSED: 'Ревью пройдено…',
-    REVIEW_FAILED: 'Потрачено…',
-    TEST_PASSED: 'Успешно…',
-    TEST_FAILED: 'Нашлись баги…',
-    CLOSE_ISSUE: 'Закрыть',
-    START_TESTING: 'Начать тестирование',
-    CONTINUE_PROGRESS: 'Продолжить работу',
-    START_PROGRESS: 'Начать работу',
-    RESOLVE_ISSUE: 'Завершить…',
-    FROZE_ISSUE: 'Заморозить',
-    ASSIGN_TO_ME: 'Назначить на меня',
-    SPENT_BY_ME: 'Затрачено мной',
-    LOADING: 'загрузка...',
-    MORE: 'Ещё ',
-    ROLE_SETTINGS: 'Настройки роли',
-    ONLY_WF_FIELDS: 'Только workflow',
+    START_REVIEW: 'ÐÐ°ÑÐ°ÑÑ ÑÐµÐ²ÑÑ',
+    REVIEW_PASSED: 'Ð ÐµÐ²ÑÑ Ð¿ÑÐ¾Ð¹Ð´ÐµÐ½Ð¾â¦',
+    REVIEW_FAILED: 'ÐÐ¾ÑÑÐ°ÑÐµÐ½Ð¾â¦',
+    TEST_PASSED: 'Ð£ÑÐ¿ÐµÑÐ½Ð¾â¦',
+    TEST_FAILED: 'ÐÐ°ÑÐ»Ð¸ÑÑ Ð±Ð°Ð³Ð¸â¦',
+    CLOSE_ISSUE: 'ÐÐ°ÐºÑÑÑÑ',
+    START_TESTING: 'ÐÐ°ÑÐ°ÑÑ ÑÐµÑÑÐ¸ÑÐ¾Ð²Ð°Ð½Ð¸Ðµ',
+    CONTINUE_PROGRESS: 'ÐÑÐ¾Ð´Ð¾Ð»Ð¶Ð¸ÑÑ ÑÐ°Ð±Ð¾ÑÑ',
+    START_PROGRESS: 'ÐÐ°ÑÐ°ÑÑ ÑÐ°Ð±Ð¾ÑÑ',
+    RESOLVE_ISSUE: 'ÐÐ°Ð²ÐµÑÑÐ¸ÑÑâ¦',
+    FROZE_ISSUE: 'ÐÐ°Ð¼Ð¾ÑÐ¾Ð·Ð¸ÑÑ',
+    ASSIGN_TO_ME: 'ÐÐ°Ð·Ð½Ð°ÑÐ¸ÑÑ Ð½Ð° Ð¼ÐµÐ½Ñ',
+    SPENT_BY_ME: 'ÐÐ°ÑÑÐ°ÑÐµÐ½Ð¾ Ð¼Ð½Ð¾Ð¹',
+    LOADING: 'Ð·Ð°Ð³ÑÑÐ·ÐºÐ°...',
+    MORE: 'ÐÑÑ ',
+    ROLE_SETTINGS: 'ÐÐ°ÑÑÑÐ¾Ð¹ÐºÐ¸ ÑÐ¾Ð»Ð¸',
+    ONLY_WF_FIELDS: 'Ð¢Ð¾Ð»ÑÐºÐ¾ workflow',
 };
 
 var EN_TEXT = {
     START_REVIEW: 'Start Review',
-    REVIEW_PASSED: 'Review passed…',
-    REVIEW_FAILED: 'Review failed…',
-    TEST_PASSED: 'Test passed…',
-    TEST_FAILED: 'Test failed…',
+    REVIEW_PASSED: 'Review passedâ¦',
+    REVIEW_FAILED: 'Review failedâ¦',
+    TEST_PASSED: 'Test passedâ¦',
+    TEST_FAILED: 'Test failedâ¦',
     CLOSE_ISSUE: 'Close',
     START_TESTING: 'Start Testing',
     CONTINUE_PROGRESS: 'Continue Progress',
     START_PROGRESS: 'Start Progress',
-    RESOLVE_ISSUE: 'Resolve…',
+    RESOLVE_ISSUE: 'Resolveâ¦',
     FROZE_ISSUE: 'Freeze',
     ASSIGN_TO_ME: 'Assign to Me',
     SPENT_BY_ME: 'Spent by me',
@@ -345,7 +345,7 @@ function addButton(text, action, className) {
  * @return void
  */
 function addMoreButton() {
-    var url = '/issues/context_menu?utf8=✓&&authenticity_token=' + token + '&ids[]=' + issueID +
+    var url = '/issues/context_menu?utf8=â&&authenticity_token=' + token + '&ids[]=' + issueID +
         '&back_url=/issues/' + issueID;
     var buttonHtml =
         '<form data-cm-url="' + url + '"><a href="#" class="icon" onclick="contextMenuShow(event);" type="button"  id="moreMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">' +
@@ -801,8 +801,8 @@ function _showReviewResultPopup(status) {
  * Review Passed
  */
 function reviewPassed() {
-    FIELDS.NOTES.val('Ревью пройдено');
-    FIELDS.TIME_COMMENT.val('Проверка кода по пул-реквесту');
+    FIELDS.NOTES.val('Ð ÐµÐ²ÑÑ Ð¿ÑÐ¾Ð¹Ð´ÐµÐ½Ð¾');
+    FIELDS.TIME_COMMENT.val('ÐÑÐ¾Ð²ÐµÑÐºÐ° ÐºÐ¾Ð´Ð° Ð¿Ð¾ Ð¿ÑÐ»-ÑÐµÐºÐ²ÐµÑÑÑ');
     _showReviewResultPopup(STATUS.RESOLVED.VALUE);
 }
 
@@ -810,8 +810,8 @@ function reviewPassed() {
  * Review failed
  */
 function reviewFailed() {
-    FIELDS.NOTES.val('Комментарии к пулл-реквесту');
-    FIELDS.TIME_COMMENT.val('Проверка кода по пул-реквесту');
+    FIELDS.NOTES.val('ÐÐ¾Ð¼Ð¼ÐµÐ½ÑÐ°ÑÐ¸Ð¸ Ðº Ð¿ÑÐ»Ð»-ÑÐµÐºÐ²ÐµÑÑÑ');
+    FIELDS.TIME_COMMENT.val('ÐÑÐ¾Ð²ÐµÑÐºÐ° ÐºÐ¾Ð´Ð° Ð¿Ð¾ Ð¿ÑÐ»-ÑÐµÐºÐ²ÐµÑÑÑ');
     _showReviewResultPopup(STATUS.REVIEW_FAILED.VALUE);
 }
 
@@ -819,7 +819,7 @@ function reviewFailed() {
  * Test failed
  */
 function testFailed() {
-    FIELDS.TIME_COMMENT.val('Тестирование');
+    FIELDS.TIME_COMMENT.val('Ð¢ÐµÑÑÐ¸ÑÐ¾Ð²Ð°Ð½Ð¸Ðµ');
     _showReviewResultPopup(STATUS.VERIFY_FAILED.VALUE);
 }
 
@@ -827,7 +827,7 @@ function testFailed() {
  * Test passed
  */
 function testPassed() {
-    FIELDS.TIME_COMMENT.val('Тестирование');
+    FIELDS.TIME_COMMENT.val('Ð¢ÐµÑÑÐ¸ÑÐ¾Ð²Ð°Ð½Ð¸Ðµ');
     _showReviewResultPopup(STATUS.READY_FOR_STAGE.VALUE);
 }
 
@@ -1067,7 +1067,7 @@ function insertRtfBfqTable(time) {
  */
 function getTimeTrackerUrl(tracker, activity, filterByMe) {
     var baseUrl = location.origin + '/time_entries';
-    var uri = '?utf8=✓&set_filter=1&sort=spent_on:desc&f[]=spent_on&op[spent_on]=*&f[]=issue_id&op[issue_id]=~&v[issue_id][]=' + issueID;
+    var uri = '?utf8=â&set_filter=1&sort=spent_on:desc&f[]=spent_on&op[spent_on]=*&f[]=issue_id&op[issue_id]=~&v[issue_id][]=' + issueID;
     if (typeof(filterByMe) !== 'undefined' && filterByMe) {
         uri += '&f[]=user_id&op[user_id]==&v[user_id][]=me';
     }
@@ -1200,7 +1200,7 @@ if (isIssuePage) {
         logIssueHistory();
         //change link styles
 
-        $('a.icon-edit').append('…');
+        $('a.icon-edit').append('â¦');
     });
 
 }
@@ -1225,7 +1225,7 @@ if (!GM_getValue('version_4') && isIssuePage) {
     unsafeWindow.showVersion();
 }
 
-GM_registerMenuCommand("Preferences…", unsafeWindow.showConfig, "C");
+GM_registerMenuCommand("Preferencesâ¦", unsafeWindow.showConfig, "C");
 exportFunction(assignToMe, unsafeWindow, {defineAs: "assignToMe"});
 exportFunction(startProgress, unsafeWindow, {defineAs: "startProgress"});
 exportFunction(startTesting, unsafeWindow, {defineAs: "startTesting"});

@@ -3,7 +3,7 @@
 // @version      1.0.2
 // @author       ld
 // @match        https://redmine.tribepayments.com/projects/*/wiki*
-// @require      http://code.jquery.com/jquery-latest.js
+// @require      https://code.jquery.com/jquery-3.6.0.js
 // @grant        GM_addStyle
 // @downloadURL  https://github.com/LukasDZN/Redmine-Tampermonkey-scripts/raw/main/Wiki%20UI%20redesign.user.js
 // @run-at       document-start

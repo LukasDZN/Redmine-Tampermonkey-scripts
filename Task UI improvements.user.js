@@ -11,7 +11,7 @@
 // @match        redmine.tribepayments.com/issues/7*
 // @match        redmine.tribepayments.com/issues/8*
 // @match        redmine.tribepayments.com/issues/9*
-// @require      http://code.jquery.com/jquery-latest.js
+// @require      https://code.jquery.com/jquery-3.6.0.js
 // @grant        GM_addStyle
 // @run-at       document-start
 // ==/UserScript==
@@ -157,9 +157,11 @@ document.onreadystatechange = function () {
 		let buttonLocation = $('#content > h2');
 
 		GM_addStyle(`
+        /*
         #main {
             align-self: center;
         }
+        */
 
         /* optional - add  "input[type="submit"]' as a selector below in order to style the submit button */
         .fill, input[type="submit"]{

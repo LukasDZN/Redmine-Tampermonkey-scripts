@@ -5,9 +5,8 @@
 // @description  enter something useful
 // @author       You
 // @match        redmine.tribepayments.com/projects/isac-iss/issues/new
-// @require      http://code.jquery.com/jquery-latest.user.js
+// @require      https://code.jquery.com/jquery-3.6.0.js
 // ==/UserScript==
-
 
 var $ = window.jQuery;
 

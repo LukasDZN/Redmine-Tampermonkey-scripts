@@ -4,8 +4,8 @@
 // @version      0.1
 // @description  enter something useful
 // @author       You
-// @match        redmine.tribepayments.com/projects/isac-iss/issues/*/copy
-// @require      http://code.jquery.com/jquery-latest.user.js
+// @match        redmine.tribepayments.com/projects/*/issues/*/copy
+// @require      https://code.jquery.com/jquery-3.6.0.js
 // ==/UserScript==
 
 
