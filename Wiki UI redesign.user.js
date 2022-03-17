@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         Wiki UI redesign
+// @description  Improvement to Redmine's wiki interface
 // @version      1.0.2
 // @author       ld
 // @match        https://redmine.tribepayments.com/projects/*/wiki*
 // @require      https://code.jquery.com/jquery-3.6.0.js
 // @grant        GM_addStyle
 // @downloadURL  https://github.com/LukasDZN/Redmine-Tampermonkey-scripts/raw/main/Wiki%20UI%20redesign.user.js
+// @updateURL    https://github.com/LukasDZN/Redmine-Tampermonkey-scripts/raw/main/Wiki%20UI%20redesign.user.js
 // @run-at       document-start
 // ==/UserScript==
 
