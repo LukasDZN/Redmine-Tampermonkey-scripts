@@ -64,6 +64,21 @@ GM_addStyle(`
         font-size: 14px;
     }
 
+    /* Breadcrumb */
+    #content > p.breadcrumb {
+        font-size: 20px;
+    }
+
+    #content > p.breadcrumb > a {
+        font-family: "Inter", sans-serif;
+        font-size: 16px;
+        color: purple;
+    }
+
+    #content > p.breadcrumb > a:hover {
+        text-decoration: none;
+        color: purple;
+        -webkit-text-stroke: 0.5px purple;
     `);
 
 //-------------------------- WIKI INNER PAGE --------------------------------
