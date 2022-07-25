@@ -1,5 +1,6 @@
 // ==UserScript==
 // @name         Task UI improvements
+// @description  None
 // @version      0.5
 // @author       ld
 // @match        redmine.tribepayments.com/issues/1*
@@ -52,10 +53,11 @@ document.onreadystatechange = function () {
 		// Make sure that parsed keywords in the main text title are avoided.
 		let taskTitle = $('head > title').text().slice(-28);
 
+        var taskType;
 		if (taskTitle.includes('Support - ')) {
-			var taskType = 'Support';
+			taskType = 'Support';
 		} else {
-			var taskType = 'Development';
+			taskType = 'Development';
 		}
 
 		// User ID
@@ -65,7 +67,6 @@ document.onreadystatechange = function () {
 		//-------------------------- REMOVING UI ELEMENTS --------------------------------
 
 		let removeClassesList = [
-			'.icon-time-add',
 			'.icon-comment',
 			'.next-prev-links',
 			'#content > p',

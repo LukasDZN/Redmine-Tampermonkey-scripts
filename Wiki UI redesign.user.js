@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Wiki UI redesign
-// @description  Improvement to Redmine's wiki interface
+// @description  Improvement to Redmine wiki interface
 // @version      1.0.2
 // @author       ld
 // @match        https://redmine.tribepayments.com/projects/*/wiki*
@@ -20,30 +20,51 @@ GM_addStyle(`
     }
 
     .wiki.wiki-page {
+        /* https://support.smartbear.com/swaggerhub/docs/organizations/custom-rules.html */
         display: block;
         margin-left: auto;
         margin-right: auto;
+        margin-top: 10.5px;
+        margin-block-end: 10.5px;
+        margin-block-start: 10.5px;
+        margin-bottom: 10.5px;
+        line-height: 20px;
         width: 50%;
         max-width: 800px;
-        font-family: "Inter", sans-serif;
-        font-size: 16px;
+        font-family: 'Segoe UI','Open Sans',Arial,Verdana;
+        font-size: 15px;
         text-align: left;
+    }
+
+    .wiki.wiki-page h1,h2,h3,h4 {
+        font-family: "Open Sans",sans-serif;
+        letter-spacing: 0.24px;
+        line-height: 33.6px;
+        margin-block-end: 0px;
+        margin-block-start: 48px;
     }
 
     .wiki.wiki-page h1 {
         font-size: 28px;
+        margin-top: 48px;
     }
 
     .wiki.wiki-page h2 {
         font-size: 22px;
+        margin-top: 36px
     }
 
     .wiki.wiki-page h3 {
         font-size: 18px;
+        margin-top: 24px;
     }
 
     .wiki.wiki-page a {
         line-height: 1.5;
+    }
+
+    .wiki.wiki-page p {
+        margin: 1.4ex 0 1.4ex 0;
     }
 
     .wiki.wiki-page a:hover {
@@ -147,7 +168,7 @@ document.onreadystatechange = function () {
         // Prettify the Edit button
         $("#content > div:nth-child(1) > a.icon.icon-edit").addClass("fill");
 
-        // Removing unncessary elements
+        // Removing unnecessary elements
         let removeClassesList = [".wiki-anchor", "#footer"]
         removeClassesList.forEach(className => document.querySelectorAll(className).forEach(e => e.remove()));
     }

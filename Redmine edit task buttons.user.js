@@ -55,7 +55,8 @@ $(function(){
     // Prepare list
     const tags = [
         'groomed',
-        'internal-improvement'
+        'internal-improvement',
+        'to-groom-next'
     ];
 
     // div field

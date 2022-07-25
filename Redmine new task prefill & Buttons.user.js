@@ -113,7 +113,8 @@ $(function(){
 
     const tagg = {
         "[TG] ISAC - Issuer": "22951",
-        "[TG] Tribe Hub GUI UI / UX": "41967"
+        "[TG] Tribe Hub GUI UI / UX": "41967",
+        "TG] KC: ISS API doc": "72887",
     };
 
     // Add a div field below the field needed to fill
