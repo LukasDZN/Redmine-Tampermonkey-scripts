@@ -14,6 +14,8 @@
 // @match        redmine.tribepayments.com/issues/9*
 // @require      https://code.jquery.com/jquery-3.6.0.js
 // @grant        GM_addStyle
+// @downloadURL  https://github.com/LukasDZN/Redmine-Tampermonkey-scripts/raw/main/Task%20UI%20improvements.user.js
+// @updateURL    https://github.com/LukasDZN/Redmine-Tampermonkey-scripts/raw/main/Task%20UI%20improvements.user.js
 // @run-at       document-start
 // ==/UserScript==
 

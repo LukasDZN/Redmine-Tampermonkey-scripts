@@ -8,6 +8,8 @@
 // @match        redmine.tribepayments.com/issues/5*
 // @match        redmine.tribepayments.com/issues/6*
 // @require      https://code.jquery.com/jquery-3.6.0.js
+// @downloadURL  https://github.com/LukasDZN/Redmine-Tampermonkey-scripts/raw/main/Redmine%20edit%20task%20buttons.user.js
+// @updateURL    https://github.com/LukasDZN/Redmine-Tampermonkey-scripts/raw/main/Redmine%20edit%20task%20buttons.user.js
 // ==/UserScript==
 
 

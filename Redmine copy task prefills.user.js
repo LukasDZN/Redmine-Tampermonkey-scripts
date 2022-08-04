@@ -6,6 +6,8 @@
 // @author       You
 // @match        redmine.tribepayments.com/projects/*/issues/*/copy
 // @require      https://code.jquery.com/jquery-3.6.0.js
+// @downloadURL  https://github.com/LukasDZN/Redmine-Tampermonkey-scripts/raw/main/Redmine%20copy%20task%20prefills.user.js
+// @updateURL    https://github.com/LukasDZN/Redmine-Tampermonkey-scripts/raw/main/Redmine%20copy%20task%20prefills.user.js
 // ==/UserScript==
 
 

@@ -6,6 +6,8 @@
 // @author       You
 // @match        redmine.tribepayments.com/projects/isac-iss/issues/new
 // @require      https://code.jquery.com/jquery-3.6.0.js
+// @downloadURL  https://github.com/LukasDZN/Redmine-Tampermonkey-scripts/raw/main/Redmine%20new%20task%20prefill%20%26%20Buttons.user.js
+// @updateURL    https://github.com/LukasDZN/Redmine-Tampermonkey-scripts/raw/main/Redmine%20new%20task%20prefill%20%26%20Buttons.user.js
 // ==/UserScript==
 
 var $ = window.jQuery;
