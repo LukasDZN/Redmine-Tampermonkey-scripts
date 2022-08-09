@@ -801,6 +801,149 @@ document.onreadystatechange = function () {
 			}
 		}
 
+
+
+
+		// TODO:
+		// - Make a list of possible config statuses again
+		// - Add config statuses to the dropdown menu
+		// - Add nested config statuses to the dropdown menu
+		// - Save and change config statuses to local storage
+		// - Retrieve config statuses from local storage
+		// - Implement check mark indicating that the setting is active
+		// - Add a universal function to toggle setting on and off
+		// - Refresh the whole script when the setting is changed
+
+
+		// Add a settings dropdown menu to the settings icon
+		// https://www.w3schools.com/howto/howto_js_dropdown.asp
+		GM_addStyle(`
+		  
+		  .dropdown {
+			position: relative;
+			display: inline-block;
+		  }
+		  
+		  .dropdown-content {
+			display: none;
+			position: fixed;
+			background-color: #f1f1f1;
+			min-width: 160px;
+			overflow: auto;
+			box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+			z-index: 1;
+		  }
+		  
+		  .dropdown-content li {
+			color: black;
+			padding: 8px 12px;
+			text-decoration: none;
+			display: block;
+		  }
+		  
+		  .dropdown-content a:hover {background-color: #ddd;}
+		  
+		  .show {display: block;}
+
+		   /* Display a check mark if the setting is active */
+		  .dropdown-content li activeSetting:after {
+			content: "&#10004;";
+			color: #0b0;
+			font-size: 0.8em;
+			margin-left: 0.5em;
+		  }
+
+		`);
+
+		// Insert a settings icon in the top right corner of the page
+		function insertSettingsDropdown() {
+			let settingsDropdown = $(
+				`
+				<div class="dropdown">
+					<a class="icon icon-settings dropdownIcon"></a>
+					<div id="myDropdown" class="dropdown-content">
+						<li>Home</li>
+						<li>
+							<div>Patterns</div>
+							<!-- First level sub dropdown -->
+							<ul>
+								<li>Layout</li>
+								<li>Input</li>
+								<li>
+									<div>Navigation</div>
+									<!-- Second level sub dropdown -->
+									<ul>
+										<li>Breadcrumb</li>
+										<li>Dropdown</li>
+										<li>Menu</li>
+										<li>Nested dropdown</li>
+									</ul>
+								</li>
+								<li>Display</li>
+								<li>Feedback</li>
+							</ul>
+						</li>
+						<li>Products</li>
+						<li>About</li>
+					</div>
+				</div>
+				`
+			);
+			$('#content > div:nth-child(1)').append(settingsDropdown);
+			document.querySelector(".dropdownIcon").addEventListener ("click", dropdownRevealToggle);
+		};
+		insertSettingsDropdown()
+
+		/* When the user clicks on the button, 
+		toggle between hiding and showing the dropdown content */
+		function dropdownRevealToggle() {
+			document.getElementById("myDropdown").classList.toggle("show");
+		}
+
+
+
+
+		// When the user clicks on the button, toggle between hiding and showing the dropdown content
+		window.onclick = function(event) {
+			if (!event.target.matches('.dropdownIcon')) {
+			var dropdowns = document.getElementsByClassName("dropdown-content");
+			var i;
+			for (i = 0; i < dropdowns.length; i++) {
+				var openDropdown = dropdowns[i];
+				if (openDropdown.classList.contains('show')) {
+				openDropdown.classList.remove('show');
+				}
+			}
+			}
+		}
+
+
+
+
+		
+		
+
+
+		// // Set Item
+		// /* localStorage.setItem(key, value); */
+		// function saveNoteToLocalStorage() {
+		// 	localStorage.setItem(
+		// 		RedmineTaskNumber,
+		// 		document.querySelector('#issue_notes').value
+		// 	);
+		// }
+
+		// // Retrieve
+		// /* let lastname = localStorage.getItem(key); */
+		// // On-load --> set the textarea to the last saved value
+		// document.querySelector('#issue_notes').value =
+		// 	localStorage.getItem(RedmineTaskNumber);
+
+
+
+
+
+
 		// --- Potential features ------------------------------------------------------------------------------
 
 		// - Add a search feature to the fields when editing a task [assignee, reported by, ]
