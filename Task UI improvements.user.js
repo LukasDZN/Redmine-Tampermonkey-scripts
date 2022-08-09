@@ -805,9 +805,11 @@ document.onreadystatechange = function () {
 
 
 		// TODO:
-		// - Make a list of possible config statuses again
-		// - Add config statuses to the dropdown menu
-		// - Add nested config statuses to the dropdown menu
+		// - Center the modal window
+		// - Move the close X button to the right corner
+		// - Make a list of possible config statuses
+		// - Add config statuses
+		// - Add nested config statuses
 		// - Save and change config statuses to local storage
 		// - Retrieve config statuses from local storage
 		// - Implement check mark indicating that the setting is active
@@ -819,109 +821,116 @@ document.onreadystatechange = function () {
 		// https://www.w3schools.com/howto/howto_js_dropdown.asp
 		GM_addStyle(`
 		  
-		  .dropdown {
-			position: relative;
-			display: inline-block;
-		  }
-		  
-		  .dropdown-content {
-			display: none;
-			position: fixed;
-			background-color: #f1f1f1;
-			min-width: 160px;
-			overflow: auto;
-			box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-			z-index: 1;
-		  }
-		  
-		  .dropdown-content li {
-			color: black;
-			padding: 8px 12px;
-			text-decoration: none;
-			display: block;
-		  }
-		  
-		  .dropdown-content a:hover {background-color: #ddd;}
-		  
-		  .show {display: block;}
+			/* The Modal (background) */
+			.settingsModal {
+				display: none; /* Hidden by default */
+				position: fixed; /* Stay in place */
+				z-index: 1; /* Sit on top */
+				padding-top: 100px; /* Location of the box */
+				left: 0;
+				top: 0;
+				width: 100%; /* Full width */
+				height: 100%; /* Full height */
+				overflow: auto; /* Enable scroll if needed */
+				background-color: rgb(0,0,0); /* Fallback color */
+				background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+				margin-left: 0!important; /* Remove the margin otherwise there's a gap */
+			}
+			
+			/* settingsModal Content */
+			.settingsModalContentClass {
+				background-color: #fefefe;
+				margin: auto;
+				padding: 20px;
+				border: 1px solid #888;
+				width: 80%;
+				border-radius: 6px;
+			}
+			
+			/* The Close Button */
+			.close {
+				color: #aaaaaa;
+				float: right;
+				font-size: 28px;
+				font-weight: bold;
+			}
+			
+			.close:hover,
+				.close:focus {
+				color: #000;
+				text-decoration: none;
+				cursor: pointer;
+			}
 
-		   /* Display a check mark if the setting is active */
-		  .dropdown-content li activeSetting:after {
-			content: "&#10004;";
-			color: #0b0;
-			font-size: 0.8em;
-			margin-left: 0.5em;
-		  }
 
+
+			/* Display a check mark if the setting is active */
+			.dropdown-content li activeSetting:after {
+				content: "&#10004;";
+				color: #0b0;
+				font-size: 0.8em;
+				margin-left: 0.5em;
+			}
 		`);
 
 		// Insert a settings icon in the top right corner of the page
-		function insertSettingsDropdown() {
-			let settingsDropdown = $(
+		function insertSettingsModal() {
+			let SettingsModal = $(
 				`
-				<div class="dropdown">
-					<a class="icon icon-settings dropdownIcon"></a>
-					<div id="myDropdown" class="dropdown-content">
-						<li>Home</li>
-						<li>
-							<div>Patterns</div>
-							<!-- First level sub dropdown -->
-							<ul>
-								<li>Layout</li>
-								<li>Input</li>
-								<li>
-									<div>Navigation</div>
-									<!-- Second level sub dropdown -->
-									<ul>
-										<li>Breadcrumb</li>
-										<li>Dropdown</li>
-										<li>Menu</li>
-										<li>Nested dropdown</li>
-									</ul>
-								</li>
-								<li>Display</li>
-								<li>Feedback</li>
-							</ul>
-						</li>
-						<li>Products</li>
-						<li>About</li>
+				<a id="modalOpenIconId" class="icon icon-settings dropdownIcon"></a>
+				<div id="settingsModalId" class="settingsModal">
+					<div class="settingsModalContentClass">
+					<span class="close">&times;</span>
+						<h1>Settings</h1>
+						<p>Here you can change the settings of the Tampermonkey script.</p>
+						<div>
+							<h2>Support ticket status</h2>
+							<a href="#about">Sticky note</a>
+						</div>
+						<a>Wiki redesign</a>
+						<a>Task redesign</a>
+						<a>Copy button</a>
+						<a></a>
 					</div>
 				</div>
 				`
 			);
-			$('#content > div:nth-child(1)').append(settingsDropdown);
-			document.querySelector(".dropdownIcon").addEventListener ("click", dropdownRevealToggle);
+			$('#content > div:nth-child(1)').append(SettingsModal);
+			// document.querySelector(".dropdownIcon").addEventListener ("click", dropdownRevealToggle);
 		};
-		insertSettingsDropdown()
+		insertSettingsModal();
 
-		/* When the user clicks on the button, 
-		toggle between hiding and showing the dropdown content */
-		function dropdownRevealToggle() {
-			document.getElementById("myDropdown").classList.toggle("show");
+
+
+		// Get the modal
+		var modal = document.getElementById("settingsModalId");
+
+		// Get the button that opens the modal
+		var btn = document.getElementById("modalOpenIconId");
+
+		// Get the <span> element that closes the modal
+		var span = document.getElementsByClassName("close")[0];
+
+		// When the user clicks the button, open the modal 
+		btn.onclick = function() {
+			modal.style.display = "block";
 		}
 
+		// When the user clicks on <span> (x), close the modal
+		span.onclick = function() {
+			modal.style.display = "none";
+		}
 
-
-
-		// When the user clicks on the button, toggle between hiding and showing the dropdown content
+		// When the user clicks anywhere outside of the modal, close it
 		window.onclick = function(event) {
-			if (!event.target.matches('.dropdownIcon')) {
-			var dropdowns = document.getElementsByClassName("dropdown-content");
-			var i;
-			for (i = 0; i < dropdowns.length; i++) {
-				var openDropdown = dropdowns[i];
-				if (openDropdown.classList.contains('show')) {
-				openDropdown.classList.remove('show');
-				}
-			}
+			if (event.target == modal) {
+				modal.style.display = "none";
 			}
 		}
 
 
 
 
-		
-		
 
 
 		// // Set Item
