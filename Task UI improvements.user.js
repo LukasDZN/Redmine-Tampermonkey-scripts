@@ -805,16 +805,23 @@ document.onreadystatechange = function () {
 
 
 		// TODO:
-		// - Center the modal window
-		// - Move the close X button to the right corner
-		// - Make a list of possible config statuses
-		// - Add config statuses
+		// - [DONE] Center the modal window
+		// - [DONE] Move the close X button to the right corner
+		// - [DONE] Make a list of possible config statuses
+		// - [DONE] Add config statuses
+		// - [DONE] Implement check mark indicating that the setting is active --> Add toggles for each config status
+		// - [DONE] Resize the slider
+		// - [DONE] Display the toggles next to the description instead of below it
+		// - [DONE] Finalize module design
+		// - [DONE] Add a scrollbar because the list is too long
+
 		// - Add nested config statuses
 		// - Save and change config statuses to local storage
+		// - Add a "Save" button (which closes the modal window upon clicking)
 		// - Retrieve config statuses from local storage
-		// - Implement check mark indicating that the setting is active
 		// - Add a universal function to toggle setting on and off
 		// - Refresh the whole script when the setting is changed
+		// - Load settings after the rest of the page has loaded to avoid reducing page load time
 
 
 		// Add a settings dropdown menu to the settings icon
@@ -841,10 +848,13 @@ document.onreadystatechange = function () {
 			.settingsModalContentClass {
 				background-color: #fefefe;
 				margin: auto;
-				padding: 20px;
+				padding: 2.5rem;
 				border: 1px solid #888;
-				width: 80%;
+				width: fit-content;
 				border-radius: 6px;
+				font-family: Inter, sans-serif;
+				height: 70%;
+				overflow: auto;
 			}
 			
 			/* The Close Button */
@@ -864,6 +874,143 @@ document.onreadystatechange = function () {
 
 
 
+
+			/* settingDiv */
+			.settingConfigDiv {
+				margin-top: 10px;
+				margin-bottom: 10px;
+				align-items: center;
+			}
+
+			.gridWrapper {
+				display: grid;
+				grid-template-columns: 60% 40%;
+			}
+
+			p {
+				color: #000000;
+				font-size: 14px;
+			}
+
+			#settingsModalId > div > hr {
+				margin-top: 14px;
+				margin-bottom: 28px;
+			}
+
+			#settingsModalId > div > h1 {
+				margin-top: 18px!important;
+				margin-bottom: 26px!important;
+				font-size: 28px!important;
+			}
+
+			#settingsModalId > div > h2 {
+				margin-top: 16px!important;
+				margin-bottom: 18px!important;
+				font-size: 22px!important;
+			}
+
+			#settingsModalId > div > h3 {
+				margin-top: 18px!important;
+				margin-bottom: 16px!important;
+				font-size: 18px!important;
+			}
+
+
+
+
+
+
+			.switch {
+				position: relative;
+				display: inline-block;
+				width: 60px;
+				height: 34px;
+				transform: scale(0.8);
+			}
+			  
+			.switch input { 
+				opacity: 0;
+				width: 0;
+				height: 0;
+			}
+			
+			.slider {
+				position: absolute;
+				cursor: pointer;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				background-color: #ccc;
+				-webkit-transition: .4s;
+				transition: .4s;
+				transform: scale(0.8);
+			}
+			
+			.slider:before {
+				position: absolute;
+				content: "";
+				height: 26px;
+				width: 26px;
+				left: 4px;
+				bottom: 4px;
+				background-color: white;
+				-webkit-transition: .4s;
+				transition: .4s;
+			}
+			
+			input:checked + .slider {
+				background-color: #00C853;
+			}
+			
+			input:focus + .slider {
+				box-shadow: 0 0 1px #00C853;
+			}
+			
+			input:checked + .slider:before {
+				-webkit-transform: translateX(26px);
+				-ms-transform: translateX(26px);
+				transform: translateX(26px);
+			}
+			
+			/* Rounded sliders */
+			.slider.round {
+				border-radius: 34px;
+			}
+			
+			.slider.round:before {
+				border-radius: 50%;
+			}
+
+
+			.configSubmitButton {
+				display: inline-block;
+				font-weight: 400;
+				line-height: 1.5;
+				color: #fff;
+				background-color: #198754;
+				border-color: #198754;
+				text-align: center;
+				margin-top: 2rem;
+				height: auto;
+				text-decoration: none;
+				vertical-align: middle;
+				cursor: pointer;
+				-webkit-user-select: none;
+				-moz-user-select: none;
+				user-select: none;
+				border: 1px solid transparent;
+				padding: 0.375rem 0.75rem;
+				font-size: 1rem;
+				border-radius: 0.25rem;
+				transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+			}
+
+
+
+
+
+			  
 			/* Display a check mark if the setting is active */
 			.dropdown-content li activeSetting:after {
 				content: "&#10004;";
@@ -880,18 +1027,141 @@ document.onreadystatechange = function () {
 				<a id="modalOpenIconId" class="icon icon-settings dropdownIcon"></a>
 				<div id="settingsModalId" class="settingsModal">
 					<div class="settingsModalContentClass">
-					<span class="close">&times;</span>
-						<h1>Settings</h1>
-						<p>Here you can change the settings of the Tampermonkey script.</p>
-						<div>
-							<h2>Support ticket status</h2>
-							<a href="#about">Sticky note</a>
+						<span class="close">&times;</span>
+							
+							<h1>Settings</h1>
+							<p>Here you can change the settings of the Tampermonkey script.</p>
+							<hr>
+							
+
+
+							<h3>Support ticket statuses</h3>
+
+							<p>Show or hide buttons for the following statuses:</p>
+
+							<div class="settingConfigDiv gridWrapper">
+								<p>New</p>
+								<label class="switch">
+									<input type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+							<div class="settingConfigDiv gridWrapper">
+								<p>Pending (LT-PM)</p>
+								<label class="switch">
+									<input type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+							<div class="settingConfigDiv gridWrapper">
+								<p>Feedback</p>
+								<label class="switch">
+									<input type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+							<div class="settingConfigDiv gridWrapper">
+								<p>Closed</p>
+								<label class="switch">
+									<input type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+							<div class="settingConfigDiv gridWrapper">
+								<p>In progress (LT-PM)</p>
+								<label class="switch">
+									<input type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+							<div class="settingConfigDiv gridWrapper">
+								<p>Pending (MD-IMPL)</p>
+								<label class="switch">
+									<input type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+							<div class="settingConfigDiv gridWrapper">
+								<p>Pending (LT-OPS)</p>
+								<label class="switch">
+									<input type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+							<div class="settingConfigDiv gridWrapper">
+								<p>Pending (LT-APP)</p>
+								<label class="switch">
+									<input type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+							<div class="settingConfigDiv gridWrapper">
+								<p>Pending (DevOps)</p>
+								<label class="switch">
+									<input type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+							<div class="settingConfigDiv gridWrapper">
+								<p>Pending (Infra)</p>
+								<label class="switch">
+									<input type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+							<div class="settingConfigDiv gridWrapper">
+								<p>Resolved</p>
+								<label class="switch">
+									<input type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+
+
+							<h3>Other settings</h3>
+
+							<div class="settingConfigDiv gridWrapper">
+								<p>Wiki redesign</p>
+								<label class="switch">
+									<input type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+							<div class="settingConfigDiv gridWrapper">
+								<p>Task redesign</p>
+								<label class="switch">
+									<input type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+							<div class="settingConfigDiv gridWrapper">
+								<p>Copy button</p>
+								<label class="switch">
+									<input type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+
+
+							<div class="settingConfigDiv">
+								<button type="button" class="configSubmitButton">Save</button>
+							</div>
+
 						</div>
-						<a>Wiki redesign</a>
-						<a>Task redesign</a>
-						<a>Copy button</a>
-						<a></a>
-					</div>
 				</div>
 				`
 			);
