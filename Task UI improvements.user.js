@@ -50,24 +50,21 @@ var $ = window.jQuery;
 document.onreadystatechange = function () {
 	// Possible values: 'loading', 'interactive', 'complete'
 	if (document.readyState === 'interactive') {
-
 		/* Imported constants */
 
 		// Button color regex
 		var statusColorPatterns = {
-            '^Pending Approval$': '#fcf3cf',
-            '^Not Approved$': '#eafaf1',
-            '^New$': '#82e0aa',
-            '^In Progress.*': '#f7db6f',
-            '^Resolved$': '#85c1e9',
-            '^Feedback$': '#ec7063',
-            '^Closed$': '#d5d8dc',
-            '^Rejected$': '#abb2b9',
-            '^Suspended$': '#fdedec',
-            '^Pending.*': '#f7f2dc',
-        }; 
-		
-		
+			'^Pending Approval$': '#fcf3cf',
+			'^Not Approved$': '#eafaf1',
+			'^New$': '#82e0aa',
+			'^In Progress.*': '#f7db6f',
+			'^Resolved$': '#85c1e9',
+			'^Feedback$': '#ec7063',
+			'^Closed$': '#d5d8dc',
+			'^Rejected$': '#abb2b9',
+			'^Suspended$': '#fdedec',
+			'^Pending.*': '#f7f2dc',
+		};
 
 		/* Get values for the DOM as global constants */
 
@@ -76,16 +73,18 @@ document.onreadystatechange = function () {
 		// Parse "Status" dropdown values and return a dictionary of statuses and their values.
 		// Used for: config and appending buttons.
 		const issueStatusIdElement = document.getElementById('issue_status_id');
-		const issueStatusTextAndValueObject = {};
+		const issueStatusTextAndValueDOMObject = {};
 		for (let i = 0; i < issueStatusIdElement.children.length; i++) {
-			issueStatusTextAndValueObject[issueStatusIdElement.children.item(i).value] = issueStatusIdElement.children.item(i).text;
+			issueStatusTextAndValueDOMObject[
+				issueStatusIdElement.children.item(i).value
+			] = issueStatusIdElement.children.item(i).text;
 		}
-		// console.log(issueStatusTextAndValueObject);
+		// console.log(issueStatusTextAndValueDOMObject);
 
 		// Detect project
 		// Make sure that parsed keywords in the main text title are avoided.
 		let taskTitle = $('head > title').text().slice(-28);
-        var taskType;
+		var taskType;
 		if (taskTitle.includes('Support - ')) {
 			taskType = 'Support';
 		} else {
@@ -94,8 +93,6 @@ document.onreadystatechange = function () {
 		// User ID
 		var myUserLink = $('#loggedas a').attr('href');
 		var myID = myUserLink.match(/(\d*)$/i)[0];
-
-
 
 		//-------------------------- REMOVING UI ELEMENTS --------------------------------
 
@@ -107,13 +104,13 @@ document.onreadystatechange = function () {
 			'icon-fav-off',
 			// '#sidebar',
 		];
-		removeClassesList.forEach((className) =>
-			document.querySelectorAll(className).forEach((e) => e.remove())
+		removeClassesList.forEach(className =>
+			document.querySelectorAll(className).forEach(e => e.remove())
 		);
 
 		document
 			.querySelectorAll('#add_to_important_list')
-			.forEach((e) => e.remove());
+			.forEach(e => e.remove());
 
 		// Remove ' |' before Edit
 
@@ -308,7 +305,7 @@ document.onreadystatechange = function () {
 			);
 
 			// This is a working solution that copies a hyperlink | Source: https://stackoverflow.com/questions/53003980/how-to-copy-a-hypertext-link-into-clipboard-with-javascript-and-preserve-its-lin
-			const onClick = (evt) => {
+			const onClick = evt => {
 				const link = document.querySelector('#footer > a:nth-child(2)'); // select hypterlink to copy from DOM
 				const range = document.createRange();
 				range.selectNode(link);
@@ -337,42 +334,42 @@ document.onreadystatechange = function () {
 
 		if (taskType == 'Support') {
 			// Universal status button function
-			function addStatusButton(htmlColorCodeWithHashtag, buttonText, statusId) {
+			function addStatusButton(
+				htmlColorCodeWithHashtag,
+				buttonText,
+				statusId
+			) {
 				// Identify div to add the button to
 				let topHorizontalToolbar = buttonLocation;
-				// a button is equal to
 				let btn = $(
-					`<a class="fill" style="background-color:${htmlColorCodeWithHashtag}!important">${buttonText}</a>`
+					`<a class="fill" id="supportStatusButtonId${statusId}" style="background-color:${htmlColorCodeWithHashtag}!important">${buttonText}</a>`
 				);
-				// a button's on-click action is
 				btn.click(function () {
 					$('#issue_status_id').val(statusId);
 					$('#issue-form').submit();
 				});
-				// Add the button
 				topHorizontalToolbar.append(btn);
 			}
 
-			// iterate through status values and text and add buttons
-			for (let [key, value] of Object.entries(issueStatusTextAndValueObject)) {
+			// iterate through DOM status values and text and add buttons
+			for (let [key, value] of Object.entries(
+				issueStatusTextAndValueDOMObject
+			)) {
 				// Map colors to status values
-				let currentButtonColor = "" // Default button color if no color is found
-				for (let [string, color] of Object.entries(statusColorPatterns)) {
+				let currentButtonColor = ''; // Default button color if no color is found
+				for (let [string, color] of Object.entries(
+					statusColorPatterns
+				)) {
 					if (value.match(new RegExp(string, 'i'))) {
-						currentButtonColor = color
-						break
+						currentButtonColor = color;
+						break;
 					}
 				}
-				addStatusButton(
-					currentButtonColor,
-					value,
-					key
-				);
+				if (localStorage.getItem(key) === 'Active') {
+					addStatusButton(currentButtonColor, value, key);
+				}
 			}
-
 		}
-
-
 
 		// ------------------- Post-release -> Skip both ----------------
 		// Displayed on "Development" tasks only
@@ -702,7 +699,7 @@ document.onreadystatechange = function () {
 				);
 
 				// "Hide" button's onClick action
-				btnHide.click(function () {
+				function hideNote() {
 					// onClick -> Hide the text area
 					$('#issue-form > div > fieldset.stickyNotes').hide();
 					$('#footer > input:nth-child(5)').hide();
@@ -723,7 +720,9 @@ document.onreadystatechange = function () {
 						// Add the button
 						$('div#footer').append(minimizedBtn);
 					});
-				});
+				}
+				hideNote();
+				btnHide.click(hideNote);
 
 				// Add the button
 				noteArea.append(btnHide);
@@ -758,9 +757,6 @@ document.onreadystatechange = function () {
 			}
 		}
 
-
-
-
 		// TODO:
 		// - [DONE] Center the modal window
 		// - [DONE] Move the close X button to the right corner
@@ -776,31 +772,30 @@ document.onreadystatechange = function () {
 		// - [DONE] Created automatic button insert according to available statuses
 
 		// Settings content changes depending on which page you're on.
-			// Can't know your support statuses list without being on the page or at least having visited it once since installing.
-				// Once a user goes to the support ticket page, statuses will be parsed and saved.
-					// To make sure a user never sees an empty config page for statuses - a fetch request could be made.
-			// If settings change per page - it can be difficult to understand what kind of settings exist overall.
-				// Instruct the user to go to a task issue page to set the setting. (if no status is found -> display instruction text / or if no status is found - send a fetch request [implement if it's easy])
+		// Can't know your support statuses list without being on the page or at least having visited it once since installing.
+		// Once a user goes to the support ticket page, statuses will be parsed and saved.
+		// To make sure a user never sees an empty config page for statuses - a fetch request could be made.
+		// If settings change per page - it can be difficult to understand what kind of settings exist overall.
+		// Instruct the user to go to a task issue page to set the setting. (if no status is found -> display instruction text / or if no status is found - send a fetch request [implement if it's easy])
 		// Where should the settings button exist in general? Top right corner in all pages? -> yes.
-		// What if a new status is added or removed? 
-			// It can either be checked periodically every day or just run the function at the end of the script to reduce processing time.
-			// It should be disabled by default.
+		// What if a new status is added or removed?
+		// It can either be checked periodically every day or just run the function at the end of the script to reduce processing time.
+		// It should be disabled by default.
 
 		// - [DONE] Change settings button position
 		// - [DONE] Make support buttons automatically appear in the config module
-		// - 
-		// - Save and change config statuses to local storage
-		// - Add a "Save" button (which closes the modal window upon clicking)
-		// - Retrieve config statuses from local storage
-		// - Add a universal function to toggle setting on and off
-		// - Refresh the whole script when the setting is changed
+		// - [DONE] Save and change config statuses to local storage using sliders
+		// - [DONE] Add a "Save" button (which closes the modal window upon clicking) -> no need for a button now.
+		// - Note disappears when clicking "Hide"
+		// - Add Redmine task templating
+		// - Add Redmine task field templating
+		// - Architecture refactoring
 		// - Load settings after the rest of the page has loaded to avoid reducing page load time
-
 
 		// Add a settings dropdown menu to the settings icon
 		// https://www.w3schools.com/howto/howto_js_dropdown.asp
 		GM_addStyle(`
-		  
+
 			/* The Modal (background) */
 			.settingsModal {
 				display: none; /* Hidden by default */
@@ -816,7 +811,7 @@ document.onreadystatechange = function () {
 				background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 				margin-left: 0!important; /* Remove the margin otherwise there's a gap */
 			}
-			
+
 			/* settingsModal Content */
 			.settingsModalContentClass {
 				background-color: #fefefe;
@@ -831,7 +826,7 @@ document.onreadystatechange = function () {
 				margin-bottom: 20%;
 				overflow: auto;
 			}
-			
+
 			/* The Close Button */
 			.close {
 				color: #aaaaaa;
@@ -839,7 +834,7 @@ document.onreadystatechange = function () {
 				font-size: 28px;
 				font-weight: bold;
 			}
-			
+
 			.close:hover,
 				.close:focus {
 				color: #000;
@@ -902,13 +897,13 @@ document.onreadystatechange = function () {
 				height: 34px;
 				transform: scale(0.8);
 			}
-			  
-			.switch input { 
+
+			.switch input {
 				opacity: 0;
 				width: 0;
 				height: 0;
 			}
-			
+
 			.slider {
 				position: absolute;
 				cursor: pointer;
@@ -921,7 +916,7 @@ document.onreadystatechange = function () {
 				transition: .4s;
 				transform: scale(0.8);
 			}
-			
+
 			.slider:before {
 				position: absolute;
 				content: "";
@@ -933,31 +928,32 @@ document.onreadystatechange = function () {
 				-webkit-transition: .4s;
 				transition: .4s;
 			}
-			
+
 			input:checked + .slider {
 				background-color: #00C853;
 			}
-			
+
 			input:focus + .slider {
 				box-shadow: 0 0 1px #00C853;
 			}
-			
+
 			input:checked + .slider:before {
 				-webkit-transform: translateX(26px);
 				-ms-transform: translateX(26px);
 				transform: translateX(26px);
 			}
-			
+
 			/* Rounded sliders */
 			.slider.round {
 				border-radius: 34px;
 			}
-			
+
 			.slider.round:before {
 				border-radius: 50%;
 			}
 
 
+			/* Unused button */ 
 			.configSubmitButton {
 				display: inline-block;
 				font-weight: 400;
@@ -983,9 +979,26 @@ document.onreadystatechange = function () {
 
 
 
+			.alertBox {
+				position: relative;
+				padding: 0.75rem 1.25rem;
+				padding-left: 1rem;
+				padding-top: 0.35rem;
+				padding-bottom: 0.75rem;
+				margin-bottom: 1rem;
+				border: 1px solid transparent;
+				border-radius: 0.3rem;
+				color: #023164;
+   				background-color: #cce5ff;
+    			border-color: #b8daff;
+				font-size: 14px;
+			}
+
+			.alertBox > span {
+				font-size: 1.8em;
+			}
 
 
-			  
 			/* Display a check mark if the setting is active */
 			.dropdown-content li activeSetting:after {
 				content: "&#10004;";
@@ -1003,11 +1016,13 @@ document.onreadystatechange = function () {
 				<div id="settingsModalId" class="settingsModal">
 					<div class="settingsModalContentClass">
 						<span class="close">&times;</span>
-							
+
 							<h1>Settings</h1>
 							<p>Here you can change the settings of the Tampermonkey script.</p>
 							<hr>
-							
+
+							<div class="alertBox"><span>&#x1F6C8;</span> Note: refresh the page too see the changes.</div>
+
 
 
 							<h3>Support ticket statuses</h3>
@@ -1046,100 +1061,87 @@ document.onreadystatechange = function () {
 							</div>
 
 
-
-
-							<div class="settingConfigDiv">
-								<button type="button" class="configSubmitButton">Save</button>
-							</div>
-
-
 						</div>
 				</div>
 				`
 			);
 			$('#loggedas').prepend(SettingsModal);
 			// document.querySelector(".dropdownIcon").addEventListener ("click", dropdownRevealToggle);
-		};
+		}
 		insertSettingsModal();
 
-
-
-
-
 		// Get the modal
-		var modal = document.getElementById("settingsModalId");
+		var modal = document.getElementById('settingsModalId');
 
 		// Get the button that opens the modal
-		var btn = document.getElementById("modalOpenIconId");
+		var btn = document.getElementById('modalOpenIconId');
 
 		// Get the <span> element that closes the modal
-		var span = document.getElementsByClassName("close")[0];
+		var span = document.getElementsByClassName('close')[0];
 
-		// When the user clicks the button, open the modal 
-		btn.onclick = function() {
-			modal.style.display = "block";
-		}
+		// When the user clicks the button, open the modal
+		btn.onclick = function () {
+			modal.style.display = 'block';
+		};
 
 		// When the user clicks on <span> (x), close the modal
-		span.onclick = function() {
-			modal.style.display = "none";
-		}
+		span.onclick = function () {
+			modal.style.display = 'none';
+		};
 
 		// When the user clicks anywhere outside of the modal, close it
-		window.onclick = function(event) {
+		window.onclick = function (event) {
 			if (event.target == modal) {
-				modal.style.display = "none";
+				modal.style.display = 'none';
 			}
-		}
-
-
-
-
-		// Slider utility
-		// Slider changes the status of localStorage value between true and false
+		};
 
 
 
 		/* Add Support ticket statuses to the config module by parsing the DOM */
-		const supportButtonConfigDiv = document.getElementById("supportButtonDiv");
-		for (let [key, value] of Object.entries(issueStatusTextAndValueObject)) {
+		const supportButtonConfigDiv =
+			document.getElementById('supportButtonDiv');
+		for (let [key, value] of Object.entries(
+			issueStatusTextAndValueDOMObject
+		)) {
+			// Check if item exists in localStorage. If it doesn't - add the status to the localStorage.
+			if (localStorage.getItem(key) === null) {
+				localStorage.setItem(key, 'Inactive'); // config set to inactive by default
+			}
+
+			// Check the status of the item in localStorage and set the checkbox accordingly
+			let isActive = ''; // unchecked by default
+			if (localStorage.getItem(key) === 'Active') {
+				isActive = ' checked';
+			}
+			// Create a slider which is either checked or unchecked according to the localStorage status
 			let supportButtonSetting = `
 			<div class="settingConfigDiv gridWrapper">
 				<p>${value}</p>
 				<label class="switch">
-					<input type="checkbox">
+					<input type="checkbox" id="${key}"${isActive}>
 					<span class="slider round"></span>
 				</label>
 			</div>
-			`
+			`;
 			supportButtonConfigDiv.innerHTML += supportButtonSetting;
-			// <input type="checkbox" checked/>
+
+			setTimeout(function () {
+				// this is needed because otherwise the event listener won't work. Exact ms needed unknown.
+				// On checkbox click, change the status of the localStorage item to either "Active" or "Inactive"
+				document
+					.getElementById(key)
+					.addEventListener('click', function () {
+						if (this.checked) {
+							localStorage.setItem(key, 'Active');
+
+						} else {
+							localStorage.setItem(key, 'Inactive');
+							document.getElementById('supportStatusButtonId' + key).remove();
+						}
+					});
+			}, 500);
 		}
-
-
-
-
-
-
-		// // Set Item
-		// /* localStorage.setItem(key, value); */
-		// function saveNoteToLocalStorage() {
-		// 	localStorage.setItem(
-		// 		RedmineTaskNumber,
-		// 		document.querySelector('#issue_notes').value
-		// 	);
-		// }
-
-		// // Retrieve
-		// /* let lastname = localStorage.getItem(key); */
-		// // On-load --> set the textarea to the last saved value
-		// document.querySelector('#issue_notes').value =
-		// 	localStorage.getItem(RedmineTaskNumber);
-
-
-
-
-
 
 		// --- Potential features ------------------------------------------------------------------------------
 
