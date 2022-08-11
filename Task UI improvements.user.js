@@ -71,6 +71,8 @@ document.onreadystatechange = function () {
 
 		/* Get values for the DOM as global constants */
 
+		const currentPageUrl = window.location.href;
+
 		// Parse "Status" dropdown values and return a dictionary of statuses and their values.
 		// Used for: config and appending buttons.
 		const issueStatusIdElement = document.getElementById('issue_status_id');
@@ -292,7 +294,6 @@ document.onreadystatechange = function () {
 			let taskName = $('#content > h2');
 
 			// Preparing content to write to clipboard
-			let pageUrl = window.location.href;
 			let taskTitle = $('head > title').text().slice(0, -17); // Turn header element into text, then remove " - TribePayments" part of the string
 			// Remove the " - <Project name>" from the end of the string
 			let cleanedStringEndingIndex = taskTitle.lastIndexOf(' - ');
@@ -303,7 +304,7 @@ document.onreadystatechange = function () {
 
 			// Create a hyperlink
 			$('#footer').append(
-				`<a href="${pageUrl}" style="color: white">${cleanedTaskTitle}</a>`
+				`<a href="${currentPageUrl}" style="color: white">${cleanedTaskTitle}</a>`
 			);
 
 			// This is a working solution that copies a hyperlink | Source: https://stackoverflow.com/questions/53003980/how-to-copy-a-hypertext-link-into-clipboard-with-javascript-and-preserve-its-lin
@@ -336,12 +337,12 @@ document.onreadystatechange = function () {
 
 		if (taskType == 'Support') {
 			// Universal status button function
-			function addStatusButton(statusClassName, buttonText, statusId) {
+			function addStatusButton(htmlColorCodeWithHashtag, buttonText, statusId) {
 				// Identify div to add the button to
 				let topHorizontalToolbar = buttonLocation;
 				// a button is equal to
 				let btn = $(
-					`<a class="fill ${statusClassName}">${buttonText}</a>`
+					`<a class="fill" style="background-color:${htmlColorCodeWithHashtag}!important">${buttonText}</a>`
 				);
 				// a button's on-click action is
 				btn.click(function () {
@@ -354,13 +355,24 @@ document.onreadystatechange = function () {
 
 			// iterate through status values and text and add buttons
 			for (let [key, value] of Object.entries(issueStatusTextAndValueObject)) {
+				// Map colors to status values
+				let currentButtonColor = "" // Default button color if no color is found
+				for (let [string, color] of Object.entries(statusColorPatterns)) {
+					if (value.match(new RegExp(string, 'i'))) {
+						currentButtonColor = color
+						break
+					}
+				}
 				addStatusButton(
-					'New',
+					currentButtonColor,
 					value,
 					key
 				);
 			}
+
 		}
+
+
 
 		// ------------------- Post-release -> Skip both ----------------
 		// Displayed on "Development" tasks only
@@ -760,7 +772,23 @@ document.onreadystatechange = function () {
 		// - [DONE] Finalize module design
 		// - [DONE] Add a scrollbar because the list is too long
 
-		// - [DONE] Add nested config statuses
+		// - [DONE] Add nested config statuses -> alternative was done without nesting - simply a menu category
+		// - [DONE] Created automatic button insert according to available statuses
+
+		// Settings content changes depending on which page you're on.
+			// Can't know your support statuses list without being on the page or at least having visited it once since installing.
+				// Once a user goes to the support ticket page, statuses will be parsed and saved.
+					// To make sure a user never sees an empty config page for statuses - a fetch request could be made.
+			// If settings change per page - it can be difficult to understand what kind of settings exist overall.
+				// Instruct the user to go to a task issue page to set the setting. (if no status is found -> display instruction text / or if no status is found - send a fetch request [implement if it's easy])
+		// Where should the settings button exist in general? Top right corner in all pages? -> yes.
+		// What if a new status is added or removed? 
+			// It can either be checked periodically every day or just run the function at the end of the script to reduce processing time.
+			// It should be disabled by default.
+
+		// - [DONE] Change settings button position
+		// - [DONE] Make support buttons automatically appear in the config module
+		// - 
 		// - Save and change config statuses to local storage
 		// - Add a "Save" button (which closes the modal window upon clicking)
 		// - Retrieve config statuses from local storage
@@ -792,13 +820,15 @@ document.onreadystatechange = function () {
 			/* settingsModal Content */
 			.settingsModalContentClass {
 				background-color: #fefefe;
+				color: #000;
 				margin: auto;
 				padding: 2.5rem;
 				border: 1px solid #888;
 				width: fit-content;
 				border-radius: 6px;
 				font-family: Inter, sans-serif;
-				height: 70%;
+				height: auto;
+				margin-bottom: 20%;
 				overflow: auto;
 			}
 			
@@ -984,93 +1014,8 @@ document.onreadystatechange = function () {
 
 							<p>Show or hide buttons for the following statuses:</p>
 
-							<div class="settingConfigDiv gridWrapper">
-								<p>New</p>
-								<label class="switch">
-									<input type="checkbox" checked>
-									<span class="slider round"></span>
-								</label>
-							</div>
+							<div id="supportButtonDiv"></div>
 
-							<div class="settingConfigDiv gridWrapper">
-								<p>Pending (LT-PM)</p>
-								<label class="switch">
-									<input type="checkbox" checked>
-									<span class="slider round"></span>
-								</label>
-							</div>
-
-							<div class="settingConfigDiv gridWrapper">
-								<p>Feedback</p>
-								<label class="switch">
-									<input type="checkbox" checked>
-									<span class="slider round"></span>
-								</label>
-							</div>
-
-							<div class="settingConfigDiv gridWrapper">
-								<p>Closed</p>
-								<label class="switch">
-									<input type="checkbox" checked>
-									<span class="slider round"></span>
-								</label>
-							</div>
-
-							<div class="settingConfigDiv gridWrapper">
-								<p>In progress (LT-PM)</p>
-								<label class="switch">
-									<input type="checkbox" checked>
-									<span class="slider round"></span>
-								</label>
-							</div>
-
-							<div class="settingConfigDiv gridWrapper">
-								<p>Pending (MD-IMPL)</p>
-								<label class="switch">
-									<input type="checkbox" checked>
-									<span class="slider round"></span>
-								</label>
-							</div>
-
-							<div class="settingConfigDiv gridWrapper">
-								<p>Pending (LT-OPS)</p>
-								<label class="switch">
-									<input type="checkbox" checked>
-									<span class="slider round"></span>
-								</label>
-							</div>
-
-							<div class="settingConfigDiv gridWrapper">
-								<p>Pending (LT-APP)</p>
-								<label class="switch">
-									<input type="checkbox" checked>
-									<span class="slider round"></span>
-								</label>
-							</div>
-
-							<div class="settingConfigDiv gridWrapper">
-								<p>Pending (DevOps)</p>
-								<label class="switch">
-									<input type="checkbox" checked>
-									<span class="slider round"></span>
-								</label>
-							</div>
-
-							<div class="settingConfigDiv gridWrapper">
-								<p>Pending (Infra)</p>
-								<label class="switch">
-									<input type="checkbox" checked>
-									<span class="slider round"></span>
-								</label>
-							</div>
-
-							<div class="settingConfigDiv gridWrapper">
-								<p>Resolved</p>
-								<label class="switch">
-									<input type="checkbox" checked>
-									<span class="slider round"></span>
-								</label>
-							</div>
 
 
 
@@ -1102,15 +1047,17 @@ document.onreadystatechange = function () {
 
 
 
+
 							<div class="settingConfigDiv">
 								<button type="button" class="configSubmitButton">Save</button>
 							</div>
+
 
 						</div>
 				</div>
 				`
 			);
-			$('#content > div:nth-child(1)').append(SettingsModal);
+			$('#loggedas').prepend(SettingsModal);
 			// document.querySelector(".dropdownIcon").addEventListener ("click", dropdownRevealToggle);
 		};
 		insertSettingsModal();
@@ -1143,6 +1090,30 @@ document.onreadystatechange = function () {
 			if (event.target == modal) {
 				modal.style.display = "none";
 			}
+		}
+
+
+
+
+		// Slider utility
+		// Slider changes the status of localStorage value between true and false
+
+
+
+		/* Add Support ticket statuses to the config module by parsing the DOM */
+		const supportButtonConfigDiv = document.getElementById("supportButtonDiv");
+		for (let [key, value] of Object.entries(issueStatusTextAndValueObject)) {
+			let supportButtonSetting = `
+			<div class="settingConfigDiv gridWrapper">
+				<p>${value}</p>
+				<label class="switch">
+					<input type="checkbox">
+					<span class="slider round"></span>
+				</label>
+			</div>
+			`
+			supportButtonConfigDiv.innerHTML += supportButtonSetting;
+			// <input type="checkbox" checked/>
 		}
 
 
