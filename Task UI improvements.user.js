@@ -50,21 +50,50 @@ var $ = window.jQuery;
 document.onreadystatechange = function () {
 	// Possible values: 'loading', 'interactive', 'complete'
 	if (document.readyState === 'interactive') {
-		// --- Detect project ------------------------------------------------------------
 
+		/* Imported constants */
+
+		// Button color regex
+		var statusColorPatterns = {
+            '^Pending Approval$': '#fcf3cf',
+            '^Not Approved$': '#eafaf1',
+            '^New$': '#82e0aa',
+            '^In Progress.*': '#f7db6f',
+            '^Resolved$': '#85c1e9',
+            '^Feedback$': '#ec7063',
+            '^Closed$': '#d5d8dc',
+            '^Rejected$': '#abb2b9',
+            '^Suspended$': '#fdedec',
+            '^Pending.*': '#f7f2dc',
+        }; 
+		
+		
+
+		/* Get values for the DOM as global constants */
+
+		// Parse "Status" dropdown values and return a dictionary of statuses and their values.
+		// Used for: config and appending buttons.
+		const issueStatusIdElement = document.getElementById('issue_status_id');
+		const issueStatusTextAndValueObject = {};
+		for (let i = 0; i < issueStatusIdElement.children.length; i++) {
+			issueStatusTextAndValueObject[issueStatusIdElement.children.item(i).value] = issueStatusIdElement.children.item(i).text;
+		}
+		// console.log(issueStatusTextAndValueObject);
+
+		// Detect project
 		// Make sure that parsed keywords in the main text title are avoided.
 		let taskTitle = $('head > title').text().slice(-28);
-
         var taskType;
 		if (taskTitle.includes('Support - ')) {
 			taskType = 'Support';
 		} else {
 			taskType = 'Development';
 		}
-
 		// User ID
 		var myUserLink = $('#loggedas a').attr('href');
 		var myID = myUserLink.match(/(\d*)$/i)[0];
+
+
 
 		//-------------------------- REMOVING UI ELEMENTS --------------------------------
 
@@ -204,51 +233,6 @@ document.onreadystatechange = function () {
             /* -webkit-text-stroke: 0.03vw #0d3d61; */
         }
 
-        /* Roles: BOTH, PM, OPS */
-        .assignToMe {
-            background-color: #D5F5E3;
-        }
-
-        /* Roles: PM */
-        .inProgressPm {
-            background-color: #F9E79F;
-        }
-        .pendingImpl {
-            background-color: #D8B5FF;
-        }
-        .pendingOps {
-            background-color: #DCF5A8;
-        }
-        .pendingApp {
-            background-color: #EDBB99;
-        }
-        .pendingDevops {
-            background-color: #AEB6BF;
-        }
-        .pendingInfra {
-            background-color: #D4E6F1;
-        }
-        .resolved {
-            background-color: #85C1E9;
-        }
-
-        /* Roles: Ops */
-        .new {
-            background-color: #6DFF95;
-        }
-        .inProgressOps {
-            background-color: #F9E79F;
-        }
-        .pendingPm {
-            background-color: #EDBB99;
-        }
-        .feedback {
-            background-color: #FF9388;
-        }
-        .closed {
-            background-color: #BBBBBB;
-        }
-
         /* Edit button */
         a.icon.icon-edit.fill {
             background-color: #4D75B2;
@@ -368,52 +352,13 @@ document.onreadystatechange = function () {
 				topHorizontalToolbar.append(btn);
 			}
 
-			/**
-			 * Assign issue to me
-			 */
-			function assignToMe(userRole) {
-				// Identify div to add the button to
-				let topHorizontalToolbar = buttonLocation;
-				// a button is equal to
-				let btn = $('<a class="fill assignToMe">Assign to me</a>');
-				// a button's on-click action is
-
-				if (userRole == 'PM' || userRole == 'BOTH') {
-					btn.click(function () {
-						$('#issue_assigned_to_id').val(myID);
-						$('#issue-form').submit();
-					});
-					// Add the button
-					topHorizontalToolbar.append(btn);
-				} else if (userRole == 'OPS' || userRole == 'BOTH') {
-					// Currently there's no way to assign Ops assignee as 'Me'
-					// btn.click(function(){
-					//     $("#issue_assigned_to_id").val(<id>);
-					// }
-					// Add the button
-					// topHorizontalToolbar.append(btn)
-				}
-			}
-
-			// Create an Assign to me button for BOTH and PM roles
-			assignToMe(userRole);
-
-			// Adding buttons for specified user roles
-			if (userRole == 'PM' || userRole == 'BOTH') {
-				addStatusButton('inProgressPm', 'In progress (LT-PM)', 25);
-				addStatusButton('pendingImpl', 'Pending (MD-IMPL)', 36);
-				addStatusButton('pendingOps', 'Pending (LT-OPS)', 28);
-				addStatusButton('pendingApp', 'Pending (LT-APP)', 29);
-				addStatusButton('pendingDevops', 'Pending (DevOps)', 34);
-				addStatusButton('pendingInfra', 'Pending (Infra)', 32);
-				addStatusButton('resolved', 'Resolved', 3);
-			}
-			if (userRole == 'OPS' || userRole == 'BOTH') {
-				addStatusButton('new', 'New', 1);
-				addStatusButton('inProgressOps', 'In progress (LT-OPS)', 27);
-				addStatusButton('pendingPm', 'Pending (LT-PM)', 30);
-				addStatusButton('feedback', 'Feedback', 4);
-				addStatusButton('closed', 'Closed', 5);
+			// iterate through status values and text and add buttons
+			for (let [key, value] of Object.entries(issueStatusTextAndValueObject)) {
+				addStatusButton(
+					'New',
+					value,
+					key
+				);
 			}
 		}
 
@@ -453,7 +398,7 @@ document.onreadystatechange = function () {
 			console.log("Couldn't prettify the Edit button");
 		}
 
-		// Pretiffy the bottom of the page Edit button
+		// Prettify the bottom of the page Edit button
 		try {
 			$('#content > div:nth-child(6) > a.icon.icon-edit').addClass(
 				'fill'
@@ -815,7 +760,7 @@ document.onreadystatechange = function () {
 		// - [DONE] Finalize module design
 		// - [DONE] Add a scrollbar because the list is too long
 
-		// - Add nested config statuses
+		// - [DONE] Add nested config statuses
 		// - Save and change config statuses to local storage
 		// - Add a "Save" button (which closes the modal window upon clicking)
 		// - Retrieve config statuses from local storage
@@ -1169,6 +1114,8 @@ document.onreadystatechange = function () {
 			// document.querySelector(".dropdownIcon").addEventListener ("click", dropdownRevealToggle);
 		};
 		insertSettingsModal();
+
+
 
 
 
