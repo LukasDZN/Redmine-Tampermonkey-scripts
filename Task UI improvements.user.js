@@ -199,18 +199,16 @@ document.onreadystatechange = function () {
             font-family: "Inter", sans-serif!important;
             font-size: 12px;
             font-weight: 600;
-            line-height: 1.15385;
+            line-height: 1.15;
             background-color: #e1ecf4;
             border-radius: 5px;
-            border: 1px solid #7aa7c7;
+            border: 1px solid transparent;
             box-shadow: rgba(255, 255, 255, .7) 0 1px 0 0 inset;
             box-sizing: border-box;
             color: #0d3d61;
             cursor: pointer;
             display: inline-block;
-            margin: 0;
-            max-width: 200px;
-            min-width: 60px;
+            margin: 2px;
             padding: 8px 4px;
             outline: none;
             position: relative;
@@ -219,7 +217,7 @@ document.onreadystatechange = function () {
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
-            vertical-align: baseline;
+            vertical-align: middle;
             white-space: nowrap;
             box-shadow: inset 0 0 100px 100px rgba(0, 0, 0, 0.03);
         }
@@ -231,6 +229,12 @@ document.onreadystatechange = function () {
             box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.25);
             /* -webkit-text-stroke: 0.03vw #0d3d61; */
         }
+
+		.paramSaveFill {
+			min-width: 20px;
+			padding: 0;
+			font-weight: bold;
+		}
 
         /* Edit button */
         a.icon.icon-edit.fill {
@@ -786,10 +790,25 @@ document.onreadystatechange = function () {
 		// - [DONE] Make support buttons automatically appear in the config module
 		// - [DONE] Save and change config statuses to local storage using sliders
 		// - [DONE] Add a "Save" button (which closes the modal window upon clicking) -> no need for a button now.
+
+		// - Parse through the noted types of fields (during New/Edit/Copy actions)
+		// - Add a save button (after each div) (it shouldn't be very visible, maybe small and gray)
+		// - When clicked -> it saves field name and value
+		// 	- A button appears with that text
+		// - Value is displayed as a button -> use previous code
+		// - There's a 'primary' checkmark -> if an item is marked as primary, it will load each time for all projects.
+		// - There's a delete button that deletes it from localStorage and removes the button from DOM
+		// - Save and X to remove existing field pre-set when Creating / Editing / Copying a task.
+
+		// - https://redmine.tribepayments.com/issues/73347 -> handle errors somehow. If status cannot be changed it's okay that the buttons do not load. Just handle the error.
+		// - Enable setting toggle for all other functions
 		// - Note disappears when clicking "Hide"
-		// - Add Redmine task templating
-		// - Add Redmine task field templating
+		// - Add Redmine task field templating (option to select primary / add current / delete icon)
+		// - Add Redmine task templating (option to select primary / add current / delete icon)
+		// - Create a slider for task progress
 		// - Architecture refactoring
+		// - Save and X to remove existing page pre-set when Creating / Editing / Copying a task.
+		// - Load last note draft.
 		// - Load settings after the rest of the page has loaded to avoid reducing page load time
 
 		// Add a settings dropdown menu to the settings icon
@@ -1021,7 +1040,7 @@ document.onreadystatechange = function () {
 							<p>Here you can change the settings of the Tampermonkey script.</p>
 							<hr>
 
-							<div class="alertBox"><span>&#x1F6C8;</span> Note: refresh the page too see the changes.</div>
+							<div class="alertBox"><span>&#x1F6C8;</span> Note: refresh the page to see the changes.</div>
 
 
 
@@ -1054,6 +1073,14 @@ document.onreadystatechange = function () {
 
 							<div class="settingConfigDiv gridWrapper">
 								<p>Copy button</p>
+								<label class="switch">
+									<input type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+							</div>
+
+							<div class="settingConfigDiv gridWrapper">
+								<p>Floating note field</p>
 								<label class="switch">
 									<input type="checkbox" checked>
 									<span class="slider round"></span>
@@ -1096,8 +1123,6 @@ document.onreadystatechange = function () {
 			}
 		};
 
-
-
 		/* Add Support ticket statuses to the config module by parsing the DOM */
 		const supportButtonConfigDiv =
 			document.getElementById('supportButtonDiv');
@@ -1134,14 +1159,64 @@ document.onreadystatechange = function () {
 					.addEventListener('click', function () {
 						if (this.checked) {
 							localStorage.setItem(key, 'Active');
-
 						} else {
 							localStorage.setItem(key, 'Inactive');
-							document.getElementById('supportStatusButtonId' + key).remove();
+							document
+								.getElementById('supportStatusButtonId' + key)
+								.remove();
 						}
 					});
 			}, 500);
 		}
+
+		/* Add a save button to all of the: select, input and textarea fields */
+
+		// - Need more specificity and adding the element below the input field not next to it.
+		// - Some of the fields have duplicated save buttons
+		// - Hide the buttons and control visibility via master button on top of the page?
+
+		// - This should load for every page. Functions should be separated by page regex match.
+		// - This should also work on pages such as time logging.
+
+		// - One field can have multiple values saved - how to store them?
+
+		document
+			.querySelectorAll(
+				`
+				#all_attributes input[type="text"],
+				#all_attributes input[type="date"],
+				#all_attributes input[type="checkbox"],
+				#all_attributes select,
+				#all_attributes textarea
+				`
+			)
+			.forEach(function (item) {
+				let fieldId = "paramSave" + item.id;
+				let btn = `<input type="button" class="fill paramSaveFill" id="${fieldId}" value="+">`;
+				item.insertAdjacentHTML('afterend', btn);
+				try {
+					document.getElementById(fieldId).addEventListener('click', function () {
+						if (localStorage.getItem(fieldId) === null) {
+							localStorage.setItem(fieldId, JSON.stringify([item.value])); // config set to inactive by default
+						} else if (localStorage.getItem(fieldId) !== null) {
+							let currentValue = localStorage.getItem(fieldId); // possible value: "['some', 'value', 'here']"
+							console.log(currentValue);
+							console.log(JSON.parse(currentValue));
+							JSON.parse(currentValue).push(item.value)
+							localStorage.setItem(fieldId, JSON.stringify(currentValue));
+						}
+				});
+				} catch (error) {
+					console.log(error);
+				}
+			});
+
+
+		
+
+
+
+
 
 		// --- Potential features ------------------------------------------------------------------------------
 
