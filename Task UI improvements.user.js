@@ -1208,19 +1208,38 @@ document.onreadystatechange = function () {
 		}
 
 		// Add "Toggle config mode" button
-		const contentDivElement = document.querySelector("#content > h2")
-		const newIssueConfigToggleBtn = `<button type="button" class="fill paramSaveFill" id="newIssueConfigToggleBtnId">Toggle config mode</button>`
-		contentDivElement.insertAdjacentHTML("afterend", newIssueConfigToggleBtn)
-		const thisNewIssueConfigToggleBtnId = document.getElementById("newIssueConfigToggleBtnId")
-		thisNewIssueConfigToggleBtnId.addEventListener("click", function () {
-			document.querySelectorAll(".hiddenByDefault").forEach(function (item) {
-				try {
-					item.style.display = (item.style.display === "none") ? "inline-block" : "none"
-				} catch (error) {
-					console.log(error)
-				}
+		function toggleConfigMode() {
+			const contentDivElement = document.querySelector("#content > h2")
+			const newIssueConfigToggleBtn = `<button type="button" class="fill paramSaveFill" id="newIssueConfigToggleBtnId">Toggle config mode</button>`
+			contentDivElement.insertAdjacentHTML("afterend", newIssueConfigToggleBtn)
+			const thisNewIssueConfigToggleBtnId = document.getElementById("newIssueConfigToggleBtnId")
+			thisNewIssueConfigToggleBtnId.addEventListener("click", function () {
+				document.querySelectorAll(".hiddenByDefault").forEach(function (item) {
+					try {
+						item.style.display = (item.style.display === "none") ? "inline-block" : "none"
+					} catch (error) {
+						console.log(error)
+					}
+				});
 			});
-		});
+		};
+		toggleConfigMode();
+
+		(function formRefreshWatcher() {
+			// Select the node that will be observed for mutations
+			const targetNode = document.querySelector(".ui-autocomplete");
+			// Options for the observer (which mutations to observe)
+			const config = { attributes: true };
+			// Callback function to execute when mutations are observed
+			const callback = () => {
+					parseTaskFieldsAddTemplateButtons();
+				formRefreshWatcher();
+			};
+			// Create an observer instance linked to the callback function
+			const observer = new MutationObserver(callback);
+			// Start observing the target node for configured mutations
+			observer.observe(targetNode, config);
+		})();
 
 		// Constants
 		const taskFields = `
@@ -1248,7 +1267,7 @@ document.onreadystatechange = function () {
 			}
 			// Insert a template button (without click action)
 			const deleteParamTemplateBtnId = 'deleteParamTemplateBtn' + redmineTaskFieldId;
-			let templateButtonHtml = `<button type="button" title="${redmineTaskFieldValue}" class="fill paramSaveFill paramTemplateBtnFill" id="${taskTemplateButtonId}" value="${redmineTaskFieldValue}">${redmineTaskFieldValueTruncated}</button><button display="none" type="button" class="deleteParamTemplateBtnFill hiddenByDefault" id="${deleteParamTemplateBtnId}">✖</button>`;
+			let templateButtonHtml = `<button type="button" title="${redmineTaskFieldValue}" class="fill paramSaveFill paramTemplateBtnFill" id="${taskTemplateButtonId}" value="${redmineTaskFieldValue}">${redmineTaskFieldValueTruncated}</button><button style="display: none;" type="button" class="deleteParamTemplateBtnFill hiddenByDefault" id="${deleteParamTemplateBtnId}">✖</button>`;
 			taskFieldHtmlElement.insertAdjacentHTML('afterend', templateButtonHtml);
 			// Add click action for the button
 			const thisTemplateButtonElement =
@@ -1272,73 +1291,75 @@ document.onreadystatechange = function () {
 		};
 		
 		// Parse the create/copied task page fields
-		document
-			.querySelectorAll(taskFields)
-			.forEach(function (taskFieldHtmlElement) {
-				try {
-					const redmineTaskFieldId = taskFieldHtmlElement.id;
+		function parseTaskFieldsAddTemplateButtons() {
+			document
+				.querySelectorAll(taskFields)
+				.forEach(function (taskFieldHtmlElement) {
+					try {
+						const redmineTaskFieldId = taskFieldHtmlElement.id;
 
-					// Add a save button (" + ") to the field
-					const plusButtonId = 'paramSave' + taskFieldHtmlElement.id;
-					const plusButtonHtml = `<input display="none" type="button" class="fill paramSaveFill paramSaveFillPlus hiddenByDefault" id="${plusButtonId}" value="+">`;
-					taskFieldHtmlElement.insertAdjacentHTML(
-						'afterend',
-						plusButtonHtml
-					);
-					// Add onclick action to the save button (" + ")
-					document
-						.getElementById(plusButtonId)
-						.addEventListener('click', function () {
-							const redmineTaskFieldValue = taskFieldHtmlElement.value;
+						// Add a save button (" + ") to the field
+						const plusButtonId = 'paramSave' + taskFieldHtmlElement.id;
+						const plusButtonHtml = `<input style="display: none;" type="button" class="fill paramSaveFill paramSaveFillPlus hiddenByDefault" id="${plusButtonId}" value="+">`;
+						taskFieldHtmlElement.insertAdjacentHTML(
+							'afterend',
+							plusButtonHtml
+						);
+						// Add onclick action to the save button (" + ")
+						document
+							.getElementById(plusButtonId)
+							.addEventListener('click', function () {
+								const redmineTaskFieldValue = taskFieldHtmlElement.value;
 
-							// If the value doesn't exist yet - add new value
-							if (
-								localStorage.getItem(redmineTaskFieldId) ===
-								null
-							) {
-								localStorage.setItem(
+								// If the value doesn't exist yet - add new value
+								if (
+									localStorage.getItem(redmineTaskFieldId) ===
+									null
+								) {
+									localStorage.setItem(
+										redmineTaskFieldId,
+										JSON.stringify([redmineTaskFieldValue])
+									);
+									// Append results and overwrite existing value
+								} else if (
+									localStorage.getItem(redmineTaskFieldId) !==
+									null
+								) {
+									let currentValue =
+										localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
+									let parsedValue = JSON.parse(currentValue);
+									parsedValue.push(redmineTaskFieldValue);
+									localStorage.setItem(
+										redmineTaskFieldId,
+										JSON.stringify(parsedValue)
+									);
+								}
+								// Dynamically create a template button for the saved value
+								createTemplateButton(
 									redmineTaskFieldId,
-									JSON.stringify([redmineTaskFieldValue])
+									redmineTaskFieldValue
 								);
-								// Append results and overwrite existing value
-							} else if (
-								localStorage.getItem(redmineTaskFieldId) !==
-								null
-							) {
-								let currentValue =
-									localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
-								let parsedValue = JSON.parse(currentValue);
-								parsedValue.push(redmineTaskFieldValue);
-								localStorage.setItem(
+							});
+
+						// Upon page load - create template buttons using the localStorage values
+						if (localStorage.getItem(redmineTaskFieldId) !== null) {
+							let currentValue =
+								localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
+							let parsedValue = JSON.parse(currentValue);
+
+							parsedValue.forEach(function (redmineTaskFieldValueFromArray) {
+								createTemplateButton(
 									redmineTaskFieldId,
-									JSON.stringify(parsedValue)
+									redmineTaskFieldValueFromArray
 								);
-							}
-							// Dynamically create a template button for the saved value
-							createTemplateButton(
-								redmineTaskFieldId,
-								redmineTaskFieldValue
-							);
-						});
-
-					// Upon page load - create template buttons using the localStorage values
-					if (localStorage.getItem(redmineTaskFieldId) !== null) {
-						let currentValue =
-							localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
-						let parsedValue = JSON.parse(currentValue);
-
-						parsedValue.forEach(function (redmineTaskFieldValueFromArray) {
-							createTemplateButton(
-								redmineTaskFieldId,
-								redmineTaskFieldValueFromArray
-							);
-						});
+							});
+						}
+					} catch (error) {
+						console.log(error);
 					}
-				} catch (error) {
-					console.log(error);
-				}
-			});
-
+				});
+		}
+		parseTaskFieldsAddTemplateButtons();
 
 		
 		function changeProgress(progressBarId, progressValue, animDurPerStep = 15) {
