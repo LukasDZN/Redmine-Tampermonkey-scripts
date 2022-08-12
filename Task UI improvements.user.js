@@ -1025,7 +1025,7 @@ document.onreadystatechange = function () {
 
 			.paramTemplateBtnFill > span {
 				color: #C70039;
-				font-size: 1em;
+				font-size: 0.8em;
 				margin-left: 0.6em;
                 margin-right: 0.3rem;
 				font-weight: 100;
@@ -1123,8 +1123,6 @@ document.onreadystatechange = function () {
 			}
 		};
 
-
-
 		/* Add Support ticket statuses to the config module by parsing the DOM */
 		const supportButtonConfigDiv =
 			document.getElementById('supportButtonDiv');
@@ -1171,11 +1169,6 @@ document.onreadystatechange = function () {
 			}, 500);
 		}
 
-
-
-
-
-		
 		const taskFields = `
 			#all_attributes input[type="text"],
 			#all_attributes input[type="date"],
@@ -1184,100 +1177,111 @@ document.onreadystatechange = function () {
 			#all_attributes textarea
 			`;
 
+		function createTemplateButton(
+			redmineTaskFieldId,
+			redmineTaskFieldValue
+		) {
+			const taskFieldHtmlElement =
+				document.getElementById(redmineTaskFieldId);
+			const taskTemplateButtonId =
+				'paramSaveTemplateButton' + redmineTaskFieldId;
+			// Preparing button values - truncating if the value is too long
+			const redmineTaskFieldValueMaxLength = 55;
+			let redmineTaskFieldValueTruncated = redmineTaskFieldValue;
+			if (redmineTaskFieldValue.length > redmineTaskFieldValueMaxLength) {
+				redmineTaskFieldValueTruncated =
+					redmineTaskFieldValue.substring(0, 55) + '...';
+			}
+			// Insert a template button (without click action)
+			let templateButtonHtml = `<button type="button" title="${redmineTaskFieldValue}" class="fill paramSaveFill paramTemplateBtnFill" id="${taskTemplateButtonId}" value="${redmineTaskFieldValue}">${redmineTaskFieldValueTruncated}<span class="paramTemplateBtnFillSpan">✖</span></button>`;
+			taskFieldHtmlElement.insertAdjacentHTML('afterend', templateButtonHtml);
+			// Add click action for the button
+			const thisButtonElement =
+				document.getElementById(taskTemplateButtonId);
+			thisButtonElement.addEventListener('click', function () {
+				document.getElementById(redmineTaskFieldId).value = this.value;
+			});
+			// Add click action for the X delete span
+			thisButtonElement.lastChild.addEventListener('click', function () {
+				let currentValue = localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
+				let parsedValue = JSON.parse(currentValue);
+				let index = parsedValue.indexOf(this.parentNode.value);
+				parsedValue.splice(index, 1);
+				localStorage.setItem(
+					redmineTaskFieldId,
+					JSON.stringify(parsedValue)
+				);
+				this.parentNode.remove();
+			});
+		};
 
 		// Parse the create/copied task page fields
-		document.querySelectorAll(taskFields).forEach(function (item) {
-
-			const redmineTaskFieldId = item.id;
-			const plusButtonId = 'paramSave' + item.id;
-
-			/* Add a save button (" + ") to selected fields */
-
-			const plusButtonHtml = `<input type="button" class="fill paramSaveFill" id="${plusButtonId}" value="+">`;
-			item.insertAdjacentHTML('afterend', plusButtonHtml);
-			try {
-				document
-					.getElementById(plusButtonId)
-					.addEventListener('click', function () {
-						if (localStorage.getItem(redmineTaskFieldId) === null) {
-							localStorage.setItem(
-								redmineTaskFieldId,
-								JSON.stringify([item.value])
-							); // config set to inactive by default
-						} else if (localStorage.getItem(redmineTaskFieldId) !== null) {
-							let currentValue = localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
-							let parsedValue = JSON.parse(currentValue);
-							parsedValue.push(item.value);
-							localStorage.setItem(
-								redmineTaskFieldId,
-								JSON.stringify(parsedValue)
-							);
-						}
-						// Invoke display function to reload the DOM with the new value
-						// display();
-						createTemplateButtonFromValue(redmineTaskFieldId);
-					});
-			} catch (error) {
-				console.log(error);
-			}
-		});
-
-
-
-		/* Display items from localStorage as template buttons */
-		function display() {
-			document.querySelectorAll(taskFields).forEach(function (item) {
-				const redmineTaskFieldId = item.id;
-				const taskTemplateButtonId = 'paramSaveTemplateButton' + redmineTaskFieldId;
-				// Insert a button without click action
+		document
+			.querySelectorAll(taskFields)
+			.forEach(function (taskFieldHtmlElement) {
 				try {
-					if (localStorage.getItem(redmineTaskFieldId) !== null) {
-						let currentValue = localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
-						let parsedValue = JSON.parse(currentValue);
-						parsedValue.forEach(function createTemplateButtonFromValue(arrayItem) {
-							// Truncating if the value is too long
-							const arrayItemMaxLength = 55;
-							let arrayItemTruncated = arrayItem;
-							if (arrayItem.length > arrayItemMaxLength) {
-								arrayItemTruncated =
-									arrayItem.substring(0, 55) + '...';
-							}
-							let btn = `<button type="button" title="${arrayItem}" class="fill paramSaveFill paramTemplateBtnFill" id="${taskTemplateButtonId}" value="${arrayItem}">${arrayItemTruncated}<span class="paramTemplateBtnFillSpan">✖</span></button>`;
-							item.insertAdjacentHTML('afterend', btn);
-							// Add click action for the button
-							const thisButtonElement = document.getElementById(taskTemplateButtonId)
-							thisButtonElement.addEventListener('click', function () {
-								document.getElementById(redmineTaskFieldId).value =
-									this.value;
-							});
-							// Add click action for the X delete span
-							thisButtonElement.lastChild.addEventListener('click', function () {
-								let currentValue = localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
+					const redmineTaskFieldId = taskFieldHtmlElement.id;
+
+					// Add a save button (" + ") to the field
+					const plusButtonId = 'paramSave' + taskFieldHtmlElement.id;
+					const plusButtonHtml = `<input type="button" class="fill paramSaveFill" id="${plusButtonId}" value="+">`;
+					taskFieldHtmlElement.insertAdjacentHTML(
+						'afterend',
+						plusButtonHtml
+					);
+					// Add onclick action to the save button (" + ")
+					document
+						.getElementById(plusButtonId)
+						.addEventListener('click', function () {
+							const redmineTaskFieldValue = taskFieldHtmlElement.value;
+
+							// If the value doesn't exist yet - add new value
+							if (
+								localStorage.getItem(redmineTaskFieldId) ===
+								null
+							) {
+								localStorage.setItem(
+									redmineTaskFieldId,
+									JSON.stringify([redmineTaskFieldValue])
+								);
+								// Append results and overwrite existing value
+							} else if (
+								localStorage.getItem(redmineTaskFieldId) !==
+								null
+							) {
+								let currentValue =
+									localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
 								let parsedValue = JSON.parse(currentValue);
-								let index = parsedValue.indexOf(this.parentNode.value);
-								parsedValue.splice(index, 1);
-								localStorage.setItem(redmineTaskFieldId, JSON.stringify(parsedValue));
-								this.parentNode.remove();
-							});
+								parsedValue.push(redmineTaskFieldValue);
+								localStorage.setItem(
+									redmineTaskFieldId,
+									JSON.stringify(parsedValue)
+								);
+							}
+							// Dynamically create a template button for the saved value
+							createTemplateButton(
+								redmineTaskFieldId,
+								redmineTaskFieldValue
+							);
+						});
+
+					// Upon page load - create template buttons using the localStorage values
+					if (localStorage.getItem(redmineTaskFieldId) !== null) {
+						let currentValue =
+							localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
+						let parsedValue = JSON.parse(currentValue);
+
+						parsedValue.forEach(function (redmineTaskFieldValueFromArray) {
+							createTemplateButton(
+								redmineTaskFieldId,
+								redmineTaskFieldValueFromArray
+							);
 						});
 					}
 				} catch (error) {
 					console.log(error);
 				}
 			});
-		}
-		display();
-
-
-
-
-
-
-
-
-
-
-
 
 		// --- Potential features ------------------------------------------------------------------------------
 
