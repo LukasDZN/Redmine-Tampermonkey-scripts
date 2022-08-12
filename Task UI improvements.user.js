@@ -224,9 +224,12 @@ document.onreadystatechange = function () {
 
         .fill:hover,
         .fill:focus {
-            color: #2c5777;
+            /* color: #2c5777;
             text-decoration: none;
-            box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.25);
+            box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.25); */
+			filter: brightness(76%) contrast(190%);
+			text-decoration: none;
+			color: #0d3d61;
             /* -webkit-text-stroke: 0.03vw #0d3d61; */
         }
 
@@ -1018,18 +1021,53 @@ document.onreadystatechange = function () {
 			}
 
 
+			.paramSaveFillPlus {
+				background-color: #e7ffd4;
+			}
+
 			/* X delete symbol after each template content button */
 			.paramTemplateBtnFill {
 				padding-left: 0.4rem;
 			}
 
-			.paramTemplateBtnFill > span {
+			.deleteParamTemplateBtnFill {
 				color: #C70039;
 				font-size: 0.8em;
-				margin-left: 0.6em;
-                margin-right: 0.3rem;
+				margin-left: 0;
+				padding: 0.3rem;
+				margin-right: 0.6rem;
 				font-weight: 100;
+				border: none;
+				background-color: transparent;
+				cursor: pointer;
 			}
+
+			.deleteParamTemplateBtnFill:hover {
+				background-color: #e8d6dc;
+			}
+
+			.progressBar {
+				width: 10em;
+				height: 0.5em;
+				background: repeating-linear-gradient(
+					to right,
+					#ddd,
+					#ddd 4%,
+					transparent 4%,
+					transparent 5%
+				  ),
+				  repeating-linear-gradient(
+					to right,
+					green,
+					green 8%,
+					transparent 8%,
+					transparent 10%
+				  );
+			  
+				background-size: 200%, 100%;
+				background-position: -100%;
+				background-repeat: repeat-y;
+			  }
 		`);
 
 		// Insert a settings icon in the top right corner of the page
@@ -1169,6 +1207,22 @@ document.onreadystatechange = function () {
 			}, 500);
 		}
 
+		// Add "Toggle config mode" button
+		const contentDivElement = document.querySelector("#content > h2")
+		const newIssueConfigToggleBtn = `<button type="button" class="fill paramSaveFill" id="newIssueConfigToggleBtnId">Toggle config mode</button>`
+		contentDivElement.insertAdjacentHTML("afterend", newIssueConfigToggleBtn)
+		const thisNewIssueConfigToggleBtnId = document.getElementById("newIssueConfigToggleBtnId")
+		thisNewIssueConfigToggleBtnId.addEventListener("click", function () {
+			document.querySelectorAll(".hiddenByDefault").forEach(function (item) {
+				try {
+					item.style.display = (item.style.display === "none") ? "inline-block" : "none"
+				} catch (error) {
+					console.log(error)
+				}
+			});
+		});
+
+		// Constants
 		const taskFields = `
 			#all_attributes input[type="text"],
 			#all_attributes input[type="date"],
@@ -1193,28 +1247,30 @@ document.onreadystatechange = function () {
 					redmineTaskFieldValue.substring(0, 55) + '...';
 			}
 			// Insert a template button (without click action)
-			let templateButtonHtml = `<button type="button" title="${redmineTaskFieldValue}" class="fill paramSaveFill paramTemplateBtnFill" id="${taskTemplateButtonId}" value="${redmineTaskFieldValue}">${redmineTaskFieldValueTruncated}<span class="paramTemplateBtnFillSpan">✖</span></button>`;
+			const deleteParamTemplateBtnId = 'deleteParamTemplateBtn' + redmineTaskFieldId;
+			let templateButtonHtml = `<button type="button" title="${redmineTaskFieldValue}" class="fill paramSaveFill paramTemplateBtnFill" id="${taskTemplateButtonId}" value="${redmineTaskFieldValue}">${redmineTaskFieldValueTruncated}</button><button display="none" type="button" class="deleteParamTemplateBtnFill hiddenByDefault" id="${deleteParamTemplateBtnId}">✖</button>`;
 			taskFieldHtmlElement.insertAdjacentHTML('afterend', templateButtonHtml);
 			// Add click action for the button
-			const thisButtonElement =
+			const thisTemplateButtonElement =
 				document.getElementById(taskTemplateButtonId);
-			thisButtonElement.addEventListener('click', function () {
+			thisTemplateButtonElement.addEventListener('click', function () {
 				document.getElementById(redmineTaskFieldId).value = this.value;
 			});
-			// Add click action for the X delete span
-			thisButtonElement.lastChild.addEventListener('click', function () {
+			// Add click action for the X delete button
+			document.getElementById(deleteParamTemplateBtnId).addEventListener('click', function () {
 				let currentValue = localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
 				let parsedValue = JSON.parse(currentValue);
-				let index = parsedValue.indexOf(this.parentNode.value);
+				let index = parsedValue.indexOf(this.value);
 				parsedValue.splice(index, 1);
 				localStorage.setItem(
 					redmineTaskFieldId,
 					JSON.stringify(parsedValue)
 				);
-				this.parentNode.remove();
+				this.remove(); // removes the X button
+				thisTemplateButtonElement.remove(); // removes the template button
 			});
 		};
-
+		
 		// Parse the create/copied task page fields
 		document
 			.querySelectorAll(taskFields)
@@ -1224,7 +1280,7 @@ document.onreadystatechange = function () {
 
 					// Add a save button (" + ") to the field
 					const plusButtonId = 'paramSave' + taskFieldHtmlElement.id;
-					const plusButtonHtml = `<input type="button" class="fill paramSaveFill" id="${plusButtonId}" value="+">`;
+					const plusButtonHtml = `<input display="none" type="button" class="fill paramSaveFill paramSaveFillPlus hiddenByDefault" id="${plusButtonId}" value="+">`;
 					taskFieldHtmlElement.insertAdjacentHTML(
 						'afterend',
 						plusButtonHtml
@@ -1282,6 +1338,24 @@ document.onreadystatechange = function () {
 					console.log(error);
 				}
 			});
+
+
+		
+		function changeProgress(progressBarId, progressValue, animDurPerStep = 15) {
+			var progressBar = document.getElementById(progressBarId);
+			var oldProgressValue = -parseInt(
+				window.getComputedStyle(progressBar).getPropertyValue("background-position")
+			);
+			if (progressValue > 100) progressValue = 100;
+			else if (progressValue < 0) progressValue = 0;
+			else progressValue = Math.round(progressValue / 10) * 10;
+			
+			var steps = Math.abs(oldProgressValue - progressValue) / 10;
+			var totalAnimDur = animDurPerStep * steps;
+			
+			progressBar.style.transition = totalAnimDur + "ms steps(" + steps + ")";
+			progressBar.style.backgroundPosition = -progressValue + "%";
+		}
 
 		// --- Potential features ------------------------------------------------------------------------------
 
