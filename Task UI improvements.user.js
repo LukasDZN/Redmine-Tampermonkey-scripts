@@ -232,7 +232,7 @@ document.onreadystatechange = function () {
 
 		.paramSaveFill {
 			min-width: 20px;
-			padding: 0;
+			padding: 0px 4px;
 			font-weight: bold;
 		}
 
@@ -1018,12 +1018,17 @@ document.onreadystatechange = function () {
 			}
 
 
-			/* Display a check mark if the setting is active */
-			.dropdown-content li activeSetting:after {
-				content: "&#10004;";
-				color: #0b0;
-				font-size: 0.8em;
-				margin-left: 0.5em;
+			/* X delete symbol after each template content button */
+			.paramTemplateBtnFill {
+				padding-left: 0.4rem;
+			}
+
+			.paramTemplateBtnFill > span {
+				color: #C70039;
+				font-size: 1em;
+				margin-left: 0.6em;
+                margin-right: 0.3rem;
+				font-weight: 100;
 			}
 		`);
 
@@ -1099,29 +1104,26 @@ document.onreadystatechange = function () {
 
 		// Get the modal
 		var modal = document.getElementById('settingsModalId');
-
 		// Get the button that opens the modal
 		var btn = document.getElementById('modalOpenIconId');
-
 		// Get the <span> element that closes the modal
 		var span = document.getElementsByClassName('close')[0];
-
 		// When the user clicks the button, open the modal
 		btn.onclick = function () {
 			modal.style.display = 'block';
 		};
-
 		// When the user clicks on <span> (x), close the modal
 		span.onclick = function () {
 			modal.style.display = 'none';
 		};
-
 		// When the user clicks anywhere outside of the modal, close it
 		window.onclick = function (event) {
 			if (event.target == modal) {
 				modal.style.display = 'none';
 			}
 		};
+
+
 
 		/* Add Support ticket statuses to the config module by parsing the DOM */
 		const supportButtonConfigDiv =
@@ -1169,15 +1171,11 @@ document.onreadystatechange = function () {
 			}, 500);
 		}
 
-		/* Add a save button to all of the: select, input and textarea fields */
 
-		// - [DONE] Need more specificity and adding the element below the input field not next to it.
-		// - [DONE] Some of the fields have duplicated save buttons
-		// - Storage choice between localStorage and indexedDB
-		// - Hide the buttons and control visibility via master button on top of the page? -> better more customization than less when dealing with a lot of people
 
-		// - This should load for every page. Functions should be separated by page regex match.
-		// - This should also work on pages such as time logging.
+
+
+		
 		const taskFields = `
 			#all_attributes input[type="text"],
 			#all_attributes input[type="date"],
@@ -1186,71 +1184,100 @@ document.onreadystatechange = function () {
 			#all_attributes textarea
 			`;
 
+
+		// Parse the create/copied task page fields
 		document.querySelectorAll(taskFields).forEach(function (item) {
-			const fieldId = item.id;
-			const thisButtonId = 'paramSave' + item.id;
-			const btn = `<input type="button" class="fill paramSaveFill" id="${thisButtonId}" value="+">`;
-			item.insertAdjacentHTML('afterend', btn);
+
+			const redmineTaskFieldId = item.id;
+			const plusButtonId = 'paramSave' + item.id;
+
+			/* Add a save button (" + ") to selected fields */
+
+			const plusButtonHtml = `<input type="button" class="fill paramSaveFill" id="${plusButtonId}" value="+">`;
+			item.insertAdjacentHTML('afterend', plusButtonHtml);
 			try {
 				document
-					.getElementById(thisButtonId)
+					.getElementById(plusButtonId)
 					.addEventListener('click', function () {
-						if (localStorage.getItem(fieldId) === null) {
+						if (localStorage.getItem(redmineTaskFieldId) === null) {
 							localStorage.setItem(
-								fieldId,
+								redmineTaskFieldId,
 								JSON.stringify([item.value])
 							); // config set to inactive by default
-						} else if (localStorage.getItem(fieldId) !== null) {
-							let currentValue = localStorage.getItem(fieldId); // possible value: "['some', 'value', 'here']"
+						} else if (localStorage.getItem(redmineTaskFieldId) !== null) {
+							let currentValue = localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
 							let parsedValue = JSON.parse(currentValue);
 							parsedValue.push(item.value);
 							localStorage.setItem(
-								fieldId,
+								redmineTaskFieldId,
 								JSON.stringify(parsedValue)
 							);
 						}
+						// Invoke display function to reload the DOM with the new value
+						// display();
+						createTemplateButtonFromValue(redmineTaskFieldId);
 					});
 			} catch (error) {
 				console.log(error);
 			}
 		});
 
-		// Display items from localStorage as template buttons
-		document.querySelectorAll(taskFields).forEach(function (item) {
-			const fieldId = item.id;
-			const thisButtonId = 'paramSaveTemplateButton' + fieldId;
 
-			// Insert a button without click action
-			try {
-				if (localStorage.getItem(fieldId) !== null) {
-					let currentValue = localStorage.getItem(fieldId); // possible value: "['some', 'value', 'here']"
-					let parsedValue = JSON.parse(currentValue);
-					parsedValue.forEach(function (arrayItem) {
-						// Truncating if the value is too long
-						const arrayItemMaxLength = 55;
-						let arrayItemTruncated = arrayItem;
-						if (arrayItem.length > arrayItemMaxLength) {
-							arrayItemTruncated =
-								arrayItem.substring(0, 55) + '...';
-						}
-						let btn = `<button type="button" title="${arrayItem}" class="fill paramSaveFill" id="${thisButtonId}" value="${arrayItem}">${arrayItemTruncated}</button>`;
-						item.insertAdjacentHTML('afterend', btn);
-						// Insert click action
-						document
-							.getElementById(thisButtonId)
-							.addEventListener('click', function () {
-								document.getElementById(fieldId).value =
+
+		/* Display items from localStorage as template buttons */
+		function display() {
+			document.querySelectorAll(taskFields).forEach(function (item) {
+				const redmineTaskFieldId = item.id;
+				const taskTemplateButtonId = 'paramSaveTemplateButton' + redmineTaskFieldId;
+				// Insert a button without click action
+				try {
+					if (localStorage.getItem(redmineTaskFieldId) !== null) {
+						let currentValue = localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
+						let parsedValue = JSON.parse(currentValue);
+						parsedValue.forEach(function createTemplateButtonFromValue(arrayItem) {
+							// Truncating if the value is too long
+							const arrayItemMaxLength = 55;
+							let arrayItemTruncated = arrayItem;
+							if (arrayItem.length > arrayItemMaxLength) {
+								arrayItemTruncated =
+									arrayItem.substring(0, 55) + '...';
+							}
+							let btn = `<button type="button" title="${arrayItem}" class="fill paramSaveFill paramTemplateBtnFill" id="${taskTemplateButtonId}" value="${arrayItem}">${arrayItemTruncated}<span class="paramTemplateBtnFillSpan">✖</span></button>`;
+							item.insertAdjacentHTML('afterend', btn);
+							// Add click action for the button
+							const thisButtonElement = document.getElementById(taskTemplateButtonId)
+							thisButtonElement.addEventListener('click', function () {
+								document.getElementById(redmineTaskFieldId).value =
 									this.value;
 							});
-					});
+							// Add click action for the X delete span
+							thisButtonElement.lastChild.addEventListener('click', function () {
+								let currentValue = localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
+								let parsedValue = JSON.parse(currentValue);
+								let index = parsedValue.indexOf(this.parentNode.value);
+								parsedValue.splice(index, 1);
+								localStorage.setItem(redmineTaskFieldId, JSON.stringify(parsedValue));
+								this.parentNode.remove();
+							});
+						});
+					}
+				} catch (error) {
+					console.log(error);
 				}
-			} catch (error) {
-				console.log(error);
-			}
-		});
+			});
+		}
+		display();
 
-		// Remove item from array
-		// var filteredArray = arr.filter(e => e !== 'seven')
+
+
+
+
+
+
+
+
+
+
 
 		// --- Potential features ------------------------------------------------------------------------------
 
