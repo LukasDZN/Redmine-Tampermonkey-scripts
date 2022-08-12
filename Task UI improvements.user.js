@@ -1171,52 +1171,86 @@ document.onreadystatechange = function () {
 
 		/* Add a save button to all of the: select, input and textarea fields */
 
-		// - Need more specificity and adding the element below the input field not next to it.
-		// - Some of the fields have duplicated save buttons
-		// - Hide the buttons and control visibility via master button on top of the page?
+		// - [DONE] Need more specificity and adding the element below the input field not next to it.
+		// - [DONE] Some of the fields have duplicated save buttons
+		// - Storage choice between localStorage and indexedDB
+		// - Hide the buttons and control visibility via master button on top of the page? -> better more customization than less when dealing with a lot of people
 
 		// - This should load for every page. Functions should be separated by page regex match.
 		// - This should also work on pages such as time logging.
+		const taskFields = `
+			#all_attributes input[type="text"],
+			#all_attributes input[type="date"],
+			#all_attributes input[type="checkbox"],
+			#all_attributes select,
+			#all_attributes textarea
+			`;
 
-		// - One field can have multiple values saved - how to store them?
-
-		document
-			.querySelectorAll(
-				`
-				#all_attributes input[type="text"],
-				#all_attributes input[type="date"],
-				#all_attributes input[type="checkbox"],
-				#all_attributes select,
-				#all_attributes textarea
-				`
-			)
-			.forEach(function (item) {
-				let fieldId = "paramSave" + item.id;
-				let btn = `<input type="button" class="fill paramSaveFill" id="${fieldId}" value="+">`;
-				item.insertAdjacentHTML('afterend', btn);
-				try {
-					document.getElementById(fieldId).addEventListener('click', function () {
+		document.querySelectorAll(taskFields).forEach(function (item) {
+			const fieldId = item.id;
+			const thisButtonId = 'paramSave' + item.id;
+			const btn = `<input type="button" class="fill paramSaveFill" id="${thisButtonId}" value="+">`;
+			item.insertAdjacentHTML('afterend', btn);
+			try {
+				document
+					.getElementById(thisButtonId)
+					.addEventListener('click', function () {
 						if (localStorage.getItem(fieldId) === null) {
-							localStorage.setItem(fieldId, JSON.stringify([item.value])); // config set to inactive by default
+							localStorage.setItem(
+								fieldId,
+								JSON.stringify([item.value])
+							); // config set to inactive by default
 						} else if (localStorage.getItem(fieldId) !== null) {
 							let currentValue = localStorage.getItem(fieldId); // possible value: "['some', 'value', 'here']"
-							console.log(currentValue);
-							console.log(JSON.parse(currentValue));
-							JSON.parse(currentValue).push(item.value)
-							localStorage.setItem(fieldId, JSON.stringify(currentValue));
+							let parsedValue = JSON.parse(currentValue);
+							parsedValue.push(item.value);
+							localStorage.setItem(
+								fieldId,
+								JSON.stringify(parsedValue)
+							);
 						}
-				});
-				} catch (error) {
-					console.log(error);
+					});
+			} catch (error) {
+				console.log(error);
+			}
+		});
+
+		// Display items from localStorage as template buttons
+		document.querySelectorAll(taskFields).forEach(function (item) {
+			const fieldId = item.id;
+			const thisButtonId = 'paramSaveTemplateButton' + fieldId;
+
+			// Insert a button without click action
+			try {
+				if (localStorage.getItem(fieldId) !== null) {
+					let currentValue = localStorage.getItem(fieldId); // possible value: "['some', 'value', 'here']"
+					let parsedValue = JSON.parse(currentValue);
+					parsedValue.forEach(function (arrayItem) {
+						// Truncating if the value is too long
+						const arrayItemMaxLength = 55;
+						let arrayItemTruncated = arrayItem;
+						if (arrayItem.length > arrayItemMaxLength) {
+							arrayItemTruncated =
+								arrayItem.substring(0, 55) + '...';
+						}
+						let btn = `<button type="button" title="${arrayItem}" class="fill paramSaveFill" id="${thisButtonId}" value="${arrayItem}">${arrayItemTruncated}</button>`;
+						item.insertAdjacentHTML('afterend', btn);
+						// Insert click action
+						document
+							.getElementById(thisButtonId)
+							.addEventListener('click', function () {
+								document.getElementById(fieldId).value =
+									this.value;
+							});
+					});
 				}
-			});
+			} catch (error) {
+				console.log(error);
+			}
+		});
 
-
-		
-
-
-
-
+		// Remove item from array
+		// var filteredArray = arr.filter(e => e !== 'seven')
 
 		// --- Potential features ------------------------------------------------------------------------------
 
