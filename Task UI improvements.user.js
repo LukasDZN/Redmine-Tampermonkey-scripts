@@ -51,14 +51,14 @@ It should be disabled by default.
 - [DONE] Add a "Toggle config mode" button and make it functional.
 - [DONE] Detect form reset / page reload
 
-- Parse through the noted types of fields (during New/Edit/Copy actions)
-- Add a save button (after each div) (it shouldn't be very visible, maybe small and gray)
-- When clicked -> it saves field name and value
-	- A button appears with that text
-- Value is displayed as a button -> use previous code
+- [DONE] Parse through the noted types of fields (during New/Edit/Copy actions)
+- [DONE] Add a save button (after each div) (it shouldn't be very visible, maybe small and gray)
+- [DONE] When clicked -> it saves field name and value
+	- [DONE] A button appears with that text
+- [DONE] Value is displayed as a button -> use previous code
 - There's a 'primary' checkmark -> if an item is marked as primary, it will load each time for all projects.
-- There's a delete button that deletes it from localStorage and removes the button from DOM
-- Save and X to remove existing field pre-set when Creating / Editing / Copying a task.
+- [DONE] There's a delete button that deletes it from localStorage and removes the button from DOM
+- [DONE] Save and X to remove existing field pre-set when Creating / Editing / Copying a task.
 
 - https://redmine.tribepayments.com/issues/73347 -> handle errors somehow. If status cannot be changed it's okay that the buttons do not load. Just handle the error.
 - Enable setting toggle for all other functions
@@ -67,7 +67,7 @@ It should be disabled by default.
 - Add Redmine task field templating (option to select primary / add current / delete icon)
 - Add Redmine task templating (option to select primary / add current / delete icon)
 - Feature: Create a slider for task progress
-- Architecture refactoring
+- [DONE] Architecture refactoring
 - Feature: Load last note draft.
 - Feature: Custom query filtering
 - Load settings after the rest of the page has loaded to avoid reducing page load time
@@ -611,10 +611,10 @@ function addStatusButton(htmlColorCodeWithHashtag, buttonText, statusId) {
 		});
 }
 
-function addQuickButtons() {
-	// iterate through DOM status values and text and add buttons
+function addQuickButtons(issueFieldId) {
 	let issueStatusTextAndValueDOMObject =
-		createRedmineEditFieldValueAndTextObject('issue_status_id');
+		createRedmineEditFieldValueAndTextObject(issueFieldId);
+	const issueFieldValue = document.querySelector(issueFieldId).value;
 	for (let [key, value] of Object.entries(issueStatusTextAndValueDOMObject)) {
 		// Map colors to status values
 		let currentButtonColor = ''; // Default button color if no color is found
@@ -624,7 +624,7 @@ function addQuickButtons() {
 				break;
 			}
 		}
-		if (localStorage.getItem(key) === 'Active') {
+		if (localStorage.getItem(key) === 'Active' && issueFieldValue !== key) {
 			addStatusButton(currentButtonColor, value, key);
 		}
 	}
@@ -661,7 +661,7 @@ function createAndAddHyperlinkCopyButton() {
 	});
 }
 
-function createTemplateButton(redmineTaskFieldId, redmineTaskFieldValue) {
+function createTemplateButton(redmineTaskFieldId, redmineTaskFieldValue, createdBy) {
 	const taskFieldHtmlElement = document.getElementById(redmineTaskFieldId);
 	const taskTemplateButtonId = 'paramSaveTemplateButton' + redmineTaskFieldId;
 	// Preparing button values - truncating if the value is too long
@@ -672,9 +672,14 @@ function createTemplateButton(redmineTaskFieldId, redmineTaskFieldValue) {
 			redmineTaskFieldValue.substring(0, 55) + '...';
 	}
 	// Insert a template button (without click action)
+	if (createdBy === "newlyInjectedButtonByPressingPlus") {
+		display = "inline-block";
+	} else if (createdBy === "loadedOnPageRender") {
+		display = "none";
+	}
 	const deleteParamTemplateBtnId =
 		'deleteParamTemplateBtn' + redmineTaskFieldId;
-	let templateButtonHtml = `<button type="button" title="${redmineTaskFieldValue}" class="fill paramSaveFill paramTemplateBtnFill" id="${taskTemplateButtonId}" value="${redmineTaskFieldValue}">${redmineTaskFieldValueTruncated}</button><button style="display: none;" type="button" class="deleteParamTemplateBtnFill hiddenByDefault" id="${deleteParamTemplateBtnId}">✖</button>`;
+	let templateButtonHtml = `<button type="button" title="${redmineTaskFieldValue}" class="fill paramSaveFill paramTemplateBtnFill" id="${taskTemplateButtonId}" value="${redmineTaskFieldValue}">${redmineTaskFieldValueTruncated}</button><button style="display: ${display};" type="button" class="deleteParamTemplateBtnFill hiddenByDefault" id="${deleteParamTemplateBtnId}">✖</button>`;
 	taskFieldHtmlElement.insertAdjacentHTML('afterend', templateButtonHtml);
 	// Add click action for the button
 	const thisTemplateButtonElement =
@@ -688,7 +693,7 @@ function createTemplateButton(redmineTaskFieldId, redmineTaskFieldValue) {
 		.addEventListener('click', function () {
 			let currentValue = localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
 			let parsedValue = JSON.parse(currentValue);
-			let index = parsedValue.indexOf(this.value);
+			let index = parsedValue.indexOf(this.value); // removes this value from the array
 			parsedValue.splice(index, 1);
 			localStorage.setItem(
 				redmineTaskFieldId,
@@ -989,7 +994,7 @@ function addStickyNoteTextEditor() {
 /* Parsing functions */
 
 function createRedmineEditFieldValueAndTextObject(editFieldElementId) {
-	const editFieldElement = document.getElementById(editFieldElementId);
+	const editFieldElement = document.querySelector(editFieldElementId);
 	const redmineEditFieldValueAndTextObject = {};
 	for (let i = 0; i < editFieldElement.children.length; i++) {
 		redmineEditFieldValueAndTextObject[
@@ -1043,7 +1048,8 @@ function parseTaskFieldsAndAddTemplateButtons() {
 						// Dynamically create a template button for the saved value
 						createTemplateButton(
 							redmineTaskFieldId,
-							redmineTaskFieldValue
+							redmineTaskFieldValue,
+							'newlyInjectedButtonByPressingPlus'
 						);
 					});
 
@@ -1057,7 +1063,8 @@ function parseTaskFieldsAndAddTemplateButtons() {
 					) {
 						createTemplateButton(
 							redmineTaskFieldId,
-							redmineTaskFieldValueFromArray
+							redmineTaskFieldValueFromArray,
+							'loadedOnPageRender'
 						);
 					});
 				}
@@ -1159,7 +1166,7 @@ function insertSettingsModalIconAndSettingsContent() {
 	// Add redmine fields to the config module by parsing the DOM
 	const supportButtonConfigDiv = document.getElementById('supportButtonDiv');
 	let issueStatusTextAndValueDOMObject =
-		createRedmineEditFieldValueAndTextObject('issue_status_id');
+		createRedmineEditFieldValueAndTextObject('#issue_status_id');
 	for (let [key, value] of Object.entries(issueStatusTextAndValueDOMObject)) {
 		// Check if item exists in localStorage. If it doesn't - add the status to the localStorage.
 		if (localStorage.getItem(key) === null) {
@@ -1305,7 +1312,7 @@ document.onreadystatechange = function () {
 				currentPageUrl
 			) === true // Task details page (Edit module)
 		) {
-			addQuickButtons();
+			addQuickButtons('#issue_status_id');
 			createAndAddHyperlinkCopyButton();
 			parseTaskFieldsAndAddTemplateButtons(); // does this work here? When editing a task?
 			addToggleConfigModeButton('taskDetailsPage'); // does this work here? When editing a task?
