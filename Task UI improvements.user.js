@@ -450,11 +450,26 @@ h2 {
 
 
 /* Copy task hyperlink */
-#content > h2:after {
-	content: "Copy link";
+#content > h2 {
 	cursor: pointer;
 }
 
+#content > h2:after {
+	padding-left: 6px;
+	padding-top: 4px;
+	cursor: pointer;
+	/* content: "❐"; */
+	font-size: 1em;
+	color: #0d3d61;
+}
+
+#content > h2:hover, #content > h2:hover:after {
+	color: #377FB4;
+}
+
+#content > h2:active, #content > h2:active:after {
+	color: #82e0aa;
+}
 
 
 
@@ -587,14 +602,16 @@ function addStatusButton(htmlColorCodeWithHashtag, buttonText, statusId) {
 	let topHorizontalToolbar = document.querySelector('#content > h2');
 	const quickButtonId = `quickButtonId${statusId}`;
 	let btn = `<a class="fill" id="${quickButtonId}" style="background-color:${htmlColorCodeWithHashtag}!important">${buttonText}</a>`;
-	topHorizontalToolbar.insertAdjacentHTML("afterend", btn);
-	document.querySelector(`#${quickButtonId}`).addEventListener('click', function () {
-		document.querySelector('#issue_status_id').value = statusId;
-		document.querySelector('#issue-form').submit();
-	});
+	topHorizontalToolbar.insertAdjacentHTML('afterend', btn);
+	document
+		.querySelector(`#${quickButtonId}`)
+		.addEventListener('click', function () {
+			document.querySelector('#issue_status_id').value = statusId;
+			document.querySelector('#issue-form').submit();
+		});
 }
 
-function addStatusButtons() {
+function addQuickButtons() {
 	// iterate through DOM status values and text and add buttons
 	let issueStatusTextAndValueDOMObject =
 		createRedmineEditFieldValueAndTextObject('issue_status_id');
@@ -727,6 +744,50 @@ removeClassesList.forEach(className =>
 );
 
 document.querySelectorAll('#add_to_important_list').forEach(e => e.remove());
+
+/* Task status background highlight */
+
+function taskStatusBackgroundHighlight() {
+	// Map colors to status values
+	let highlightColor = ''; // Default button color if no color is found
+	const statusElement = document.querySelector(
+		'div.status.attribute > div.value'
+	);
+	const statusValue = statusElement.textContent;
+	for (let [string, color] of Object.entries(statusColorPatterns)) {
+		if (statusValue.match(new RegExp(string, 'i'))) {
+			highlightColor = color;
+			break;
+		}
+	}
+	// Replace status text with styled content
+	statusElement.innerHTML = `<span style="background-color: ${highlightColor}; padding-left: 1em; padding-right: 1em; border-radius: 3px;">${statusValue}</span>`;
+}
+
+/* Priority visualization */
+
+const priorityNameAndColorObject = {
+	"Very low": '#E5E4E2',
+	"Low": '#ACCFF3',
+	"Normal": '#72CB57',
+	"High": '#F6BC00',
+	"Urgent": '#FF5733',
+	"Immediate": '#900C3F',
+};
+
+function priorityVisualization() {
+	let highlightColor = ''; // Default button color if no color is found
+	const priorityElement = document.querySelector('div.priority.attribute > div.value');
+	const priorityValue = priorityElement.textContent;
+	for (let [string, color] of Object.entries(priorityNameAndColorObject)) {
+		if (priorityValue === string) {
+			highlightColor = color;
+			break;
+		}
+	}
+	// Replace priority text with styled content
+	priorityElement.innerHTML = `<span>${priorityValue}</span><span style="color: ${highlightColor}; font-size: 1.4em; ">&nbsp;&#x2776;</span>`;
+}
 
 /* Sticky note text editor */
 
@@ -1095,7 +1156,7 @@ function insertSettingsModalIconAndSettingsContent() {
 		}
 	};
 
-	// Add Support ticket statuses to the config module by parsing the DOM
+	// Add redmine fields to the config module by parsing the DOM
 	const supportButtonConfigDiv = document.getElementById('supportButtonDiv');
 	let issueStatusTextAndValueDOMObject =
 		createRedmineEditFieldValueAndTextObject('issue_status_id');
@@ -1130,9 +1191,7 @@ function insertSettingsModalIconAndSettingsContent() {
 					localStorage.setItem(key, 'Active');
 				} else {
 					localStorage.setItem(key, 'Inactive');
-					document
-						.getElementById('supportStatusButtonId' + key)
-						.remove();
+					document.getElementById('quickButtonId' + key).remove();
 				}
 			});
 		}, 500);
@@ -1246,18 +1305,20 @@ document.onreadystatechange = function () {
 				currentPageUrl
 			) === true // Task details page (Edit module)
 		) {
-			addStatusButtons();
+			addQuickButtons();
 			createAndAddHyperlinkCopyButton();
 			parseTaskFieldsAndAddTemplateButtons(); // does this work here? When editing a task?
 			addToggleConfigModeButton('taskDetailsPage'); // does this work here? When editing a task?
 			textEditorImprovements(); // not sure if it works here
 			addStickyNoteTextEditor();
+			taskStatusBackgroundHighlight();
+			priorityVisualization();
 		} else if (
 			/https:\/\/redmine\.tribepayments\.com\/projects\/.+\/issues\/(new|.+\/copy)/.test(
 				currentPageUrl
 			) === true // New task or Copy task page
 		) {
-			// addStatusButtons();
+			// addQuickButtons();
 			formRefreshWatcher();
 			parseTaskFieldsAndAddTemplateButtons();
 			addToggleConfigModeButton('newPage');
