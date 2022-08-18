@@ -93,40 +93,23 @@ GM_addStyle(`
 
 /* Task description and notes */
 
-div.wiki {
-	/*font-family: 'Roboto', sans-serif;*/
-	font-size: 15px;
-	border-radius: 10px;
+div.cf_90.attribute {
+	font-size: 1em;
+	border-radius: 6px;
 	box-shadow: rgba(6, 24, 44, 0.2) 0px 0px 0px 2px, rgba(6, 24, 44, 0.45) 0px 4px 6px -1px, rgba(255, 255, 255, 0.08) 0px 1px 0px inset !important;
 	background-color: white;
-	padding-left: 14px !important;
-	padding-right: 14px !important;
-	padding-top: 8px !important;
-	padding-bottom: 8px !important;
-	margin-top: 12px !important;
-	margin-bottom: 12px !important;
-	margin-left: 6px !important;
-	margin-right: 6px !important;
-}
-
-/* MR div */
-div.cf_25.attribute > div.value > div {
-	box-shadow: unset !important;
-	/* background-color: ; */
+	padding: 0.5em 1em;
+	margin: 0.8em 0.4em;
 }
 
 /* Page Global CSS */
 .tab-content {
-	border: none !important;
+	border: none;
 }
 
-#footer {
-	border-top: none !important;
-	color: white !important;
-}
-
-#footer > a {
-	color: white !important;
+#footer, #footer > a {
+	border-top: none;
+	color: white;
 }
 
 /*
@@ -375,12 +358,12 @@ input:checked + .slider:before {
 
 /* Edit button */
 a.icon.icon-edit.fill {
-	background-color: #4D75B2;
-	padding-top: 8px;
-	padding-bottom: 8px;
-	padding-left: 20px;
-	padding-right: 20px;
-	color: white;
+    padding-left: 2em;
+    padding-right: 1.2em;
+    padding-top: 0.4em;
+    padding-bottom: 0.5em;
+    display: inline;
+    outline: #462068 solid 1px;
 }
 
 /* Submit button */
@@ -435,20 +418,12 @@ input[type="submit"]:hover {
 
 
 
-/* Text editor */
-
-.descriptionArea {
-	word-wrap: normal !important;
-	white-space: pre-wrap !important;
-	background-color: #fff !important;
-}
-
 h2 {
-	font-size: 18px !important;
+	font-size: 1.6em;
 }
 
 .fontsize16 {
-	font-size: 16px !important;
+	font-size: 1em;
 }
 
 
@@ -526,6 +501,25 @@ var $ = window.jQuery;
 
 /* Constants */
 
+const devProjectsArray = [
+	'  » Bank',
+	'  » Gateway',
+	'  » ISAC-POS',
+	'  » -=MISC=-',
+	'  » Bill',
+	'  » ISAC-ACQ',
+	'  » ISAC-ISS',
+	'  » OpenBank',
+	'  » Risk',
+	'  » Wallet',
+];
+// Remaining non-dev projects:
+// 'Incidents'
+// 'Knowledge Centre'
+// 'Products'
+// 'RFC'
+// 'Support'
+
 const redmineTaskFieldIdsString = `
 	#all_attributes input[type="text"],
 	#all_attributes input[type="date"],
@@ -559,7 +553,7 @@ function getProjectStatusColorPatterns() {
 
 	// Incidents
 	const incidentStatusColorPatterns = {
-		'^Scheduled$': '#eafaf1',
+		'^Scheduled$': '#fcf3cf',
 		'^In Progress.*': '#f7db6f',
 		'^Resolved$': '#85c1e9',
 		'^Feedback$': '#ec7063',
@@ -569,8 +563,9 @@ function getProjectStatusColorPatterns() {
 
 	/* RFC project */
 	// Tracker order is according to deployment procedure
-	// TL action needed - 
-	// Tester action needed - '#85c1e9'
+	// Status last changed by TL - '#f7db6f'
+	// Status last changed by QA - '#85c1e9'
+	// Status last changed by Deployer - '#fcf3cf'
 
 	// Release tracker
 	const ReleaseStatusColorPatterns = {
@@ -584,13 +579,13 @@ function getProjectStatusColorPatterns() {
 	// RFC tracker
 	const RfcStatusColorPatterns = {
 		'^New$': '#82e0aa',
-		'^Merged.*': '#85c1e9',
-		'^Tested.*': '#fcf3cf',
-		'^Ready.*': '#85c1e9',
+		'^Merged.*': '#fcf3cf',
+		'^Tested.*': '#85c1e9',
+		'^Ready.*': '#f7db6f',
 		'^Authorized.*': '#f7db6f',
-		'^In Progress.*': '#f7db6f',
-		'^Applied.*': '#85c1e9',
-		'^Verified (OK).*': '#f7db6f',
+		'^In Progress.*': '#fcf3cf',
+		'^Applied.*': '#fcf3cf',
+		'^Verified (OK).*': '#85c1e9',
 		'^Closed$': '#d5d8dc',
 		'^Roll-backed.*': '#ec7063',
 	};
@@ -629,6 +624,19 @@ function formRefreshWatcher() {
 	}, 100);
 }
 
+// const devProjectsArray = [
+// 	'  » Bank',
+// 	'  » Gateway',
+// 	'  » ISAC-POS',
+// 	'  » -=MISC=-',
+// 	'  » Bill',
+// 	'  » ISAC-ACQ',
+// 	'  » ISAC-ISS',
+// 	'  » OpenBank',
+// 	'  » Risk',
+// 	'  » Wallet',
+// ];
+
 function getTaskSelectedOptionText(taskFieldId) {
 	const projectIdElement = document.querySelector(taskFieldId);
 	const selectedOptions = projectIdElement.options;
@@ -637,26 +645,54 @@ function getTaskSelectedOptionText(taskFieldId) {
 	return selectedProjectOptionText;
 }
 
-// User ID
-// var myUserLink = $('#loggedas a').attr('href');
-// var myID = myUserLink.match(/(\d*)$/i)[0];
+function showcaseTaskPhase() {
+	const project = getTaskSelectedOptionText('#issue_project_id');
+	if (devProjectsArray.includes(project)) {
+		const taskStatus = getTaskSelectedOptionText('#issue_status_id');
+		const mrStatus = getTaskSelectedOptionText(
+			'#issue_custom_field_values_26'
+		);
+		const testStatus = getTaskSelectedOptionText(
+			'#issue_custom_field_values_4'
+		);
+		const deployedLiveDate = document.querySelector(
+			'#issue_custom_field_values_9'
+		).value;
+		let taskPhase = '';
+		let warningMessage = '';
+
+		if (taskStatus === 'In Progress' || taskStatus === 'Feedback') {
+			taskPhase = 'Development';
+		} else if (taskStatus === 'Resolved') {
+			if (mrStatus === 'REVIEW') {
+				taskPhase = 'Code review';
+			} else if (mrStatus === 'DONE') {
+				if (testStatus === 'tested') {
+					taskPhase = 'Pending deployment';
+				} else {
+					taskPhase = 'Testing';
+				}
+			}
+		} else if ((taskStatus === 'Closed') && (mrStatus === 'MERGED' && deployedLiveDate !== '')) {
+			taskPhase = 'Deployed';
+		} else if ((taskStatus === 'Resolved') && (mrStatus === 'MERGED' && deployedLiveDate !== '')) {
+			taskPhase = 'Deployed';
+			warningMessage = ' (Warning: deployed task not closed.)'
+		}
+		if (taskPhase !== '') {
+			const taskHeaderText =
+				document.querySelector('#content > h2').innerText;
+			document.querySelector(
+				'#content > h2'
+			).innerHTML = `${taskHeaderText} <span style="font-family: monospace; padding: 0.15em 0.5em 0.15em 0.4em; margin-left: 0.2em; border-radius: 6px; outline: #628DB6 solid 2px;"> &#8594 ${taskPhase}${warningMessage}</span>`;
+		}
+	}
+}
 
 /* Button functions */
 
-/* Edit buttons */
-
-// Prettify the Edit button
-try {
-	$('#content > div:nth-child(1) > a.icon.icon-edit').addClass('fill');
-} catch (error) {
-	console.log("Couldn't prettify the Edit button");
-}
-
-// Prettify the bottom of the page Edit button
-try {
-	$('#content > div:nth-child(6) > a.icon.icon-edit').addClass('fill');
-} catch (error) {
-	console.log("Couldn't prettify the Edit button");
+function prettifyEditButton() {
+	document.querySelector('.icon-edit').classList.add('fill');
 }
 
 function addStatusButton(htmlColorCodeWithHashtag, buttonText, statusId) {
@@ -677,6 +713,7 @@ function addQuickButtons(issueFieldId) {
 	let issueStatusTextAndValueDOMObject =
 		createRedmineEditFieldValueAndTextObject(issueFieldId);
 	const issueFieldValue = document.querySelector(issueFieldId).value;
+	const statusColorPatterns = getProjectStatusColorPatterns();
 	for (let [key, value] of Object.entries(issueStatusTextAndValueDOMObject)) {
 		// Map colors to status values
 		let currentButtonColor = ''; // Default button color if no color is found
@@ -796,25 +833,27 @@ function addToggleConfigModeButton(pageName) {
 
 /* Task content (description, notes) */
 
-$(
-	'#content > div.issue.tracker-19.status-5.priority-3.priority-high3.closed.created-by-me.details > div.attributes > div:nth-child(2) > div:nth-child(2) > div.cf_25.attribute > div.value > div'
-).addClass('mrDiv');
+/* Removing UI elements */
 
-/* REMOVING UI ELEMENTS */
+function removeUiElements() {
+	let removeClassesList = [
+		'other-formats',
+		'.icon-comment',
+		'.next-prev-links',
+		'#content > p',
+		'#add_to_important_list',
+		'icon-fav-off',
+		// '#sidebar',
+	];
+	removeClassesList.forEach(className =>
+		document.querySelectorAll(className).forEach(e => e.remove())
+	);
 
-let removeClassesList = [
-	'.icon-comment',
-	'.next-prev-links',
-	'#content > p',
-	'#add_to_important_list',
-	'icon-fav-off',
-	// '#sidebar',
-];
-removeClassesList.forEach(className =>
-	document.querySelectorAll(className).forEach(e => e.remove())
-);
-
-document.querySelectorAll('#add_to_important_list').forEach(e => e.remove());
+	document
+		.querySelectorAll('#add_to_important_list')
+		.forEach(e => e.remove());
+}
+// removeUiElements();
 
 /* Task status background highlight */
 
@@ -825,6 +864,7 @@ function taskStatusBackgroundHighlight() {
 		'div.status.attribute > div.value'
 	);
 	const statusValue = statusElement.textContent;
+	const statusColorPatterns = getProjectStatusColorPatterns();
 	for (let [string, color] of Object.entries(statusColorPatterns)) {
 		if (statusValue.match(new RegExp(string, 'i'))) {
 			highlightColor = color;
@@ -1275,46 +1315,34 @@ function insertSettingsModalIconAndSettingsContent() {
 
 /* Keyboard shortcut for Edit and Submit (alt + q and alt + w) */
 
-try {
-	document.querySelector(
-		'#content > div:nth-child(6) > a.icon.icon-edit'
-	).accessKey = 'q'; // Edit task when shortcut Alt + q is pressed
-	document.querySelector(
-		'#issue-form > input[type=submit]:nth-child(7)'
-	).accessKey = 'w'; // Save task when shortcut Alt + w is pressed
-} catch (e) {
-	console.log('First block: ' + e);
-
+function addKeyboardShortcutForEditAndSubmit() {
 	try {
 		document.querySelector(
-			'#content > div:nth-child(2) > a.icon.icon-edit'
-		).accessKey = 'q'; // Edit task when shortcut Alt + q is pressed (when "Successful update." is displayed)
+			'#content > div:nth-child(6) > a.icon.icon-edit'
+		).accessKey = 'q'; // Edit task when shortcut Alt + q is pressed
 		document.querySelector(
 			'#issue-form > input[type=submit]:nth-child(7)'
 		).accessKey = 'w'; // Save task when shortcut Alt + w is pressed
 	} catch (e) {
-		console.log('Second block: ' + e);
+		console.log('First block: ' + e);
+
+		try {
+			document.querySelector(
+				'#content > div:nth-child(2) > a.icon.icon-edit'
+			).accessKey = 'q'; // Edit task when shortcut Alt + q is pressed (when "Successful update." is displayed)
+			document.querySelector(
+				'#issue-form > input[type=submit]:nth-child(7)'
+			).accessKey = 'w'; // Save task when shortcut Alt + w is pressed
+		} catch (e) {
+			console.log('Second block: ' + e);
+		}
 	}
 }
 
 /* Search bar */
 
 function searchBarImprovements() {
-	$('#q').addClass('searchLength');
-}
-
-/* Text editor */
-
-function textEditorImprovements() {
-	// Always show 'Description' area after pressing the 'Edit' button
-	$('#issue_description_and_toolbar').show();
-
-	$('textarea#issue_description').addClass('descriptionArea fontsize16');
-
-	// Wrapping text (sometimes if there's preformatted text in the description,
-	// it creates a long horizontal scrollbar which is difficult to read.
-
-	$('div.wiki pre').addClass('descriptionArea');
+	document.querySelector('#q').classList.add('searchLength');
 }
 
 /* Highlight terms */
@@ -1373,22 +1401,22 @@ document.onreadystatechange = function () {
 		// Functions to run on every page
 		searchBarImprovements();
 		insertSettingsModalIconAndSettingsContent();
-		textEditorImprovements();
 		// Functions to run on a specific page
 		if (
 			/https:\/\/redmine\.tribepayments\.com\/issues\/.+/.test(
 				currentPageUrl
 			) === true // Task details page (Edit module)
 		) {
-			const statusColorPatterns = getProjectStatusColorPatterns()
+			prettifyEditButton();
+			showcaseTaskPhase();
 			addQuickButtons('#issue_status_id');
 			createAndAddHyperlinkCopyButton();
 			parseTaskFieldsAndAddTemplateButtons(); // does this work here? When editing a task?
 			addToggleConfigModeButton('taskDetailsPage'); // does this work here? When editing a task?
-			textEditorImprovements(); // not sure if it works here
 			addStickyNoteTextEditor();
 			taskStatusBackgroundHighlight();
 			priorityVisualization();
+			addKeyboardShortcutForEditAndSubmit();
 		} else if (
 			/https:\/\/redmine\.tribepayments\.com\/projects\/.+\/issues\/(new|.+\/copy)/.test(
 				currentPageUrl
@@ -1398,13 +1426,14 @@ document.onreadystatechange = function () {
 			formRefreshWatcher();
 			parseTaskFieldsAndAddTemplateButtons();
 			addToggleConfigModeButton('newPage');
-			textEditorImprovements();
+			addKeyboardShortcutForEditAndSubmit();
 		} else if (
 			/https:\/\/redmine\.tribepayments\.com\/projects\/.+\/wiki.*/.test(
 				currentPageUrl
 			) === true // Wiki page
 		) {
 			// wiki redesign
+			addKeyboardShortcutForEditAndSubmit();
 		} else {
 			// Design inserts
 		}
