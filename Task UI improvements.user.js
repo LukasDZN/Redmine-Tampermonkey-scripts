@@ -436,7 +436,7 @@ input[type="submit"]:hover {
 	word-wrap: normal !important;
 	white-space: pre-wrap !important;
 	background-color: #fff !important;
-	}
+}
 
 h2 {
 	font-size: 18px !important;
@@ -444,7 +444,6 @@ h2 {
 
 .fontsize16 {
 	font-size: 16px !important;
-	height: 400px !important;
 }
 
 
