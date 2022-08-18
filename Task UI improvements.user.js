@@ -44,7 +44,7 @@ It should be disabled by default.
 - [DONE] Add a "Save" button (which closes the modal window upon clicking) -> no need for a button now.
 - [DONE] Refactoring button code - making it a separate function instead of two blocks of code
 
-- This should load for every page. Functions should be separated by page regex match.
+- [DONE] This should load for every page. Functions should be separated by page regex match.
 - This should also work on pages such as time logging.
 
 - [DONE] Update DOM after adding a new button
@@ -56,9 +56,9 @@ It should be disabled by default.
 - [DONE] When clicked -> it saves field name and value
 	- [DONE] A button appears with that text
 - [DONE] Value is displayed as a button -> use previous code
-- There's a 'primary' checkmark -> if an item is marked as primary, it will load each time for all projects.
 - [DONE] There's a delete button that deletes it from localStorage and removes the button from DOM
 - [DONE] Save and X to remove existing field pre-set when Creating / Editing / Copying a task.
+- There's a 'primary' checkmark -> if an item is marked as primary, it will load each time for all projects.
 
 - https://redmine.tribepayments.com/issues/73347 -> handle errors somehow. If status cannot be changed it's okay that the buttons do not load. Just handle the error.
 - Enable setting toggle for all other functions
@@ -68,6 +68,11 @@ It should be disabled by default.
 - Add Redmine task templating (option to select primary / add current / delete icon)
 - Feature: Create a slider for task progress
 - [DONE] Architecture refactoring
+	- [DONE] Structure CSS to load at the top.
+	- [DONE] Then define all of the functions.
+	- [DONE] Then call the functions according to the page.
+	- [DONE] Some constants might change per page.
+
 - Feature: Load last note draft.
 - Feature: Custom query filtering
 - Load settings after the rest of the page has loaded to avoid reducing page load time
