@@ -524,20 +524,6 @@ h2 {
 
 var $ = window.jQuery;
 
-// Button color regex (from Tampermonkey convenience script)
-var statusColorPatterns = {
-	'^Pending Approval$': '#fcf3cf',
-	'^Not Approved$': '#eafaf1',
-	'^New$': '#82e0aa',
-	'^In Progress.*': '#f7db6f',
-	'^Resolved$': '#85c1e9',
-	'^Feedback$': '#ec7063',
-	'^Closed$': '#d5d8dc',
-	'^Rejected$': '#abb2b9',
-	'^Suspended$': '#fdedec',
-	'^Pending.*': '#f7f2dc',
-};
-
 /* Constants */
 
 const redmineTaskFieldIdsString = `
@@ -547,7 +533,80 @@ const redmineTaskFieldIdsString = `
 	#all_attributes select,
 	#all_attributes textarea
 	`;
+
 const currentPageUrl = window.location.href;
+
+function getProjectStatusColorPatterns() {
+	const taskSelectedProjectText =
+		getTaskSelectedOptionText('#issue_project_id');
+	const taskSelectedTrackerText =
+		getTaskSelectedOptionText('#issue_tracker_id');
+
+	// default color pattern if project match is not found
+	// Button color regex (from Tampermonkey convenience script)
+	let statusColorPatterns = {
+		'^Pending Approval$': '#fcf3cf',
+		'^Not Approved$': '#eafaf1',
+		'^New$': '#82e0aa',
+		'^In Progress.*': '#f7db6f',
+		'^Resolved$': '#85c1e9',
+		'^Feedback$': '#ec7063',
+		'^Closed$': '#d5d8dc',
+		'^Rejected$': '#abb2b9',
+		'^Suspended$': '#fdedec',
+		'^Pending.*': '#f7f2dc',
+	};
+
+	// Incidents
+	const incidentStatusColorPatterns = {
+		'^Scheduled$': '#eafaf1',
+		'^In Progress.*': '#f7db6f',
+		'^Resolved$': '#85c1e9',
+		'^Feedback$': '#ec7063',
+		'^Closed$': '#d5d8dc',
+		'^Rejected$': '#abb2b9',
+	};
+
+	/* RFC project */
+	// Tracker order is according to deployment procedure
+	// TL action needed - 
+	// Tester action needed - '#85c1e9'
+
+	// Release tracker
+	const ReleaseStatusColorPatterns = {
+		'^New$': '#82e0aa',
+		'^Related.*': '#fcf3cf',
+		'^Merged.*': '#fcf3cf',
+		'^Tested.*': '#85c1e9',
+		'^Closed$': '#d5d8dc',
+	};
+
+	// RFC tracker
+	const RfcStatusColorPatterns = {
+		'^New$': '#82e0aa',
+		'^Merged.*': '#85c1e9',
+		'^Tested.*': '#fcf3cf',
+		'^Ready.*': '#85c1e9',
+		'^Authorized.*': '#f7db6f',
+		'^In Progress.*': '#f7db6f',
+		'^Applied.*': '#85c1e9',
+		'^Verified (OK).*': '#f7db6f',
+		'^Closed$': '#d5d8dc',
+		'^Roll-backed.*': '#ec7063',
+	};
+
+	if (taskSelectedProjectText === 'RFC') {
+		if (taskSelectedTrackerText === 'Release') {
+			statusColorPatterns = ReleaseStatusColorPatterns;
+		} else if (taskSelectedTrackerText === 'RFC') {
+			statusColorPatterns = RfcStatusColorPatterns;
+		}
+	} else if (taskSelectedProjectText === 'Incidents') {
+		statusColorPatterns = incidentStatusColorPatterns;
+	}
+
+	return statusColorPatterns;
+}
 
 /* Helper functions */
 
@@ -570,14 +629,13 @@ function formRefreshWatcher() {
 	}, 100);
 }
 
-// // Detect project
-// let taskTitle = $('head > title').text().slice(-28);
-// var taskType;
-// if (taskTitle.includes('Support - ')) {
-// 	taskType = 'Support';
-// } else {
-// 	taskType = 'Development';
-// }
+function getTaskSelectedOptionText(taskFieldId) {
+	const projectIdElement = document.querySelector(taskFieldId);
+	const selectedOptions = projectIdElement.options;
+	const selectedOptionIndex = projectIdElement.selectedIndex;
+	const selectedProjectOptionText = selectedOptions[selectedOptionIndex].text;
+	return selectedProjectOptionText;
+}
 
 // User ID
 // var myUserLink = $('#loggedas a').attr('href');
@@ -665,7 +723,11 @@ function createAndAddHyperlinkCopyButton() {
 	});
 }
 
-function createTemplateButton(redmineTaskFieldId, redmineTaskFieldValue, createdBy) {
+function createTemplateButton(
+	redmineTaskFieldId,
+	redmineTaskFieldValue,
+	createdBy
+) {
 	const taskFieldHtmlElement = document.getElementById(redmineTaskFieldId);
 	const taskTemplateButtonId = 'paramSaveTemplateButton' + redmineTaskFieldId;
 	// Preparing button values - truncating if the value is too long
@@ -676,10 +738,10 @@ function createTemplateButton(redmineTaskFieldId, redmineTaskFieldValue, created
 			redmineTaskFieldValue.substring(0, 55) + '...';
 	}
 	// Insert a template button (without click action)
-	if (createdBy === "newlyInjectedButtonByPressingPlus") {
-		display = "inline-block";
-	} else if (createdBy === "loadedOnPageRender") {
-		display = "none";
+	if (createdBy === 'newlyInjectedButtonByPressingPlus') {
+		display = 'inline-block';
+	} else if (createdBy === 'loadedOnPageRender') {
+		display = 'none';
 	}
 	const deleteParamTemplateBtnId =
 		'deleteParamTemplateBtn' + redmineTaskFieldId;
@@ -776,17 +838,19 @@ function taskStatusBackgroundHighlight() {
 /* Priority visualization */
 
 const priorityNameAndColorObject = {
-	"Very low": '#E5E4E2',
-	"Low": '#ACCFF3',
-	"Normal": '#72CB57',
-	"High": '#F6BC00',
-	"Urgent": '#FF5733',
-	"Immediate": '#900C3F',
+	'Very low': '#E5E4E2',
+	Low: '#ACCFF3',
+	Normal: '#72CB57',
+	High: '#F6BC00',
+	Urgent: '#FF5733',
+	Immediate: '#900C3F',
 };
 
 function priorityVisualization() {
 	let highlightColor = ''; // Default button color if no color is found
-	const priorityElement = document.querySelector('div.priority.attribute > div.value');
+	const priorityElement = document.querySelector(
+		'div.priority.attribute > div.value'
+	);
 	const priorityValue = priorityElement.textContent;
 	for (let [string, color] of Object.entries(priorityNameAndColorObject)) {
 		if (priorityValue === string) {
@@ -1316,6 +1380,7 @@ document.onreadystatechange = function () {
 				currentPageUrl
 			) === true // Task details page (Edit module)
 		) {
+			const statusColorPatterns = getProjectStatusColorPatterns()
 			addQuickButtons('#issue_status_id');
 			createAndAddHyperlinkCopyButton();
 			parseTaskFieldsAndAddTemplateButtons(); // does this work here? When editing a task?
