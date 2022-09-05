@@ -659,15 +659,18 @@ const checkIfTaskIsTriggered = () => {
         } else {
           for (let customField of responseObject.issue.custom_fields) {
             if (customField.name === localStorageItems[key].fieldToCheck) {
-              if (customField.value === 'Empty') {
-                customField.value = '';
-              } else if (customField.value === 'Not empty') {
+              if (customField.value === "Empty") {
+                customField.value = "";
+              } else if (customField.value === "Not empty") {
                 // @feature ???
               }
               if (customField.value === localStorageItems[key].valueToCheck) {
                 localStorageItems[key].triggeredInThePast = "yes";
                 localStorageItems[key].triggeredAtDate = new Date();
-                localStorage.setItem(key, JSON.stringify(localStorageItems[key]));
+                localStorage.setItem(
+                  key,
+                  JSON.stringify(localStorageItems[key])
+                );
                 raiseAlert(key);
               }
             } else {

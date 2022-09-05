@@ -3,19 +3,33 @@
   "name": "Redmine task field alert",
   "description": "An alert extension for Redmine tasks",
   "version": "0.0.1",
-  "icons": { "128": "icon_128.png" },
+  "icons": {
+    "128": "icon_128.png"
+  },
   "action": {
     "default_icon": "icon.png",
     "default_popup": "popup.html"
   },
   "content_scripts": [
     {
-      "matches": ["*://*.tribepayments.com/*"],
-      "js": ["popup.js"],
-      "css": ["main.css"]
+      "matches": [
+        "*://*.tribepayments.com/*"
+      ],
+      "js": [
+        "popup.js"
+      ],
+      "css": [
+        "main.css"
+      ]
     }
   ],
-  "permissions": ["notifications", "tabs", "activeTab"],
+  "permissions": [
+    "storage",
+    "notifications",
+    "https://redmine.tribepayments.com/",
+    "tabs",
+    "activeTab"
+  ],
   "background": {
     "service_worker": "background.js",
     "type": "module"

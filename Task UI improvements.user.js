@@ -1083,7 +1083,8 @@ function addStickyNoteTextEditor() {
 				);
 				// a button's on-click action is
 				minimizedBtn.click(function () {
-					$('#issue-form > div > fieldset.stickyNotes').show();
+					document.querySelector('#issue-form > div > fieldset.stickyNotes').show(); // todo
+					// document.querySelector("#update") -> this should be set to inline-block
 					$('#footer > input').hide();
 				});
 
@@ -1439,3 +1440,101 @@ document.onreadystatechange = function () {
 		}
 	}
 };
+
+
+// # To do
+// - Implement slider without configuration (temporary)
+// - Refactor settings storage
+
+
+
+
+
+// table td {
+//     outline: white solid 1px;
+// }
+// @todo bug: solve left item missing outline
+
+// /* on-hover, change the background color of a table element and all of the subsequent elements. */
+// table.progress td:hover ~ td, table.progress td:hover {
+//     background: #7575ec!important;
+//     transition: all 0.3s ease-in;
+// }
+
+// /* Reverse table item order so that we can use ~ td and highlight only the preceding elements */
+// table.progress {
+//     direction: rtl;
+// }
+
+
+
+
+// // Helper function
+// function selectOptionFromElement(id, valueToSelect) {    
+//     let element = document.getElementById(id);
+//     element.value = valueToSelect;
+// }
+
+
+
+// // Find percentage
+// const donePercentageStr = document.querySelector("td.closed").title.replace('%', '')
+// const donePercentageInt = parseInt(donePercentageStr)
+
+// // Prepare ul elements
+// let arrayOfNewChildren = [];
+// for (int i = 0; i < 100; i+=10) {
+// arrayOfNewChildren.push(`<td style="width: 10%;" title=${i} class="timelineBlock ${i <= donePercentageStr ? "done" : "todo"}"></td>`)
+// }
+
+// // Insert ul elements
+// // for each 10% add an element with "done" and add the remaining as "todo"
+// document.querySelector("div.progress.attribute > div.value > table > tbody > tr").replaceChildren(...arrayOfNewChildren);
+
+// // For each child, add an onclick action to submit form with done%
+// document.querySelectorAll('.timelineBlock').forEach((timelineBlock) => {
+//   timelineBlock.addEventListener('click', () => {
+//     // Set the done percentage (from a list of options)
+//     selectOptionFromElement('issue_done_ratio', donePercentageStr);    
+//     // Submit the form
+//     document.querySelector('#issue-form').submit()
+//   });
+// });
+
+
+
+
+
+
+// /* This is all for later implementation */
+
+// // Create a setting option for the slider within setting module pop up
+// - Insert HTML
+// - onClick -> write to localStorage
+
+// // Read all enabled settings
+// const settingsObject = localStorage.read().settings
+
+// // Function which checks whether the setting is enabled, if yes, runs a callback function
+// runIfSettingIsEnabled(settingName="enableCustomDonePercentSlider", displayCustomDonePercentSlider)
+
+// function runIfSettingIsEnabled(isSettingNameEnabled, functionName) {
+// if (isSettingNameEnabled === true) {
+// functionName()}
+// }
+
+
+
+
+
+
+
+
+
+
+// Display settings for all pages:
+// Unique ID for each project?
+// This is also not a must have feature.
+
+
+
