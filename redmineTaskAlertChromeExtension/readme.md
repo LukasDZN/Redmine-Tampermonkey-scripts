@@ -83,3 +83,20 @@ Either passing messages from content to background script, or using chrome.stora
 
 The background script (background.js) should be viewed as "running in the background of the Chrome browser".
 Your desired effect (running a script for every page) is actually a task for content scripts (popup.js).
+
+
+
+
+
+https://stackoverflow.com/questions/28975896/is-there-a-way-to-check-for-both-null-and-undefined
+
+if( value ) {
+}
+will evaluate to true if value is not:
+
+null
+undefined
+NaN
+empty string ''
+0
+false
