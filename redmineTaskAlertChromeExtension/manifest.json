@@ -26,10 +26,10 @@
   "permissions": [
     "storage",
     "notifications",
-    "https://redmine.tribepayments.com/",
     "tabs",
     "activeTab"
   ],
+  "host_permissions": ["*://*/*"],
   "background": {
     "service_worker": "background.js",
     "type": "module"

@@ -49,8 +49,6 @@ element>element	div > p	Selects all <p> elements where the parent is a <div> ele
 
 // --- Config ----------------------------------------------------------------------
 
-const redmineApiToken = "97f301157f2afdc96676e988ceb58eea2d78602c";
-
 var fieldSchema = [
   {
     fieldName: "status",
@@ -100,6 +98,52 @@ var fieldSchema = [
   },
 ];
 
+
+
+label
+id
+
+// id, display name, value
+
+// Everything selected must be within <div id="update" style=""> to not select a search field or something else.
+const redmineTaskFieldIdsString = `
+	#all_attributes input[type="date"],
+	#all_attributes select
+	`;
+
+// Define separate functions, check if date is "empty" or not
+// For
+
+document
+.querySelectorAll(redmineTaskFieldIdsString)
+.forEach(function (taskFieldHtmlElement) {
+  try {
+
+  } catch (error) {
+    console.log(error)
+  }
+
+
+
+/*
+Most important are:
+- Statuses (dropdown) -> select
+- Date (not empty) -> input type=date
+- [REJECTED] input type=text -> onchange
+*/
+
+//  | text
+// 
+
+// id
+// text value 
+// selected value
+
+
+
+
+
+
 // Global variables
 
 var fieldDiv: any;
@@ -116,6 +160,12 @@ var triggeredAlertsListDiv: any;
 
 var addButton: any;
 var clearButton: any;
+
+
+
+
+
+
 
 // --- Helper functions ------------------------------------------------------------
 
@@ -172,6 +222,42 @@ const displayLocalStorageItems = (localStorageItems: any) => {
   }
 };
 
+const getAndParseLocalStorageItems  = () => {
+  // Init an object to store all the items
+  let localStorageItems: any = {};
+  // Get an array of all the localStorage keys (i.e. task IDs)
+  var arrayOfKeys = Object.keys(localStorage);
+  // For every key in the array, get the value and display it
+  for (let key of arrayOfKeys) {
+    try {
+      // Console log raw keys and values
+      // console.log(key); // log keys
+      // console.log(localStorage.getItem(key)); // log values
+
+      let valueString: string | null = localStorage.getItem(key);
+      let valueObject = JSON.parse(valueString!);
+
+      console.log(
+        "key: " +
+          key +
+          " | " +
+          "valueObject.fieldToCheck: " +
+          valueObject.fieldToCheck +
+          " | " +
+          "triggered in the past?: " +
+          valueObject.triggeredInThePast
+      );
+      localStorageItems[key] = valueObject;
+    } catch (error) {
+      console.log("displayLocalStorageItems ERROR: " + error);
+    }
+  }
+  return localStorageItems;
+};
+
+
+
+
 // Detecting active chrome tab (href does not work for extensions)
 // Source: https://stackoverflow.com/questions/54821584/chrome-extension-code-to-get-current-active-tab-url-and-detect-any-url-update-in
 // @ts-ignore
@@ -213,7 +299,52 @@ before work).
 3 DONE <-- Current
 */
 
-const getAndParseLocalStorageItems = () => {
+
+
+
+
+
+
+
+
+
+// chrome.storage.sync.set({key: value}, function() {
+//   console.log('Value is set to ' + value);
+// });
+
+
+// Check if initial storage.local object exists, if not - initialize it
+// It is initialized here and not in background.js because the user will always open the extension first
+// after downloading it.
+function initializeStorageLocalObject() {
+  chrome.storage.sync.get(['redmineNotificationExtension'], function(result) {
+    if (!result.value) {
+      chrome.storage.sync.set({'redmineNotificationExtension': []}, function() {
+        console.log('local.storage initial value set.');
+      });
+    }
+  });
+}
+
+
+
+
+chrome.storage.sync.get(['key'], function(result) {
+  console.log('Value currently is ' + result.key);
+});
+
+
+
+// function getStorageLocalObject() {
+//   chrome.storage.sync.get(['key'], function(result) {
+//     console.log('Value currently is ' + result.key);
+//   });
+//   return storageLocalObject;
+// };
+
+
+
+const getStorageLocalObject = () => {
   // Init an object to store all the items
   let localStorageItems: any = {};
   // Get an array of all the localStorage keys (i.e. task IDs)
@@ -265,45 +396,22 @@ const sleep = (ms: number) => {
 
 // Check if the page has loaded before attempting to retrieve values
 document.onreadystatechange = function () {
+  chrome.storage.sync.get(null, function (data) { console.info(data) });
   // --- Adding Field and Value dropdowns --------------------------------------------
 
   if (document.readyState === "complete") {
-    // --- Get divs from the DOM
-    // Get field div
+    
+    // --- Get divs from the popup.html DOM
     fieldDiv = document.getElementById("field") as HTMLInputElement; // Casting — or more properly, type assertion
-    // Get value div
     valueDiv = document.getElementById("addValue") as HTMLInputElement;
-    // Get redmine task number div
-    redmineTaskNumberDiv = document.getElementById(
-      "task_id_input"
-    ) as HTMLInputElement;
-    // Get active alert id div
-    activeAlertIdDiv = document.getElementById(
-      "activeAlertId"
-    ) as HTMLInputElement;
-    // Get active alert field div
-    activeAlertFieldDiv = document.getElementById(
-      "activeAlertField"
-    ) as HTMLInputElement;
-    // Get active alert value div
-    activeAlertValueDiv = document.getElementById(
-      "activeAlertValue"
-    ) as HTMLInputElement;
-    // Get active alert delete div
-    activeAlertDeleteDiv = document.getElementById(
-      "activeAlertDelete"
-    ) as HTMLInputElement;
-    // Get active alerts div
-    activeAlertsListDiv = document.getElementById(
-      "activeAlertsList"
-    ) as HTMLDivElement;
-    // Get triggered alerts div
-    triggeredAlertsListDiv = document.getElementById(
-      "triggeredAlertsList"
-    ) as HTMLDivElement;
-    // Get add button
+    redmineTaskNumberDiv = document.getElementById("task_id_input") as HTMLInputElement;
+    activeAlertIdDiv = document.getElementById("activeAlertId") as HTMLInputElement;
+    activeAlertFieldDiv = document.getElementById("activeAlertField") as HTMLInputElement;
+    activeAlertValueDiv = document.getElementById("activeAlertValue") as HTMLInputElement;
+    activeAlertDeleteDiv = document.getElementById("activeAlertDelete") as HTMLInputElement;
+    activeAlertsListDiv = document.getElementById("activeAlertsList") as HTMLDivElement;
+    triggeredAlertsListDiv = document.getElementById("triggeredAlertsList") as HTMLDivElement;
     addButton = document.getElementById("addButton") as HTMLButtonElement;
-    // Get clear button
     clearButton = document.getElementById("clearButton") as HTMLButtonElement;
     // clearButton.addEventListener("click", () => clearLocalStorage()); // @temp
 
@@ -353,11 +461,11 @@ document.onreadystatechange = function () {
       if (taskType === "Development") {
         // Task ID
         var redmineTaskNumber: string = "";
-        // @ts-ignore
         chrome.tabs.query(
           { active: true, currentWindow: true }, // @ts-ignore
           function (tabs) {
             try {
+              // @ts-ignore
               redmineTaskNumber = tabs[0].url
                 .split("/issues/")[1]
                 .substring(0, 5);
@@ -554,137 +662,12 @@ function deleteItemFromLocalStorage(redmineTaskNumber: string) {
   displayLocalStorageItems(getAndParseLocalStorageItems());
 }
 
-// ---------------------------------------------------------------------------------
 
-// // --- Send a request to Redmine every 3 minutes -----------------------------------
 
-// Extension script CORS privilege:
-// https://stackoverflow.com/questions/48615701/why-can-tampermonkeys-gm-xmlhttprequest-perform-a-cors-request
-const sendRequest = async (taskId: string) => {
-  try {
-    const redmineResponse = await fetch(
-      // `https://redmine.tribepayments.com/issues/${taskId}.json`,
-      `https://tribeapp.website:5000/api/getRedmineTaskProxy/${taskId}`,
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          "X-Redmine-API-Key": redmineApiToken,
-        },
-        body: null,
-      }
-    );
-    return redmineResponse;
-  } catch (error) {
-    console.log("ERROR in sendRequest func" + error);
-    return "ERROR in sendRequest func";
-  }
-};
 
-// Raise an alert via Desktop notification
-// @feature - can add text with changes what happened to the ticket
-function raiseAlert(taskId: string | number) {
-  // Source for notification standard: https://notifications.spec.whatwg.org/#using-events
 
-  // Let's check if the browser supports notifications
-  if (!("Notification" in window)) {
-    alert("This browser does not support desktop notification");
-  }
 
-  // Let's check whether notification permissions have already been granted
-  else if (Notification.permission === "granted") {
-    // If it's okay let's create a notification
-    var notification = new Notification(`
-        Task ID: ${taskId} has triggered an alert.
-      `);
-    window
-      .open(`https://redmine.tribepayments.com/issues/${taskId}`, "_blank")
-      ?.focus();
-  }
 
-  // Otherwise, we need to ask the user for permission
-  else if (Notification.permission !== "denied") {
-    Notification.requestPermission().then(function (permission) {
-      // If the user accepts, let's create a notification
-      if (permission === "granted") {
-        // var notification = new Notification("Hi there!");
-      }
-    });
-  }
-  // At last, if the user has denied notifications, and you
-  // want to be respectful there is no need to bother them any more.
-
-  // // Plan B:
-  // // Open Window on pop-up:
-  // window.open(`https://redmine.tribepayments.com/issues/${taskId}`, '_blank')?.focus();
-
-  // // Do not allow to close window without confirming:
-  // window.addEventListener('beforeunload', function (e) {
-  //   // Cancel the event
-  //   e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
-  //   // Chrome requires returnValue to be set
-  //   e.returnValue = '';
-  // });
-}
-
-const checkIfTaskIsTriggered = () => {
-  setInterval(async () => {
-    // for each item in localStorage with status triggeredInThePast == "no"
-    let localStorageItems = getAndParseLocalStorageItems();
-    for (let key in localStorageItems) {
-      if (localStorageItems[key].triggeredInThePast === "no") {
-        // console.log('Request sent to Redmine for task ID: "' + key + '"');
-        let redmineResponse = await sendRequest(key);
-        // @ts-ignore
-        // JSON.parse(redmineResponse); vs redmineResponse.json() -> Use second one. It's meant for fetch requests.
-        let responseObject = await redmineResponse.json();
-        // console.log('Redmine response -> Status: ' + responseObject.issue.status.name)
-
-        // Have to separate Status check and Custom field check because of different query
-        // (e.g. responseObject.issue.custom_fields[0].value vs responseObject.issue.status.name)
-        if (localStorageItems[key].fieldToCheck === "Status") {
-          // Check if triggered. Value must match.
-          if (
-            responseObject.issue.status.name ===
-            localStorageItems[key].valueToCheck
-          ) {
-            localStorageItems[key].triggeredInThePast = "yes";
-            localStorageItems[key].triggeredAtDate = new Date();
-            localStorage.setItem(key, JSON.stringify(localStorageItems[key]));
-            raiseAlert(key);
-          } else {
-            //
-          }
-          // Check if Field is a custom_field
-        } else {
-          for (let customField of responseObject.issue.custom_fields) {
-            if (customField.name === localStorageItems[key].fieldToCheck) {
-              if (customField.value === "Empty") {
-                customField.value = "";
-              } else if (customField.value === "Not empty") {
-                // @feature ???
-              }
-              if (customField.value === localStorageItems[key].valueToCheck) {
-                localStorageItems[key].triggeredInThePast = "yes";
-                localStorageItems[key].triggeredAtDate = new Date();
-                localStorage.setItem(
-                  key,
-                  JSON.stringify(localStorageItems[key])
-                );
-                raiseAlert(key);
-              }
-            } else {
-              // console.log(`customField.name === localStorageItems[key].fieldToCheck -> ${customField.name} === ${localStorageItems[key].fieldToCheck}`);
-            }
-          }
-        }
-        await sleep(300);
-      }
-    }
-  }, 10000); // @testing - 10 seconds
-};
-
-checkIfTaskIsTriggered();
 
 // ---------------------------------------------------------------------------------
 
