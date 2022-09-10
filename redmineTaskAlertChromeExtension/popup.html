@@ -15,14 +15,15 @@
     />
     <style>
       .nice-select{-webkit-tap-highlight-color:rgba(0,0,0,0);background-color:#fff;border-radius:5px;border:solid 1px #e8e8e8;box-sizing:border-box;clear:both;cursor:pointer;display:block;float:left;font-family:inherit;font-size:14px;font-weight:normal;height:38px;line-height:36px;outline:none;padding-left:18px;padding-right:30px;position:relative;text-align:left !important;transition:all .2s ease-in-out;user-select:none;white-space:nowrap;width:auto}.nice-select:hover{border-color:#dbdbdb}.nice-select:active,.nice-select.open,.nice-select:focus{border-color:#999}.nice-select:after{border-bottom:2px solid #999;border-right:2px solid #999;content:"";display:block;height:5px;margin-top:-4px;pointer-events:none;position:absolute;right:12px;top:50%;transform-origin:66% 66%;transform:rotate(45deg);transition:all .15s ease-in-out;width:5px}.nice-select.open:after{transform:rotate(-135deg)}.nice-select.open .nice-select-dropdown{opacity:1;pointer-events:auto;transform:scale(1) translateY(0)}.nice-select.disabled{border-color:#ededed;color:#999;pointer-events:none}.nice-select.disabled:after{border-color:#ccc}.nice-select.wide{width:100%}.nice-select.wide .nice-select-dropdown{left:0 !important;right:0 !important}.nice-select.right{float:right}.nice-select.right .nice-select-dropdown{left:auto;right:0}.nice-select.small{font-size:12px;height:36px;line-height:34px}.nice-select.small:after{height:4px;width:4px}.nice-select.small .option{line-height:34px;min-height:34px}.nice-select .nice-select-dropdown{margin-top:4px;background-color:#fff;border-radius:5px;box-shadow:0 0 0 1px rgba(68,68,68,.11);pointer-events:none;position:absolute;top:100%;left:0;transform-origin:50% 0;transform:scale(0.75) translateY(19px);transition:all .2s cubic-bezier(0.5, 0, 0, 1.25),opacity .15s ease-out;z-index:9;opacity:0}.nice-select .list{border-radius:5px;box-sizing:border-box;overflow:hidden;padding:0;max-height:210px;overflow-y:auto}.nice-select .list:hover .option:not(:hover){background-color:transparent !important}.nice-select .option{cursor:pointer;font-weight:400;line-height:40px;list-style:none;outline:none;padding-left:18px;padding-right:29px;text-align:left;transition:all .2s}.nice-select .option:hover,.nice-select .option.focus,.nice-select .option.selected.focus{background-color:#f6f6f6}.nice-select .option.selected{font-weight:bold}.nice-select .option.disabled{background-color:transparent;color:#999;cursor:default}.nice-select .optgroup{font-weight:bold}.no-csspointerevents .nice-select .nice-select-dropdown{display:none}.no-csspointerevents .nice-select.open .nice-select-dropdown{display:block}.nice-select .list::-webkit-scrollbar{width:0}.nice-select .has-multiple{white-space:inherit;height:auto;padding:7px 12px;min-height:36px;line-height:22px}.nice-select .has-multiple span.current{border:1px solid #ccc;background:#eee;padding:0 10px;border-radius:3px;display:inline-block;line-height:24px;font-size:14px;margin-bottom:3px;margin-right:3px}.nice-select .has-multiple .multiple-options{display:block;line-height:24px;padding:0}.nice-select .nice-select-search-box{box-sizing:border-box;width:100%;padding:5px;pointer-events:none;border-radius:5px 5px 0 0}.nice-select .nice-select-search{box-sizing:border-box;background-color:#fff;border:1px solid #e8e8e8;border-radius:3px;color:#444;display:inline-block;vertical-align:middle;padding:7px 12px;margin:0 10px 0 0;width:100%;min-height:36px;line-height:22px;height:auto;outline:0 !important;font-size:14px}
+      
       /* Modal Structure */
-      html,
-      body {
-        /* font-family: "Open Sans", sans-serif; */
+
+      html, body {
         font-family: "Menlo", monospace;
         font-size: 0.95rem;
         margin: 0;
-        min-height: 180px;
+        min-height: 10rem;
+        /* min-width: 10rem; */
         padding: 0;
         width: fit-content;
       }
@@ -90,7 +91,7 @@
 
       .flex-container {
         display: flex;
-        justify-content: space-between;
+        /* justify-content: space-between; */
         padding: 0.5rem 1rem;
         background-image: linear-gradient(62deg, #fcd5be 0%, #dee1fc 100%);
         border-radius: 4px;
@@ -99,6 +100,8 @@
 
       .flex {
         display: flex;
+        flex-direction: column;
+        padding: 0 0.8rem;
         align-items: center;
         opacity: 1;
         transition: opacity 0.2s ease-in-out;
@@ -106,6 +109,7 @@
 
       label {
         padding-right: 0.3rem;
+        padding-bottom: 0.25rem;
         font-size: 0.8rem;
       }
 
@@ -140,7 +144,7 @@
         color: rgb(255, 255, 255);
         font-size: 1.2rem;
         font-weight: bold;
-        padding: 0.4rem auto;
+        margin: auto;
       }
 
       button:hover {
@@ -206,94 +210,94 @@
 
     </style>
     <script type="module" src="popup.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.7/dist/autoComplete.min.js"></script>
   </head>
 
   <body>
-    <div class="modal-header">
-      <h1 class="logo">
-        <img class="logo-icon" src="originalImage.png" />
-        Redmine task alerts
-        <span id="version" title="Click to clear cache">v1.0.0 (11-09-2022)</span>
-      </h1>
-    </div>
-    <div class="modal-content" id="introductionText">
-      <p>
-        Select task ID, the desired field and its value (value must be equal to
-        or be greater than selected). When the selected criteria is trigerred -
-        you will receive a notification.
-      </p>
-    </div>
-
-    <hr />
-
-    <!-- Create an alert -->
-    <div class="modal-content">
-      <h2><span id="createSpan">Create</span> an alert</h2>
-    </div>
-
     <div>
-      <div class="flex-container">
-        <div class="flex">
-          <label for="task_id_input">Task ID:</label>
-          <input type="text" id="task_id_input" name="task_id_input" pattern="[0-9]{6}" minlength="5" maxlength="5" required />
-        </div>
+      <div class="modal-header">
+        <h1 class="logo">
+          <img class="logo-icon" src="originalImage.png" />
+          Redmine task alerts
+          <span id="version" title="Click to clear cache">v1.0.0</span> <!-- Last updated: 11-09-2022 -->
+        </h1>
+      </div>
+      <div class="modal-content" id="introductionText">
+        <p>
+          Select task ID, the desired field and its value (value must be equal to
+          or be greater than selected). When the selected criteria is trigerred -
+          you will receive a notification.
+        </p>
+      </div>
 
-        <div class="flex">
-          <label for="field">Field:</label>
-          <select name="field" id="field" required></select>
-        </div>
+      <hr />
 
-        <div class="flex">
-          <label for="addValue">Value:</label>
-          <select name="addValue" id="addValue" required></select>
-        </div>
+      <!-- Create an alert -->
+      <div class="modal-content">
+        <h2><span id="createSpan">Create</span> an alert</h2>
+      </div>
 
-        <div class="flex">
-          <button id="addButton">+</button>
+      <div>
+        <div class="flex-container">
+          <div class="flex">
+            <label for="task_id_input">Task ID:</label>
+            <input type="text" id="task_id_input" name="task_id_input" pattern="[0-9]{6}" minlength="5" maxlength="5" required />
+          </div>
+
+          <div class="flex">
+            <label for="field">Field:</label>
+            <select name="field" id="field" required></select>
+          </div>
+
+          <div class="flex">
+            <label for="addValue">Value:</label>
+            <select name="addValue" id="addValue" required></select>
+          </div>
+
+          <div class="flex">
+            <button id="addButton">+</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <hr />
+      <hr />
 
-    <!-- Active alerts -->
-    <div class="modal-content">
-      <h2><span id="activeSpan">Active</span> alerts</h2>
-    </div>
-
-    <section class="activeAlerts">
-      <div id="activeAlertsList">
-        <!-- <div class="activeAlert flex">
-          <div id="activeAlertId"></div>
-          <div id="activeAlertField"></div>
-          <div id="activeAlertValue"></div>
-          <div id="activeAlertDelete"></div>
-          </div> -->
-        </div>
+      <!-- Active alerts -->
+      <div class="modal-content">
+        <h2><span id="activeSpan">Active</span> alerts</h2>
       </div>
-    </section>
 
-    <hr />
-
-    <!-- Triggered alerts -->
-    <div class="modal-content">
-      <h2><span id="triggeredSpan">Triggered</span> alerts</h2>
-    </div>
-
-    <section class="triggeredAlerts">
-      <div id="triggeredAlertsList">
-        <!-- <div class="activeAlert flex">
-          <div id="activeAlertId"></div>
-          <div id="activeAlertField"></div>
-          <div id="activeAlertValue"></div>
-          <div id="activeAlertDelete"></div>
-          </div> -->
+      <section class="activeAlerts">
+        <div id="activeAlertsList">
+          <!-- <div class="activeAlert flex">
+            <div id="activeAlertId"></div>
+            <div id="activeAlertField"></div>
+            <div id="activeAlertValue"></div>
+            <div id="activeAlertDelete"></div>
+            </div> -->
         </div>
-      </div>
-    </section>
+      </section>
 
-    <hr />
+      <hr />
+
+      <!-- Triggered alerts -->
+      <div class="modal-content">
+        <h2><span id="triggeredSpan">Triggered</span> alerts</h2>
+      </div>
+
+      <section class="triggeredAlerts">
+        <div id="triggeredAlertsList">
+          <!-- <div class="activeAlert flex">
+            <div id="activeAlertId"></div>
+            <div id="activeAlertField"></div>
+            <div id="activeAlertValue"></div>
+            <div id="activeAlertDelete"></div>
+            </div> -->
+        </div>
+      </section>
+
+      <hr />
+
+  </div>
 
   </body>
 </html>

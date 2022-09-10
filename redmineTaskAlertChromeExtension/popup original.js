@@ -1,6 +1,89 @@
 "use strict";
 // @ts-nocheck
-// --- Imports ---
+// --- Notes ------------------------------------------------------------------------
+// chrome://extensions/ --> turn on developer mode and choose "load unpacked"
+// then locate the folder of your extension
+// chrome://extensions
+// 128 x 128 --> should be called icon_128.png
+// 19 x 19 --> toolbar icon, that should be called icon.png
+// Image resizer: http://www.simpleimageresizer.com/upload
+// https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#modifying-network-requests
+// Google sheets - Append row API documentation
+// https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
+// -- Misc learning ---------------------------------------------------------------
+// The difference between querySelector() and querySelectorAll() is that querySelector() returns a single object with the first HTML element that matches the 'selectors', but querySelectorAll() returns an array of objects with all the HTML elements that match the 'selectors'.
+/*
+https://www.w3schools.com/cssref/css_selectors.asp
+.class1.class2	.name1.name2	Selects all elements with both name1 and name2 set within its class attribute
+.class1 .class2	.name1 .name2	Selects all elements with name2 that is a descendant of an element with name1
+element>element	div > p	Selects all <p> elements where the parent is a <div> element
+*/
+// Enabling Prettier for js/css/html automatic formatting:
+// https://www.youtube.com/watch?v=zd_aDbwr4pY&ab_channel=StudyZone
+// -- flags ------------------------------------------------------------------------
+// - @testing
+// Real test cases to monitor: 65220 --> when Test status changes to "tested".
+// - @todo
+// - @feature
+// To do list example html/js/css: https://github.com/TylerPottsDev/yt-js-task-list-2021
+// ---------------------------------------------------------------------------------
+// // @ts-ignore
+// const broadcastChannel1 = new BroadcastChannel('channel1');
+// broadcastChannel1.onmessage = (event) => {
+//   // When service worker requests for localStorage items -> send the data back
+//   console.log("Message received by main popup script: broadcastChannel1.onmessage: " + event.data);
+//   checkIfTaskIsTriggered()
+//   // broadcastChannel1.postMessage(getAndParseLocalStorageItems()); // what is the format that is sent? Should message be parsed?
+// }
+// --- Config ----------------------------------------------------------------------
+var fieldSchema = [
+    {
+        fieldName: "status",
+        displayName: "Status",
+        value: {
+            type: "dropdown",
+            options: [
+                "Pending Approval",
+                "New",
+                "In Progress",
+                "Resolved",
+                "Feedback",
+            ],
+        },
+    },
+    {
+        fieldName: "mr_status",
+        displayName: "MR status",
+        value: {
+            type: "dropdown",
+            options: ["NONE", "WIP", "REVIEW", "DONE"],
+        },
+    },
+    {
+        fieldName: "test_status",
+        displayName: "Test status",
+        value: {
+            type: "dropdown",
+            options: ["not tested", "tested"],
+        },
+    },
+    {
+        fieldName: "deployed_in_sandbox",
+        displayName: "Deployed in sandbox",
+        value: {
+            type: "dropdown",
+            options: ["Empty", "Not empty"],
+        },
+    },
+    {
+        fieldName: "deployed_in_live",
+        displayName: "Deployed in live",
+        value: {
+            type: "dropdown",
+            options: ["Empty", "Not empty"],
+        },
+    },
+];
 // Create a searchable dropdown
 // Source: https://bluzky.github.io/nice-select2/
 // Library code
@@ -94,6 +177,42 @@ var options = { searchable: true };
 // Initialize
 // NiceSelect.bind(document.getElementById("field"), options);
 // NiceSelect.bind(document.getElementById("addValue"), options);
+/*
+Most important are:
+- Statuses (dropdown) -> select
+- Date (not empty) -> input type=date
+- [REJECTED] input type=text -> onchange
+*/
+// Parse dropdown fields within task page
+let optionObjects = [];
+document.querySelectorAll('#all_attributes select').forEach(function (taskFieldHtmlElement) {
+    if (taskFieldHtmlElement.previousElementSibling) {
+        const id = taskFieldHtmlElement.id;
+        let label = taskFieldHtmlElement.previousElementSibling.textContent;
+        if (label) {
+            label = label?.replace(" *", "");
+        }
+        const selectedOptionValue = taskFieldHtmlElement.value;
+        const possibleOptionsValues = [...taskFieldHtmlElement].map(el => new Object({
+            optionValue: el.value,
+            optionText: el.text,
+            isSelected: selectedOptionValue === el.value ? true : false
+        }));
+        // possibleOptionsValues.unshift("Not empty")
+        const optionObject = {
+            id: id,
+            label: label,
+            value: {
+                type: "dropdown",
+                options: possibleOptionsValues,
+            }
+        };
+        optionObjects.push(optionObject);
+    }
+});
+// // Parse date fields within task page
+// document.querySelectorAll('#all_attributes input[type="date"]').forEach(function (taskFieldHtmlElement) {
+// })
 // Global variables
 var fieldDiv;
 var valueDiv;
@@ -107,45 +226,6 @@ var triggeredAlertsListDiv;
 var addButton;
 var clearButton;
 // --- Helper functions ------------------------------------------------------------
-async function getAndPrefillActiveTabRedmineTaskNumber(htmlElement) {
-    if (htmlElement) {
-        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-            let redmineTaskNumber = tabs[0].url.split("/issues/")[1].substring(0, 5);
-            htmlElement.value = redmineTaskNumber;
-        });
-    }
-}
-function parseRedmineTaskDropdownFieldsToArrayOfObjects() {
-    console.log('a');
-    let arrayOfDropdownObjects = [];
-    document.querySelectorAll('#all_attributes select').forEach(function (taskFieldHtmlElement) {
-        console.log('aa');
-        if (taskFieldHtmlElement.previousElementSibling) {
-            const id = taskFieldHtmlElement.id;
-            let label = taskFieldHtmlElement.previousElementSibling.textContent;
-            if (label) {
-                label = label?.replace(" *", "");
-            }
-            const selectedOptionValue = taskFieldHtmlElement.value;
-            const possibleOptionsValues = [...taskFieldHtmlElement].map(el => new Object({
-                optionValue: el.value,
-                optionText: el.text,
-                isSelected: selectedOptionValue === el.value ? true : false
-            }));
-            // possibleOptionsValues.unshift("Not empty")
-            const optionObject = {
-                id: id,
-                label: label,
-                value: {
-                    type: "dropdown",
-                    options: possibleOptionsValues,
-                }
-            };
-            arrayOfDropdownObjects.push(optionObject);
-        }
-    });
-    return arrayOfDropdownObjects;
-}
 /**
  * @description - Displays all the items in the localStorage
  * @param {object} localStorageItems - Object containing all the items in the localStorage
@@ -221,6 +301,7 @@ const getAndParseLocalStorageItems = () => {
 };
 // Detecting active chrome tab (href does not work for extensions)
 // Source: https://stackoverflow.com/questions/54821584/chrome-extension-code-to-get-current-active-tab-url-and-detect-any-url-update-in
+// @ts-ignore
 // --- Add/Preview/Delete alerts using Local Storage -------------------------------
 // --- @testing
 let dummyItemObject1TaskID = "64503"; // Currently in mr_status: "REVIEW"
@@ -285,9 +366,25 @@ const getStorageLocalObject = () => {
     var arrayOfKeys = Object.keys(localStorage);
     // For every key in the array, get the value and display it
     for (let key of arrayOfKeys) {
-        let valueString = localStorage.getItem(key);
-        let valueObject = JSON.parse(valueString);
-        localStorageItems[key] = valueObject;
+        try {
+            // Console log raw keys and values
+            // console.log(key); // log keys
+            // console.log(localStorage.getItem(key)); // log values
+            let valueString = localStorage.getItem(key);
+            let valueObject = JSON.parse(valueString);
+            console.log("key: " +
+                key +
+                " | " +
+                "valueObject.fieldToCheck: " +
+                valueObject.fieldToCheck +
+                " | " +
+                "triggered in the past?: " +
+                valueObject.triggeredInThePast);
+            localStorageItems[key] = valueObject;
+        }
+        catch (error) {
+            console.log("displayLocalStorageItems ERROR: " + error);
+        }
     }
     return localStorageItems;
 };
@@ -308,67 +405,163 @@ const sleep = (ms) => {
         setTimeout(resolve, ms);
     });
 };
-// --- Get divs from the popup.html DOM
-fieldDiv = document.getElementById("field"); // Casting — or more properly, type assertion
-valueDiv = document.getElementById("addValue");
-redmineTaskNumberDiv = document.getElementById("task_id_input");
-activeAlertIdDiv = document.getElementById("activeAlertId");
-activeAlertFieldDiv = document.getElementById("activeAlertField");
-activeAlertValueDiv = document.getElementById("activeAlertValue");
-activeAlertDeleteDiv = document.getElementById("activeAlertDelete");
-activeAlertsListDiv = document.getElementById("activeAlertsList");
-triggeredAlertsListDiv = document.getElementById("triggeredAlertsList");
-addButton = document.getElementById("addButton");
-clearButton = document.getElementById("clearButton");
 document.onreadystatechange = function () {
     if (document.readyState === "complete") {
-        // Fill "Field" dropdown options ("Values" are filled when "Field" is selected.)
-        console.log(parseRedmineTaskDropdownFieldsToArrayOfObjects());
-        // parseRedmineTaskDropdownFieldsToArrayOfObjects().forEach((fieldObject) => {
-        //   fieldDiv?.insertAdjacentHTML(
-        //     "beforeend",
-        //     `<option id="${fieldObject.id}" value="${fieldObject.id}">${fieldObject.label}</option>`
-        //   );
-        // });
-        getAndPrefillActiveTabRedmineTaskNumber(redmineTaskNumberDiv);
-        // // --- Get initial selected field
-        // var selectedField = fieldDiv.value;
-        // // --- Insert "field value" dropdown options
-        // // Source: https://stackoverflow.com/questions/3364493/how-do-i-clear-all-options-in-a-dropdown-box
-        // function removeOptions(selectElement: any) {
-        //   var i,
-        //     L = selectElement.options.length - 1;
-        //   for (i = L; i >= 0; i--) {
-        //     selectElement.remove(i);
+        // --- Get divs from the popup.html DOM
+        fieldDiv = document.getElementById("field"); // Casting — or more properly, type assertion
+        valueDiv = document.getElementById("addValue");
+        redmineTaskNumberDiv = document.getElementById("task_id_input");
+        activeAlertIdDiv = document.getElementById("activeAlertId");
+        activeAlertFieldDiv = document.getElementById("activeAlertField");
+        activeAlertValueDiv = document.getElementById("activeAlertValue");
+        activeAlertDeleteDiv = document.getElementById("activeAlertDelete");
+        activeAlertsListDiv = document.getElementById("activeAlertsList");
+        triggeredAlertsListDiv = document.getElementById("triggeredAlertsList");
+        addButton = document.getElementById("addButton");
+        clearButton = document.getElementById("clearButton");
+        // --- Populate field with schema fieldname and displayname
+        // fieldSchema.forEach((fieldObject) => {
+        optionObjects.forEach((fieldObject) => {
+            // --- Insert "field" dropdown options
+            fieldDiv?.insertAdjacentHTML("beforeend", 
+            // `<option value="${fieldObject.displayName}">${fieldObject.displayName}</option>`
+            `<option id="${fieldObject.id}" value="${fieldObject.value}">${fieldObject.value.options}</option>`);
+        });
+        // optionObjects
+        // const optionObject = {
+        //   id: id,
+        //   label: label,
+        //   value: {
+        //     type: "dropdown",
+        //     options: possibleOptionsValues,
         //   }
-        // }
-        // function insertOptions(currentlySelectedField: string) {
-        //   fieldSchema.forEach((fieldObject) => {
-        //     // console.log(`${currentlySelectedField} AND ${fieldObject.fieldName}`); //@testing
-        //     if (currentlySelectedField === fieldObject.displayName) {
-        //       if (fieldObject.value.type === "dropdown") {
-        //         for (let option of fieldObject.value.options) {
-        //           valueDiv?.insertAdjacentHTML(
-        //             "beforeend",
-        //             `<option value="${option}">${option}</option>`
-        //           ); // MR name and value matches -> both are "MERGED" for example.
-        //         }
-        //       } else if (fieldObject.value.type === "text") {
-        //         // @feature --> add text input field
-        //       }
-        //     }
-        //   });
-        // }
-        // insertOptions(selectedField);
-        // // attach a change event listener to the field drop-down
-        // // Source: https://stackoverflow.com/questions/29802104/javascript-change-drop-down-box-options-based-on-another-drop-down-box-value
-        // fieldDiv.addEventListener("change", function () {
-        //   removeOptions(valueDiv);
-        //   insertOptions(fieldDiv.value);
-        // });
-        // // --- Display Active alerts on load -----------------------------------------------
-        // displayLocalStorageItems(getAndParseLocalStorageItems());
-        // addButton.addEventListener("click", () => saveItemToLocalStorage());
+        //   {
+        //     fieldName: "deployed_in_live",
+        //     displayName: "Deployed in live",
+        //     value: {
+        //       type: "dropdown",
+        //       options: ["Empty", "Not empty"],
+        //     },
+        // --- Get current Redmine page details --------------------------------------------
+        /**
+         * If possible (if the currently loaded page is a Redmine task page), then get task
+         * details. It needs to happen after the page loads. If the page is not a Redmine
+         * task page or it is a support task @feature, then skip this part.
+         */
+        // -- Auto-fill details from the current development task page data ----------------
+        try {
+            var taskType;
+            // --- Detect project --------------------------------------------------
+            // Make sure that parsed keywords in the main text title are avoided.
+            // let taskTitle = document.querySelectorAll("head > title").textContent
+            /**
+             * Input: "Task #63383: ISAC-IS-CORE: Add TransLink field to the Currency Exchange XML Issuer Report - ISAC-ISS - Tribe Payments"
+             * Output: " - ISAC-ISS - Tribe Payments"
+             */
+            // let taskTitle: string = document.title.slice(-28);
+            // This needs to be implemented via background.js script.
+            // https://stackoverflow.com/questions/19758028/chrome-extension-get-dom-content
+            // var taskTitle: string | null | undefined =
+            //   document.querySelector("#content > h2")?.textContent
+            var taskTitle = "Development"; // @temp
+            if (taskTitle?.includes("Support request #")) {
+                taskType = "Support";
+            }
+            else {
+                taskType = "Development";
+            }
+            // console.log('TASKTITLE: ' + taskTitle)
+            // If the project has been found and it is equal to "Development", then try
+            // to get other relevant task details.
+            if (taskType === "Development") {
+                // Task ID
+                var redmineTaskNumber = "";
+                chrome.tabs.query({ active: true, currentWindow: true }, // @ts-ignore
+                function (tabs) {
+                    try {
+                        // @ts-ignore
+                        redmineTaskNumber = tabs[0].url
+                            .split("/issues/")[1]
+                            .substring(0, 5);
+                        // Soft-set input values
+                        redmineTaskNumberDiv.value = redmineTaskNumber;
+                    }
+                    catch (error) {
+                        // console.log("redmineTaskNumber ERROR: " + error);
+                    }
+                });
+                // // Status
+                // var redmineTaskStatus: string | null | undefined =
+                //   document.querySelector(".status.attribute > .value")?.textContent;
+                // // MR status
+                // var redmineMrStatus: string | null | undefined = document.querySelector(
+                //   ".cf_26.attribute > .value"
+                // )?.textContent;
+                // // Test status
+                // var redmineTestStatus: string | null | undefined =
+                //   document.querySelector(".cf_4.attribute > .value")?.textContent;
+                // // Deployed to Sandbox status
+                // // Note: Empty field returns an empty string.
+                // var redmineDeployedToSandbox: string | null | undefined =
+                //   document.querySelector(".cf_11.attribute > .value")?.textContent;
+                // /*
+                //       console.log(redmineTaskStatus)
+                //       console.log(redmineTestStatus)
+                //       console.log(redmineMrStatus)
+                //       console.log(redmineDeployedToSandbox)
+                //       */
+                // // Deployed to Live status
+                // // --> this is unnecessary, as there are no more assumptions to make if the task
+                // // is deployed to live
+                // // -
+            }
+            else if (taskType === "Support") {
+                // @feature
+            }
+        }
+        catch (error) {
+            // console.log(error);
+        }
+        // --- Get initial selected field
+        var selectedField = fieldDiv.value;
+        // console.log("selectedField log: " + selectedField); //@testing
+        // --- Insert "field value" dropdown options
+        // Source: https://stackoverflow.com/questions/3364493/how-do-i-clear-all-options-in-a-dropdown-box
+        function removeOptions(selectElement) {
+            var i, L = selectElement.options.length - 1;
+            for (i = L; i >= 0; i--) {
+                selectElement.remove(i);
+            }
+        }
+        function insertOptions(currentlySelectedField) {
+            fieldSchema.forEach((fieldObject) => {
+                // console.log(`${currentlySelectedField} AND ${fieldObject.fieldName}`); //@testing
+                if (currentlySelectedField === fieldObject.displayName) {
+                    if (fieldObject.value.type === "dropdown") {
+                        for (let option of fieldObject.value.options) {
+                            valueDiv?.insertAdjacentHTML("beforeend", `<option value="${option}">${option}</option>`); // MR name and value matches -> both are "MERGED" for example.
+                        }
+                    }
+                    else if (fieldObject.value.type === "text") {
+                        // @feature --> add text input field
+                    }
+                }
+            });
+        }
+        insertOptions(selectedField);
+        // attach a change event listener to the field drop-down
+        // Source: https://stackoverflow.com/questions/29802104/javascript-change-drop-down-box-options-based-on-another-drop-down-box-value
+        fieldDiv.addEventListener("change", function () {
+            removeOptions(valueDiv);
+            insertOptions(fieldDiv.value);
+            // console.log('fieldDiv: ' + fieldDiv.value); //@testing
+            // console.log('valueDiv: ' + valueDiv.value); //@testing
+        });
+        // --- Display Active alerts on load -----------------------------------------------
+        displayLocalStorageItems(getAndParseLocalStorageItems());
+        addButton.addEventListener("click", () => saveItemToLocalStorage());
+        // ------------------------------------------------------------------------------------
+        // --- End of General -----------------------------------------------------------------
     }
 };
 // // --- Validate data ---------------------------------------------------------------
@@ -420,7 +613,8 @@ document.onreadystatechange = function () {
 // } catch (error) {
 //   //   console.log(error);
 // }
-// displayLocalStorageItems(getAndParseLocalStorageItems());
+// // ---------------------------------------------------------------------------------
+displayLocalStorageItems(getAndParseLocalStorageItems());
 // Save Item
 /* localStorage.setItem(key, value); */
 function saveItemToLocalStorage() {
@@ -449,12 +643,14 @@ function saveItemToLocalStorage() {
 /**
  * @description - This function is called when "Delete" button is clicked.
  * @param {string} taskID
+ * Local storage docs: https://developer.mozilla.org/en-US/docs/Web/API/Storage
  */
 function deleteItemFromLocalStorage(redmineTaskNumber) {
     localStorage.removeItem(redmineTaskNumber);
     // Refresh "Active alerts" display list
     displayLocalStorageItems(getAndParseLocalStorageItems());
 }
+// ---------------------------------------------------------------------------------
 // var myWorker = new Worker('background.js');
 // // note: service workers logs results to popup console
 // // send message

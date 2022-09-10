@@ -100,3 +100,52 @@ NaN
 empty string ''
 0
 false
+
+
+
+
+
+
+
+
+
+// --- Notes ------------------------------------------------------------------------
+
+// chrome://extensions/ --> turn on developer mode and choose "load unpacked"
+// then locate the folder of your extension
+
+// chrome://extensions
+
+// 128 x 128 --> should be called icon_128.png
+// 19 x 19 --> toolbar icon, that should be called icon.png
+// Image resizer: http://www.simpleimageresizer.com/upload
+
+// https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/#modifying-network-requests
+
+// Google sheets - Append row API documentation
+// https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append
+
+// -- Misc learning ---------------------------------------------------------------
+
+// Enabling Prettier for js/css/html automatic formatting:
+// https://www.youtube.com/watch?v=zd_aDbwr4pY&ab_channel=StudyZone
+
+// -- flags ------------------------------------------------------------------------
+// - @testing
+// Real test cases to monitor: 65220 --> when Test status changes to "tested".
+// - @todo
+// - @feature
+
+// To do list example html/js/css: https://github.com/TylerPottsDev/yt-js-task-list-2021
+
+// ---------------------------------------------------------------------------------
+
+// // @ts-ignore
+// const broadcastChannel1 = new BroadcastChannel('channel1');
+
+// broadcastChannel1.onmessage = (event) => {
+//   // When service worker requests for localStorage items -> send the data back
+//   console.log("Message received by main popup script: broadcastChannel1.onmessage: " + event.data);
+//   checkIfTaskIsTriggered()
+//   // broadcastChannel1.postMessage(getAndParseLocalStorageItems()); // what is the format that is sent? Should message be parsed?
+// }
