@@ -1,7 +1,7 @@
 "use strict";
 // @ts-nocheck
-// --- Imports ---
-// Create a searchable dropdown
+// Imports
+// Make the dropdowns searchable (must be initiated after data is added)
 // Source: https://bluzky.github.io/nice-select2/
 // Library code
 !function (e, t) { "object" == typeof exports && "object" == typeof module ? module.exports = t() : "function" == typeof define && define.amd ? define([], t) : "object" == typeof exports ? exports.NiceSelect = t() : e.NiceSelect = t(); }(self, (function () { return (() => {
@@ -91,9 +91,6 @@
 })(); }));
 // Set options
 var options = { searchable: true };
-// Initialize
-// NiceSelect.bind(document.getElementById("field"), options);
-// NiceSelect.bind(document.getElementById("addValue"), options);
 // Global variables
 var fieldDiv;
 var valueDiv;
@@ -106,46 +103,6 @@ var activeAlertsListDiv;
 var triggeredAlertsListDiv;
 var addButton;
 var clearButton;
-// --- Helper functions ------------------------------------------------------------
-async function getAndPrefillActiveTabRedmineTaskNumber(htmlElement) {
-    if (htmlElement) {
-        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-            let redmineTaskNumber = tabs[0].url.split("/issues/")[1].substring(0, 5);
-            htmlElement.value = redmineTaskNumber;
-        });
-    }
-}
-function parseRedmineTaskDropdownFieldsToArrayOfObjects() {
-    console.log('a');
-    let arrayOfDropdownObjects = [];
-    document.querySelectorAll('#all_attributes select').forEach(function (taskFieldHtmlElement) {
-        console.log('aa');
-        if (taskFieldHtmlElement.previousElementSibling) {
-            const id = taskFieldHtmlElement.id;
-            let label = taskFieldHtmlElement.previousElementSibling.textContent;
-            if (label) {
-                label = label?.replace(" *", "");
-            }
-            const selectedOptionValue = taskFieldHtmlElement.value;
-            const possibleOptionsValues = [...taskFieldHtmlElement].map(el => new Object({
-                optionValue: el.value,
-                optionText: el.text,
-                isSelected: selectedOptionValue === el.value ? true : false
-            }));
-            // possibleOptionsValues.unshift("Not empty")
-            const optionObject = {
-                id: id,
-                label: label,
-                value: {
-                    type: "dropdown",
-                    options: possibleOptionsValues,
-                }
-            };
-            arrayOfDropdownObjects.push(optionObject);
-        }
-    });
-    return arrayOfDropdownObjects;
-}
 /**
  * @description - Displays all the items in the localStorage
  * @param {object} localStorageItems - Object containing all the items in the localStorage
@@ -320,57 +277,67 @@ activeAlertsListDiv = document.getElementById("activeAlertsList");
 triggeredAlertsListDiv = document.getElementById("triggeredAlertsList");
 addButton = document.getElementById("addButton");
 clearButton = document.getElementById("clearButton");
-document.onreadystatechange = function () {
-    if (document.readyState === "complete") {
-        // Fill "Field" dropdown options ("Values" are filled when "Field" is selected.)
-        console.log(parseRedmineTaskDropdownFieldsToArrayOfObjects());
-        // parseRedmineTaskDropdownFieldsToArrayOfObjects().forEach((fieldObject) => {
-        //   fieldDiv?.insertAdjacentHTML(
-        //     "beforeend",
-        //     `<option id="${fieldObject.id}" value="${fieldObject.id}">${fieldObject.label}</option>`
-        //   );
-        // });
-        getAndPrefillActiveTabRedmineTaskNumber(redmineTaskNumberDiv);
-        // // --- Get initial selected field
-        // var selectedField = fieldDiv.value;
-        // // --- Insert "field value" dropdown options
-        // // Source: https://stackoverflow.com/questions/3364493/how-do-i-clear-all-options-in-a-dropdown-box
-        // function removeOptions(selectElement: any) {
-        //   var i,
-        //     L = selectElement.options.length - 1;
-        //   for (i = L; i >= 0; i--) {
-        //     selectElement.remove(i);
-        //   }
-        // }
-        // function insertOptions(currentlySelectedField: string) {
-        //   fieldSchema.forEach((fieldObject) => {
-        //     // console.log(`${currentlySelectedField} AND ${fieldObject.fieldName}`); //@testing
-        //     if (currentlySelectedField === fieldObject.displayName) {
-        //       if (fieldObject.value.type === "dropdown") {
-        //         for (let option of fieldObject.value.options) {
-        //           valueDiv?.insertAdjacentHTML(
-        //             "beforeend",
-        //             `<option value="${option}">${option}</option>`
-        //           ); // MR name and value matches -> both are "MERGED" for example.
-        //         }
-        //       } else if (fieldObject.value.type === "text") {
-        //         // @feature --> add text input field
-        //       }
-        //     }
-        //   });
-        // }
-        // insertOptions(selectedField);
-        // // attach a change event listener to the field drop-down
-        // // Source: https://stackoverflow.com/questions/29802104/javascript-change-drop-down-box-options-based-on-another-drop-down-box-value
-        // fieldDiv.addEventListener("change", function () {
-        //   removeOptions(valueDiv);
-        //   insertOptions(fieldDiv.value);
-        // });
-        // // --- Display Active alerts on load -----------------------------------------------
-        // displayLocalStorageItems(getAndParseLocalStorageItems());
-        // addButton.addEventListener("click", () => saveItemToLocalStorage());
+// getAndPrefillActiveTabRedmineTaskNumber(redmineTaskNumberDiv)
+// Fill "Field" dropdown options ("Values" are filled when "Field" is selected.)
+// NiceSelect.bind(document.getElementById("addValue"), options);
+function setRedmineTaskDropdownFields() {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, "parseRedmineTaskDropdownFieldsToArrayOfObjects", function (response) {
+            response.data.forEach((fieldObject) => {
+                fieldDiv?.insertAdjacentHTML("beforeend", `<option value="${fieldObject.id}">${fieldObject.label}</option>`);
+            });
+            NiceSelect.bind(document.getElementById("field"), options);
+        });
+    });
+}
+setRedmineTaskDropdownFields();
+function getAndSetActiveTabRedmineTaskNumber(htmlElement) {
+    if (htmlElement) {
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+            let redmineTaskNumber = tabs[0].url.split("/issues/")[1].substring(0, 5);
+            htmlElement.value = redmineTaskNumber;
+        });
     }
-};
+}
+getAndSetActiveTabRedmineTaskNumber(redmineTaskNumberDiv);
+// // --- Get initial selected field
+// var selectedField = fieldDiv.value;
+// // --- Insert "field value" dropdown options
+// // Source: https://stackoverflow.com/questions/3364493/how-do-i-clear-all-options-in-a-dropdown-box
+// function removeOptions(selectElement: any) {
+//   var i,
+//     L = selectElement.options.length - 1;
+//   for (i = L; i >= 0; i--) {
+//     selectElement.remove(i);
+//   }
+// }
+// function insertOptions(currentlySelectedField: string) {
+//   fieldSchema.forEach((fieldObject) => {
+//     // console.log(`${currentlySelectedField} AND ${fieldObject.fieldName}`); //@testing
+//     if (currentlySelectedField === fieldObject.displayName) {
+//       if (fieldObject.value.type === "dropdown") {
+//         for (let option of fieldObject.value.options) {
+//           valueDiv?.insertAdjacentHTML(
+//             "beforeend",
+//             `<option value="${option}">${option}</option>`
+//           ); // MR name and value matches -> both are "MERGED" for example.
+//         }
+//       } else if (fieldObject.value.type === "text") {
+//         // @feature --> add text input field
+//       }
+//     }
+//   });
+// }
+// insertOptions(selectedField);
+// // attach a change event listener to the field drop-down
+// // Source: https://stackoverflow.com/questions/29802104/javascript-change-drop-down-box-options-based-on-another-drop-down-box-value
+// fieldDiv.addEventListener("change", function () {
+//   removeOptions(valueDiv);
+//   insertOptions(fieldDiv.value);
+// });
+// // --- Display Active alerts on load -----------------------------------------------
+// displayLocalStorageItems(getAndParseLocalStorageItems());
+// addButton.addEventListener("click", () => saveItemToLocalStorage());
 // // --- Validate data ---------------------------------------------------------------
 // @notMvp - fields are predefined except for task ID
 // // // -- 'Add task' button availability (disabled if input is not valid)

@@ -16,10 +16,7 @@
         "*://*.tribepayments.com/*"
       ],
       "js": [
-        "popup.js"
-      ],
-      "css": [
-        "main.css"
+        "content.js"
       ]
     }
   ],
