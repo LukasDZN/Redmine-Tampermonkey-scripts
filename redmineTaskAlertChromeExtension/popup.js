@@ -91,18 +91,6 @@
 })(); }));
 // Set options
 var options = { searchable: true };
-// Global variables
-var fieldDiv;
-var valueDiv;
-var redmineTaskNumberDiv;
-var activeAlertIdDiv;
-var activeAlertFieldDiv;
-var activeAlertValueDiv;
-var activeAlertDeleteDiv;
-var activeAlertsListDiv;
-var triggeredAlertsListDiv;
-var addButton;
-var clearButton;
 /**
  * @description - Displays all the items in the localStorage
  * @param {object} localStorageItems - Object containing all the items in the localStorage
@@ -266,31 +254,62 @@ const sleep = (ms) => {
     });
 };
 // --- Get divs from the popup.html DOM
-fieldDiv = document.getElementById("field"); // Casting — or more properly, type assertion
-valueDiv = document.getElementById("addValue");
-redmineTaskNumberDiv = document.getElementById("task_id_input");
-activeAlertIdDiv = document.getElementById("activeAlertId");
-activeAlertFieldDiv = document.getElementById("activeAlertField");
-activeAlertValueDiv = document.getElementById("activeAlertValue");
-activeAlertDeleteDiv = document.getElementById("activeAlertDelete");
-activeAlertsListDiv = document.getElementById("activeAlertsList");
-triggeredAlertsListDiv = document.getElementById("triggeredAlertsList");
-addButton = document.getElementById("addButton");
-clearButton = document.getElementById("clearButton");
-// getAndPrefillActiveTabRedmineTaskNumber(redmineTaskNumberDiv)
-// Fill "Field" dropdown options ("Values" are filled when "Field" is selected.)
-// NiceSelect.bind(document.getElementById("addValue"), options);
+var fieldDiv = document.getElementById("field"); // Casting — or more properly, type assertion
+var valueDiv = document.getElementById("addValue");
+var redmineTaskNumberDiv = document.getElementById("task_id_input");
+var activeAlertIdDiv = document.getElementById("activeAlertId");
+var activeAlertFieldDiv = document.getElementById("activeAlertField");
+var activeAlertValueDiv = document.getElementById("activeAlertValue");
+var activeAlertDeleteDiv = document.getElementById("activeAlertDelete");
+var activeAlertsListDiv = document.getElementById("activeAlertsList");
+var triggeredAlertsListDiv = document.getElementById("triggeredAlertsList");
+var addButton = document.getElementById("addButton");
+var clearButton = document.getElementById("clearButton");
 function setRedmineTaskDropdownFields() {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         chrome.tabs.sendMessage(tabs[0].id, "parseRedmineTaskDropdownFieldsToArrayOfObjects", function (response) {
             response.data.forEach((fieldObject) => {
                 fieldDiv?.insertAdjacentHTML("beforeend", `<option value="${fieldObject.id}">${fieldObject.label}</option>`);
             });
-            NiceSelect.bind(document.getElementById("field"), options);
+            // NiceSelect.bind(document.getElementById("field"), options);
         });
     });
 }
 setRedmineTaskDropdownFields();
+function setRedmineTaskDropdownValues() {
+    const selectedFieldId = fieldDiv.value;
+    console.log("🚀 ~ file: popup.ts ~ line 278 ~ setRedmineTaskDropdownValues ~ selectedFieldId", selectedFieldId);
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, "parseRedmineTaskDropdownFieldsToArrayOfObjects", function (response) {
+            response.data.forEach((fieldObject) => {
+                if (fieldObject.id === selectedFieldId) {
+                    console.log("🚀 ~ file: popup.ts ~ line 283 ~ response.data.forEach ~ fieldObject.id", fieldObject.id);
+                    fieldObject.value.options.forEach((option) => {
+                        valueDiv?.insertAdjacentHTML("beforeend", `<option value="${option.optionValue}" ${option.isSelected === true ? "Selected" : ""}>${option.optionText}</option>`);
+                    });
+                }
+            });
+            // NiceSelect.bind(document.getElementById("field"), options);
+            // onClick, send request to content script to retrieve option values. 
+            // Alternative is saving values to localStorage
+            // Wondering how fast requesting each data is 
+        });
+    });
+}
+setRedmineTaskDropdownValues();
+// --- Insert "field value" dropdown options
+// Source: https://stackoverflow.com/questions/3364493/how-do-i-clear-all-options-in-a-dropdown-box
+function clearAllDropdownValues(dropdownElement) {
+    let L = dropdownElement.options.length - 1;
+    for (let i = L; i >= 0; i--) {
+        dropdownElement.remove(i);
+    }
+}
+// on dropdown change, remove all values and insert new values
+fieldDiv.addEventListener('change', function () {
+    clearAllDropdownValues(this);
+    setRedmineTaskDropdownValues();
+});
 function getAndSetActiveTabRedmineTaskNumber(htmlElement) {
     if (htmlElement) {
         chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
@@ -300,35 +319,6 @@ function getAndSetActiveTabRedmineTaskNumber(htmlElement) {
     }
 }
 getAndSetActiveTabRedmineTaskNumber(redmineTaskNumberDiv);
-// // --- Get initial selected field
-// var selectedField = fieldDiv.value;
-// // --- Insert "field value" dropdown options
-// // Source: https://stackoverflow.com/questions/3364493/how-do-i-clear-all-options-in-a-dropdown-box
-// function removeOptions(selectElement: any) {
-//   var i,
-//     L = selectElement.options.length - 1;
-//   for (i = L; i >= 0; i--) {
-//     selectElement.remove(i);
-//   }
-// }
-// function insertOptions(currentlySelectedField: string) {
-//   fieldSchema.forEach((fieldObject) => {
-//     // console.log(`${currentlySelectedField} AND ${fieldObject.fieldName}`); //@testing
-//     if (currentlySelectedField === fieldObject.displayName) {
-//       if (fieldObject.value.type === "dropdown") {
-//         for (let option of fieldObject.value.options) {
-//           valueDiv?.insertAdjacentHTML(
-//             "beforeend",
-//             `<option value="${option}">${option}</option>`
-//           ); // MR name and value matches -> both are "MERGED" for example.
-//         }
-//       } else if (fieldObject.value.type === "text") {
-//         // @feature --> add text input field
-//       }
-//     }
-//   });
-// }
-// insertOptions(selectedField);
 // // attach a change event listener to the field drop-down
 // // Source: https://stackoverflow.com/questions/29802104/javascript-change-drop-down-box-options-based-on-another-drop-down-box-value
 // fieldDiv.addEventListener("change", function () {
