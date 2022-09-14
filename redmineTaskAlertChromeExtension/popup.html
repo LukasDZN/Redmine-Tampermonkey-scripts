@@ -20,12 +20,12 @@
 
       html, body {
         font-family: "Menlo", monospace;
-        font-size: 0.95rem;
+        font-size: 16px;
         margin: 0;
-        min-height: 10rem;
-        /* min-width: 10rem; */
         padding: 0;
-        width: fit-content;
+        min-width: 700px;
+        min-height: 600px;
+        /* background-color: rgb(241, 241, 241); */
       }
 
       h1 {
@@ -33,16 +33,19 @@
         font-weight: 400;
         margin: 0;
         color: #2f5876;
+        text-align: center;
       }
 
       h2 {
-        font-size: 1rem;
+        font-size: 1.2rem;
         margin: 1rem 0 1rem 0;
+        text-align: center;
       }
 
       hr {
         /* border-top: 7.5px dotted red; */
-        border-width: 7.5px;
+        /* border-width: 7.5px; */
+        border-width: 1px;
         border-top-color: #5b8fb4;
       }
 
@@ -55,12 +58,8 @@
         border-bottom: 0.5px solid #dadada;
       }
 
-      .modal-content {
-        padding: 0 1rem;
-        max-width: 38rem;
-      }
-
       #introductionText {
+        margin: auto 8rem;
         font-size: 0.8rem;
         text-align: justify;
       }
@@ -110,24 +109,24 @@
       label {
         padding-right: 0.3rem;
         padding-bottom: 0.25rem;
-        font-size: 0.8rem;
+        font-size: 0.9rem;
+        font-weight: bold;
       }
 
       select, input {
-        font-size: 0.7rem;
         padding: 0.1rem 0.5rem;
         border: 1px solid #dadada;
         border-radius: 4px;
         color: #444;
-        max-width: fit-content;
+        height: 31px;
+      }
+
+      select, input, .nice-select {
+        font-size: 0.85rem!important;
       }
 
       select:focus-visible, input:focus-visible {
         outline: 1px solid blue;
-      }
-
-      select {
-        min-width: 7rem;
       }
 
       input {
@@ -157,7 +156,7 @@
 
       #triggeredSpan, #createSpan {
         text-decoration: underline;
-        text-decoration-thickness: 1px;
+        text-decoration-thickness: 3px;
         text-underline-offset: 4px;
       }
 
@@ -174,10 +173,10 @@
         content: "";
         position: absolute;
         top: -0.4rem;
-        left: -0.2rem;
-        right: -0.2rem;
+        left: -0.35rem;
+        right: -0.35rem;
         bottom: -0.4rem;
-        border: 1px solid orange;
+        border: 3px solid rgb(255, 231, 123);
         transition: all .5s;
         animation: clippath 3s infinite linear;
         border-radius: 4px;
@@ -190,22 +189,26 @@
       @keyframes clippath {
           0%,
           100% {
-              clip-path: inset(0 0 98% 0);
+              clip-path: inset(0 0 94% 0);
           }
           
           25% {
-              clip-path: inset(0 98% 0 0);
+              clip-path: inset(0 94% 0 0);
           }
           50% {
-              clip-path: inset(98% 0 0 0);
+              clip-path: inset(94% 0 0 0);
           }
           75% {
-              clip-path: inset(0 0 0 98%);
+              clip-path: inset(0 0 0 94%);
           }
       }
 
       #triggeredSpan {
         text-decoration-color: gray;
+      }
+
+      .nice-select {
+        min-width: 230px;
       }
 
     </style>
@@ -239,22 +242,23 @@
       <div>
         <div class="flex-container">
           <div class="flex">
-            <label for="task_id_input">Task ID:</label>
+            <label for="task_id_input">Task ID</label>
             <input type="text" id="task_id_input" name="task_id_input" pattern="[0-9]{6}" minlength="5" maxlength="5" required />
           </div>
 
           <div class="flex">
-            <label for="field">Field:</label>
+            <label for="field">Field</label>
             <select name="field" id="field" class="small" required></select>
           </div>
 
           <div class="flex">
-            <label for="addValue">Value:</label>
-            <select name="addValue" id="addValue" required></select>
+            <label for="addValue">Value</label>
+            <select name="addValue" id="addValue" class="small" required></select>
           </div>
 
           <div class="flex">
-            <button id="addButton">+</button>
+            <label for="addButton">Create</label>
+            <button name="addButton" id="addButton">+</button>
           </div>
         </div>
       </div>
@@ -294,8 +298,6 @@
             </div> -->
         </div>
       </section>
-
-      <hr />
 
   </div>
 

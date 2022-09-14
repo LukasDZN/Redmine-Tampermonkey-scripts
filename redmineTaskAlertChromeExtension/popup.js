@@ -265,52 +265,49 @@ var activeAlertsListDiv = document.getElementById("activeAlertsList");
 var triggeredAlertsListDiv = document.getElementById("triggeredAlertsList");
 var addButton = document.getElementById("addButton");
 var clearButton = document.getElementById("clearButton");
-function setRedmineTaskDropdownFields() {
+var valueDivInstance;
+async function setRedmineTaskDropdownFields(initialElementCreation = false, callback = null) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         chrome.tabs.sendMessage(tabs[0].id, "parseRedmineTaskDropdownFieldsToArrayOfObjects", function (response) {
-            response.data.forEach((fieldObject) => {
-                fieldDiv?.insertAdjacentHTML("beforeend", `<option value="${fieldObject.id}">${fieldObject.label}</option>`);
+            response.data.forEach((fieldObject, index) => {
+                fieldDiv?.insertAdjacentHTML("beforeend", `<option value="${fieldObject.id}" ${index === 0 ? "selected" : ""}>${fieldObject.label}</option>`);
             });
-            // NiceSelect.bind(document.getElementById("field"), options);
+            if (callback) {
+                callback(initialElementCreation);
+            }
+            if (initialElementCreation === true) {
+                NiceSelect.bind(fieldDiv, options);
+            }
         });
     });
 }
-setRedmineTaskDropdownFields();
-function setRedmineTaskDropdownValues() {
+async function setRedmineTaskDropdownValues(initialElementCreation = false) {
     const selectedFieldId = fieldDiv.value;
-    console.log("🚀 ~ file: popup.ts ~ line 278 ~ setRedmineTaskDropdownValues ~ selectedFieldId", selectedFieldId);
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         chrome.tabs.sendMessage(tabs[0].id, "parseRedmineTaskDropdownFieldsToArrayOfObjects", function (response) {
             response.data.forEach((fieldObject) => {
                 if (fieldObject.id === selectedFieldId) {
-                    console.log("🚀 ~ file: popup.ts ~ line 283 ~ response.data.forEach ~ fieldObject.id", fieldObject.id);
                     fieldObject.value.options.forEach((option) => {
-                        valueDiv?.insertAdjacentHTML("beforeend", `<option value="${option.optionValue}" ${option.isSelected === true ? "Selected" : ""}>${option.optionText}</option>`);
+                        valueDiv?.insertAdjacentHTML("beforeend", `<option value="${option.optionValue}" ${option.isSelected === true ? "selected" : ""}>${option.optionText}</option>`);
                     });
                 }
             });
-            // NiceSelect.bind(document.getElementById("field"), options);
-            // onClick, send request to content script to retrieve option values. 
-            // Alternative is saving values to localStorage
-            // Wondering how fast requesting each data is 
+            if (initialElementCreation === true) {
+                valueDivInstance = NiceSelect.bind(valueDiv, options);
+            }
+            else {
+                valueDivInstance.update();
+            }
         });
     });
 }
-setRedmineTaskDropdownValues();
-// --- Insert "field value" dropdown options
-// Source: https://stackoverflow.com/questions/3364493/how-do-i-clear-all-options-in-a-dropdown-box
-function clearAllDropdownValues(dropdownElement) {
+function clearAllDropdownOptions(dropdownElement) {
     let L = dropdownElement.options.length - 1;
     for (let i = L; i >= 0; i--) {
         dropdownElement.remove(i);
     }
 }
-// on dropdown change, remove all values and insert new values
-fieldDiv.addEventListener('change', function () {
-    clearAllDropdownValues(this);
-    setRedmineTaskDropdownValues();
-});
-function getAndSetActiveTabRedmineTaskNumber(htmlElement) {
+async function getAndSetActiveTabRedmineTaskNumber(htmlElement) {
     if (htmlElement) {
         chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
             let redmineTaskNumber = tabs[0].url.split("/issues/")[1].substring(0, 5);
@@ -318,13 +315,14 @@ function getAndSetActiveTabRedmineTaskNumber(htmlElement) {
         });
     }
 }
-getAndSetActiveTabRedmineTaskNumber(redmineTaskNumberDiv);
-// // attach a change event listener to the field drop-down
-// // Source: https://stackoverflow.com/questions/29802104/javascript-change-drop-down-box-options-based-on-another-drop-down-box-value
-// fieldDiv.addEventListener("change", function () {
-//   removeOptions(valueDiv);
-//   insertOptions(fieldDiv.value);
-// });
+(function main() {
+    getAndSetActiveTabRedmineTaskNumber(redmineTaskNumberDiv);
+    setRedmineTaskDropdownFields(true, setRedmineTaskDropdownValues); // When you pass a function as an argument, remember not to use parenthesis.
+    fieldDiv.addEventListener('change', function () {
+        clearAllDropdownOptions(valueDiv);
+        setRedmineTaskDropdownValues();
+    });
+})();
 // // --- Display Active alerts on load -----------------------------------------------
 // displayLocalStorageItems(getAndParseLocalStorageItems());
 // addButton.addEventListener("click", () => saveItemToLocalStorage());
