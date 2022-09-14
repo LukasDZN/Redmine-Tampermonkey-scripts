@@ -116,6 +116,7 @@
       select, input {
         padding: 0.1rem 0.5rem;
         border: 1px solid #dadada;
+        outline: none;
         border-radius: 4px;
         color: #444;
         height: 31px;
@@ -125,9 +126,9 @@
         font-size: 0.85rem!important;
       }
 
-      select:focus-visible, input:focus-visible {
-        outline: 1px solid blue;
-      }
+      /* select:focus-visible, input:focus-visible {
+        border: 1px solid blue;
+      } */
 
       input {
         width: 4rem;
@@ -148,10 +149,19 @@
 
       button:hover {
         background-color: rgb(158, 240, 185);
+        cursor: pointer;
       }
 
       button:active {
         background-color: rgb(80, 206, 122);
+      }
+
+      button:disabled {
+        background-color: #dadada;
+      }
+
+      .validationFailedRedBorder {
+        outline: 2px solid red;
       }
 
       #triggeredSpan, #createSpan {
@@ -211,6 +221,10 @@
         min-width: 230px;
       }
 
+      .displayNone {
+        display: none;
+      }
+
     </style>
     <script type="module" src="popup.js"></script>
   </head>
@@ -220,8 +234,8 @@
       <div class="modal-header">
         <h1 class="logo">
           <img class="logo-icon" src="originalImage.png" />
-          Redmine task alerts
-          <span id="version" title="Click to clear cache">v1.0.0</span> <!-- Last updated: 11-09-2022 -->
+          Redmine task notifications
+          <span id="version" title="Click to clear cache">v1.0.0</span>
         </h1>
       </div>
       <div class="modal-content" id="introductionText">
@@ -239,7 +253,7 @@
         <h2><span id="createSpan">Create</span> an alert</h2>
       </div>
 
-      <div>
+      <section id="createAlert">
         <div class="flex-container">
           <div class="flex">
             <label for="task_id_input">Task ID</label>
@@ -261,7 +275,14 @@
             <button name="addButton" id="addButton">+</button>
           </div>
         </div>
-      </div>
+      </section>
+
+      <section id="createAlertWarning" class="displayNone">
+        <div class="flex-container" style="justify-content: center;">
+          <div class="flex">
+            <h5>Please navigate to a Redmine task page to add new alerts :)</h5>
+          </div>
+      </section>
 
       <hr />
 

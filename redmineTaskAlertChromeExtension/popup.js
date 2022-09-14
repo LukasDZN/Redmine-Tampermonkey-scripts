@@ -91,82 +91,6 @@
 })(); }));
 // Set options
 var options = { searchable: true };
-/**
- * @description - Displays all the items in the localStorage
- * @param {object} localStorageItems - Object containing all the items in the localStorage
- * @returns {void}
- */
-/*
- * If status is not triggered, then display it.
- * Also add "delete" button.
- */
-const displayLocalStorageItems = (localStorageItems) => {
-    try {
-        activeAlertsListDiv.innerHTML = "";
-        triggeredAlertsListDiv.innerHTML = "";
-    }
-    catch (error) { }
-    for (let key in localStorageItems) {
-        try {
-            let value = localStorageItems[key];
-            if (value.triggeredInThePast === "no") {
-                activeAlertsListDiv?.insertAdjacentHTML("beforeend", `
-            <div class="activeAlert flex-container flex">
-              <div id="activeAlertId">${key}</div>
-              <div id="activeAlertField">${value.fieldToCheck}</div>
-              <div id="activeAlertValue">${value.valueToCheck}</div>
-              <button id="activeAlertDelete${key}" >Delete</button>
-            </div>
-          `);
-                let deleteButton = document.getElementById(`activeAlertDelete${key}`);
-                deleteButton.addEventListener("click", () => deleteItemFromLocalStorage(key));
-            }
-            else if (value.triggeredInThePast === "yes") {
-                triggeredAlertsListDiv?.insertAdjacentHTML("beforeend", `
-            <div class="activeAlert flex-container flex">
-              <div id="activeAlertId">${key}</div>
-              <div id="activeAlertField">${value.fieldToCheck}</div>
-              <div id="activeAlertValue">${value.valueToCheck}</div>
-              <div id="activeAlertValue">${value.triggeredAtDate}</div>
-            </div>
-          `);
-            }
-        }
-        catch (error) { }
-    }
-};
-const getAndParseLocalStorageItems = () => {
-    // Init an object to store all the items
-    let localStorageItems = {};
-    // Get an array of all the localStorage keys (i.e. task IDs)
-    var arrayOfKeys = Object.keys(localStorage);
-    // For every key in the array, get the value and display it
-    for (let key of arrayOfKeys) {
-        try {
-            // Console log raw keys and values
-            // console.log(key); // log keys
-            // console.log(localStorage.getItem(key)); // log values
-            let valueString = localStorage.getItem(key);
-            let valueObject = JSON.parse(valueString);
-            console.log("key: " +
-                key +
-                " | " +
-                "valueObject.fieldToCheck: " +
-                valueObject.fieldToCheck +
-                " | " +
-                "triggered in the past?: " +
-                valueObject.triggeredInThePast);
-            localStorageItems[key] = valueObject;
-        }
-        catch (error) {
-            console.log("displayLocalStorageItems ERROR: " + error);
-        }
-    }
-    return localStorageItems;
-};
-// Detecting active chrome tab (href does not work for extensions)
-// Source: https://stackoverflow.com/questions/54821584/chrome-extension-code-to-get-current-active-tab-url-and-detect-any-url-update-in
-// --- Add/Preview/Delete alerts using Local Storage -------------------------------
 // --- @testing
 let dummyItemObject1TaskID = "64503"; // Currently in mr_status: "REVIEW"
 let dummyItemObject1 = {
@@ -199,30 +123,6 @@ before work).
 2 REVIEW <-- Expected
 3 DONE <-- Current
 */
-// chrome.storage.sync.set({key: value}, function() {
-//   console.log('Value is set to ' + value);
-// });
-// Check if initial storage.local object exists, if not - initialize it
-// It is initialized here and not in background.js because the user will always open the extension first
-// after downloading it.
-// function initializeStorageLocalObject() {
-//   chrome.storage.sync.get(['redmineNotificationExtension'], function(result) {
-//     if (!result.value) {
-//       chrome.storage.sync.set({'redmineNotificationExtension': []}, function() {
-//         console.log('local.storage initial value set.');
-//       });
-//     }
-//   });
-// }
-// chrome.storage.sync.get(['key'], function(result) {
-//   console.log('Value currently is ' + result.key);
-// });
-// function getStorageLocalObject() {
-//   chrome.storage.sync.get(['key'], function(result) {
-//     console.log('Value currently is ' + result.key);
-//   });
-//   return storageLocalObject;
-// };
 const getStorageLocalObject = () => {
     // Init an object to store all the items
     let localStorageItems = {};
@@ -236,27 +136,16 @@ const getStorageLocalObject = () => {
     }
     return localStorageItems;
 };
-/**
- * @description - This function is not called anywhere at the moment.
- */
-const clearChromeStorageSync = () => {
-    // https://stackoverflow.com/questions/31812937/how-to-clear-chrome-storage-local-and-chrome-storage-sync
-    chrome.storage.sync.clear();
-    console.log("chrome.storage.sync was cleared...");
-};
-document.querySelector("#version")?.addEventListener("click", function () {
-    clearChromeStorageSync();
-});
-// chrome.storage.sync.get(null, function (data) { console.info(data) });
 const sleep = (ms) => {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
     });
 };
 // --- Get divs from the popup.html DOM
+var redmineTaskNumberDiv = document.getElementById("task_id_input");
 var fieldDiv = document.getElementById("field"); // Casting — or more properly, type assertion
 var valueDiv = document.getElementById("addValue");
-var redmineTaskNumberDiv = document.getElementById("task_id_input");
+var createAlertDiv = document.getElementById("createAlert");
 var activeAlertIdDiv = document.getElementById("activeAlertId");
 var activeAlertFieldDiv = document.getElementById("activeAlertField");
 var activeAlertValueDiv = document.getElementById("activeAlertValue");
@@ -265,7 +154,24 @@ var activeAlertsListDiv = document.getElementById("activeAlertsList");
 var triggeredAlertsListDiv = document.getElementById("triggeredAlertsList");
 var addButton = document.getElementById("addButton");
 var clearButton = document.getElementById("clearButton");
+var version = document.getElementById("version");
 var valueDivInstance;
+function removeCreateAlertAndAddWarningWhenUserNotInRedmineTaskPage(callback1, callback2) {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        if (/https:\/\/redmine\.tribepayments\.com\/issues\/.+/.test(tabs[0].url) === false) {
+            createAlertDiv.classList.add("displayNone");
+            createAlertWarning.classList.remove("displayNone");
+        }
+        else {
+            if (callback1) {
+                callback1(redmineTaskNumberDiv);
+            }
+            if (callback2) {
+                callback2(true, setRedmineTaskDropdownValues);
+            }
+        }
+    });
+}
 async function setRedmineTaskDropdownFields(initialElementCreation = false, callback = null) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         chrome.tabs.sendMessage(tabs[0].id, "parseRedmineTaskDropdownFieldsToArrayOfObjects", function (response) {
@@ -315,66 +221,154 @@ async function getAndSetActiveTabRedmineTaskNumber(htmlElement) {
         });
     }
 }
+function clearChromeStorageSync() {
+    if (confirm('Are you sure you want to delete all alerts?')) {
+        chrome.storage.sync.clear(function () {
+            console.log("chrome.storage.sync was cleared...");
+            initializeStorageLocalObject();
+        });
+    }
+}
+;
+function redmineTaskNumberValidationAndStyling() {
+    if (redmineTaskNumberDiv.value) {
+        if (/[0-9]{5}/.test(redmineTaskNumberDiv.value) === true) {
+            addButton.disabled = false;
+            redmineTaskNumberDiv.classList.remove("validationFailedRedBorder");
+        }
+        else {
+            addButton.disabled = true;
+            redmineTaskNumberDiv.classList.add("validationFailedRedBorder");
+        }
+    }
+}
+function initializeStorageLocalObject() {
+    chrome.storage.sync.get('redmineTaskNotificationsExtension', function (data) {
+        if (data.redmineTaskNotificationsExtension === undefined) {
+            chrome.storage.sync.set({ 'redmineTaskNotificationsExtension': [] }, function () {
+                console.log('chrome.storage.sync initial value was set...');
+            });
+        }
+    });
+}
+function saveAlertToStorageLocal() {
+    let d = new Date();
+    var newDateFormatted = ("0" + d.getDate()).slice(-2) + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+    let alertObject = {
+        taskId: redmineTaskNumberDiv.value,
+        itemAddedOnDate: newDateFormatted,
+        fieldToCheck: fieldDiv.value,
+        valueToCheck: valueDiv.value,
+        triggeredInThePast: "no",
+        triggeredAtDate: "",
+    };
+    redmineTaskNumberDiv;
+    fieldDiv;
+    valueDiv;
+    chrome.storage.sync.set({ redmineTaskNotificationsExtension: value }, function () {
+        console.log('Value is set to ' + value);
+    });
+}
+// Display alerts
+// Clear alerts
 (function main() {
-    getAndSetActiveTabRedmineTaskNumber(redmineTaskNumberDiv);
-    setRedmineTaskDropdownFields(true, setRedmineTaskDropdownValues); // When you pass a function as an argument, remember not to use parenthesis.
+    removeCreateAlertAndAddWarningWhenUserNotInRedmineTaskPage(getAndSetActiveTabRedmineTaskNumber, setRedmineTaskDropdownFields);
     fieldDiv.addEventListener('change', function () {
         clearAllDropdownOptions(valueDiv);
         setRedmineTaskDropdownValues();
     });
+    redmineTaskNumberDiv.addEventListener('input', function () {
+        redmineTaskNumberValidationAndStyling();
+    });
+    initializeStorageLocalObject();
+    addButton.addEventListener('click', function () {
+        saveAlertToStorageLocal();
+    });
+    version.addEventListener("click", function () {
+        clearChromeStorageSync();
+    });
 })();
-// // --- Display Active alerts on load -----------------------------------------------
-// displayLocalStorageItems(getAndParseLocalStorageItems());
-// addButton.addEventListener("click", () => saveItemToLocalStorage());
-// // --- Validate data ---------------------------------------------------------------
-// @notMvp - fields are predefined except for task ID
-// // // -- 'Add task' button availability (disabled if input is not valid)
-// // // Disabled by default. Enabled when validation is passed.
-// // var buttonIsDisabled = true;
-// // // -- Validate "Task ID" input
-// // if (
-// //   (RedmineTaskNumber.length !== 5 && RedmineTaskNumber !== "") ||
-// //   isNaN(RedmineTaskNumber)
-// // ) {
-// //   // isNaN checks if the value is a number
-// //   // How to add a warning message to the input field: https://stackoverflow.com/questions/18954388/how-to-display-error-message-next-to-textbox-in-javascript
-// //   // inputPropsRedmineTaskNumber.helperText = 'Incorrect value';
-// // } else {
-// //   // inputPropsRedmineTaskNumber.helperText = '';
-// //   buttonIsDisabled = false;
-// // }
-// // ---------------------------------------------------------------------------------
-// // --- User analytics --------------------------------------------------------------
-// @notMvp - for my own use only at first
-// // -- User ID (for user analytics)
-// /** Send data whenever a user creates a new alert.
-//  *
-//  *
-//  */
-// // User ID
-// // Try because
-// // the user might not be in the Development task page
-// try {
-//   var userLink = document.querySelector("#loggedas a").textContent;
-//   var userID = userLink.match(/(\d*)$/i)[0];
-//   // Send data to Google sheet (TODO create statistics sheet and test writing to it.)
-//   // ID are mapped in the Google sheet
-//   let body = {
-//     [new Date().getTime()]: {
-//       date: new Date(),
-//       redmineTaskNumber: userID,
-//       redmineTaskStatus: RedmineTaskNumber,
-//       redmineMrStatus: RedmineTaskStatus,
-//       redmineTestStatus: RedmineTaskStatus,
-//       redmineDeployedToSandboxStatus: RedmineTaskStatus,
-//     },
-//   };
-//   // select where body.id = "1384185442"
-//   // fetch('https://example.com') // POST
-//   // include credentials: true
-// } catch (error) {
-//   //   console.log(error);
-// }
+// Base select -> status
+// And +1
+// function getStorageLocalObject() {
+//   chrome.storage.sync.get(['key'], function(result) {
+//     console.log('Value currently is ' + result.key);
+//   });
+//   return storageLocalObject;
+// };
+const getAndParseLocalStorageItems = () => {
+    // Init an object to store all the items
+    let localStorageItems = {};
+    // Get an array of all the localStorage keys (i.e. task IDs)
+    var arrayOfKeys = Object.keys(localStorage);
+    // For every key in the array, get the value and display it
+    for (let key of arrayOfKeys) {
+        try {
+            // Console log raw keys and values
+            // console.log(key); // log keys
+            // console.log(localStorage.getItem(key)); // log values
+            let valueString = localStorage.getItem(key);
+            let valueObject = JSON.parse(valueString);
+            console.log("key: " +
+                key +
+                " | " +
+                "valueObject.fieldToCheck: " +
+                valueObject.fieldToCheck +
+                " | " +
+                "triggered in the past?: " +
+                valueObject.triggeredInThePast);
+            localStorageItems[key] = valueObject;
+        }
+        catch (error) {
+            console.log("displayLocalStorageItems ERROR: " + error);
+        }
+    }
+    return localStorageItems;
+};
+/**
+ * @description - Displays all the items in the localStorage
+ * @param {object} localStorageItems - Object containing all the items in the localStorage
+ * @returns {void}
+ */
+/*
+ * If status is not triggered, then display it.
+ * Also add "delete" button.
+ */
+const displayLocalStorageItems = (localStorageItems) => {
+    try {
+        activeAlertsListDiv.innerHTML = "";
+        triggeredAlertsListDiv.innerHTML = "";
+    }
+    catch (error) { }
+    for (let key in localStorageItems) {
+        try {
+            let value = localStorageItems[key];
+            if (value.triggeredInThePast === "no") {
+                activeAlertsListDiv?.insertAdjacentHTML("beforeend", `
+            <div class="activeAlert flex-container flex">
+              <div id="activeAlertId">${key}</div>
+              <div id="activeAlertField">${value.fieldToCheck}</div>
+              <div id="activeAlertValue">${value.valueToCheck}</div>
+              <button id="activeAlertDelete${key}" >Delete</button>
+            </div>
+          `);
+                let deleteButton = document.getElementById(`activeAlertDelete${key}`);
+                deleteButton.addEventListener("click", () => deleteItemFromLocalStorage(key));
+            }
+            else if (value.triggeredInThePast === "yes") {
+                triggeredAlertsListDiv?.insertAdjacentHTML("beforeend", `
+            <div class="activeAlert flex-container flex">
+              <div id="activeAlertId">${key}</div>
+              <div id="activeAlertField">${value.fieldToCheck}</div>
+              <div id="activeAlertValue">${value.valueToCheck}</div>
+              <div id="activeAlertValue">${value.triggeredAtDate}</div>
+            </div>
+          `);
+            }
+        }
+        catch (error) { }
+    }
+};
 // displayLocalStorageItems(getAndParseLocalStorageItems());
 // Save Item
 /* localStorage.setItem(key, value); */
@@ -410,7 +404,52 @@ function deleteItemFromLocalStorage(redmineTaskNumber) {
     // Refresh "Active alerts" display list
     displayLocalStorageItems(getAndParseLocalStorageItems());
 }
+// User setting to choose the type of alert.
+// Choose update frequency.
+// background.js to listen to changes / alternative is to read local storage every minute?
+// chrome.storage.onChanged.addListener(function (changes, namespace) {
+//   for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
+//     console.log(
+//       `Storage key "${key}" in namespace "${namespace}" changed.`,
+//       `Old value was "${oldValue}", new value is "${newValue}".`
+//     );
+//   }
+// });
 // var myWorker = new Worker('background.js');
 // // note: service workers logs results to popup console
 // // send message
 // myWorker.postMessage(''); // meant for keeping the worker alive
+// // --- Display Active alerts on load -----------------------------------------------
+// displayLocalStorageItems(getAndParseLocalStorageItems());
+// addButton.addEventListener("click", () => saveItemToLocalStorage());
+// // --- User analytics --------------------------------------------------------------
+// @notMvp - for my own use only at first
+// // -- User ID (for user analytics)
+// /** Send data whenever a user creates a new alert.
+//  *
+//  *
+//  */
+// // User ID
+// // Try because
+// // the user might not be in the Development task page
+// try {
+//   var userLink = document.querySelector("#loggedas a").textContent;
+//   var userID = userLink.match(/(\d*)$/i)[0];
+//   // Send data to Google sheet (TODO create statistics sheet and test writing to it.)
+//   // ID are mapped in the Google sheet
+//   let body = {
+//     [new Date().getTime()]: {
+//       date: new Date(),
+//       redmineTaskNumber: userID,
+//       redmineTaskStatus: RedmineTaskNumber,
+//       redmineMrStatus: RedmineTaskStatus,
+//       redmineTestStatus: RedmineTaskStatus,
+//       redmineDeployedToSandboxStatus: RedmineTaskStatus,
+//     },
+//   };
+//   // select where body.id = "1384185442"
+//   // fetch('https://example.com') // POST
+//   // include credentials: true
+// } catch (error) {
+//   //   console.log(error);
+// }
