@@ -141,7 +141,7 @@ const sleep = (ms) => {
         setTimeout(resolve, ms);
     });
 };
-// --- Get divs from the popup.html DOM
+// Get HTML elements from the popup.html DOM
 var redmineTaskNumberDiv = document.getElementById("task_id_input");
 var fieldDiv = document.getElementById("field"); // Casting — or more properly, type assertion
 var valueDiv = document.getElementById("addValue");
@@ -155,7 +155,7 @@ var triggeredAlertsListDiv = document.getElementById("triggeredAlertsList");
 var addButton = document.getElementById("addButton");
 var clearButton = document.getElementById("clearButton");
 var version = document.getElementById("version");
-var valueDivInstance;
+var valueDivInstance; // prettifier object for value dropdown
 function removeCreateAlertAndAddWarningWhenUserNotInRedmineTaskPage(callback1, callback2) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         if (/https:\/\/redmine\.tribepayments\.com\/issues\/.+/.test(tabs[0].url) === false) {
@@ -253,23 +253,64 @@ function initializeStorageLocalObject() {
 }
 function saveAlertToStorageLocal() {
     let d = new Date();
-    var newDateFormatted = ("0" + d.getDate()).slice(-2) + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
-    let alertObject = {
-        taskId: redmineTaskNumberDiv.value,
-        itemAddedOnDate: newDateFormatted,
+    let newDateFormatted = ("0" + d.getDate()).slice(-2) + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+    let alertObject = new Object({
+        uniqueTimestampId: new Date().getTime(),
+        redmineTaskId: redmineTaskNumberDiv.value,
+        itemAddedOnReadableDate: newDateFormatted,
         fieldToCheck: fieldDiv.value,
         valueToCheck: valueDiv.value,
         triggeredInThePast: "no",
         triggeredAtDate: "",
-    };
-    redmineTaskNumberDiv;
-    fieldDiv;
-    valueDiv;
-    chrome.storage.sync.set({ redmineTaskNotificationsExtension: value }, function () {
-        console.log('Value is set to ' + value);
+    });
+    chrome.storage.sync.get('redmineTaskNotificationsExtension', function (data) {
+        if (data.redmineTaskNotificationsExtension) {
+            let alertObjectArray = data.redmineTaskNotificationsExtension;
+            alertObjectArray.push(alertObject);
+            chrome.storage.sync.set({ 'redmineTaskNotificationsExtension': alertObjectArray }, function () {
+                console.log('chrome.storage.sync new alert was created...');
+            });
+        }
+        displayAlerts();
     });
 }
 // Display alerts
+function displayAlerts() {
+    chrome.storage.sync.get('redmineTaskNotificationsExtension', function (data) {
+        if (data.redmineTaskNotificationsExtension) {
+            activeAlertsListDiv.innerHTML = "";
+            triggeredAlertsListDiv.innerHTML = "";
+            data.redmineTaskNotificationsExtension.forEach(object => {
+                if (object.triggeredInThePast === "no") {
+                    activeAlertsListDiv?.insertAdjacentHTML("beforeend", `
+              <div class="flex-container-activeAndTriggeredAlert">
+                <div id="activeAlertId">${object.redmineTaskId}</div>
+                <div id="activeAlertField">${object.fieldToCheck}</div>
+                <div id="activeAlertValue">${object.valueToCheck}</div>
+                <button class="activeAlertDelete" id="activeAlertDelete${object.uniqueTimestampId}">X</button>
+              </div>
+            `);
+                    let deleteButton = document.getElementById(`activeAlertDelete${object.uniqueTimestampId}`);
+                    deleteButton.addEventListener("click", function () {
+                        deleteItemFromLocalStorage(object.uniqueTimestampId);
+                    });
+                }
+                else if (object.triggeredInThePast === "yes") {
+                    triggeredAlertsListDiv?.insertAdjacentHTML("beforeend", `
+              <div class="flex-container-activeAndTriggeredAlert">
+                <div id="activeAlertId">${object.redmineTaskId}</div>
+                <div id="activeAlertField">${object.fieldToCheck}</div>
+                <div id="activeAlertValue">${object.valueToCheck}</div>
+                <div id="activeAlertValue">${object.itemAddedOnReadableDate}</div>
+              </div>
+            `);
+                }
+            });
+        }
+    });
+}
+// function deleteAlertFromStorageLocal() {
+// }
 // Clear alerts
 (function main() {
     removeCreateAlertAndAddWarningWhenUserNotInRedmineTaskPage(getAndSetActiveTabRedmineTaskNumber, setRedmineTaskDropdownFields);
@@ -284,92 +325,17 @@ function saveAlertToStorageLocal() {
     addButton.addEventListener('click', function () {
         saveAlertToStorageLocal();
     });
+    displayAlerts();
     version.addEventListener("click", function () {
         clearChromeStorageSync();
     });
 })();
 // Base select -> status
 // And +1
-// function getStorageLocalObject() {
-//   chrome.storage.sync.get(['key'], function(result) {
-//     console.log('Value currently is ' + result.key);
-//   });
-//   return storageLocalObject;
-// };
-const getAndParseLocalStorageItems = () => {
-    // Init an object to store all the items
-    let localStorageItems = {};
-    // Get an array of all the localStorage keys (i.e. task IDs)
-    var arrayOfKeys = Object.keys(localStorage);
-    // For every key in the array, get the value and display it
-    for (let key of arrayOfKeys) {
-        try {
-            // Console log raw keys and values
-            // console.log(key); // log keys
-            // console.log(localStorage.getItem(key)); // log values
-            let valueString = localStorage.getItem(key);
-            let valueObject = JSON.parse(valueString);
-            console.log("key: " +
-                key +
-                " | " +
-                "valueObject.fieldToCheck: " +
-                valueObject.fieldToCheck +
-                " | " +
-                "triggered in the past?: " +
-                valueObject.triggeredInThePast);
-            localStorageItems[key] = valueObject;
-        }
-        catch (error) {
-            console.log("displayLocalStorageItems ERROR: " + error);
-        }
-    }
-    return localStorageItems;
-};
-/**
- * @description - Displays all the items in the localStorage
- * @param {object} localStorageItems - Object containing all the items in the localStorage
- * @returns {void}
- */
-/*
- * If status is not triggered, then display it.
- * Also add "delete" button.
- */
-const displayLocalStorageItems = (localStorageItems) => {
-    try {
-        activeAlertsListDiv.innerHTML = "";
-        triggeredAlertsListDiv.innerHTML = "";
-    }
-    catch (error) { }
-    for (let key in localStorageItems) {
-        try {
-            let value = localStorageItems[key];
-            if (value.triggeredInThePast === "no") {
-                activeAlertsListDiv?.insertAdjacentHTML("beforeend", `
-            <div class="activeAlert flex-container flex">
-              <div id="activeAlertId">${key}</div>
-              <div id="activeAlertField">${value.fieldToCheck}</div>
-              <div id="activeAlertValue">${value.valueToCheck}</div>
-              <button id="activeAlertDelete${key}" >Delete</button>
-            </div>
-          `);
-                let deleteButton = document.getElementById(`activeAlertDelete${key}`);
-                deleteButton.addEventListener("click", () => deleteItemFromLocalStorage(key));
-            }
-            else if (value.triggeredInThePast === "yes") {
-                triggeredAlertsListDiv?.insertAdjacentHTML("beforeend", `
-            <div class="activeAlert flex-container flex">
-              <div id="activeAlertId">${key}</div>
-              <div id="activeAlertField">${value.fieldToCheck}</div>
-              <div id="activeAlertValue">${value.valueToCheck}</div>
-              <div id="activeAlertValue">${value.triggeredAtDate}</div>
-            </div>
-          `);
-            }
-        }
-        catch (error) { }
-    }
-};
 // displayLocalStorageItems(getAndParseLocalStorageItems());
+// // --- Display Active alerts on load -----------------------------------------------
+// displayLocalStorageItems(getAndParseLocalStorageItems());
+// addButton.addEventListener("click", () => saveItemToLocalStorage());
 // Save Item
 /* localStorage.setItem(key, value); */
 function saveItemToLocalStorage() {
@@ -419,9 +385,6 @@ function deleteItemFromLocalStorage(redmineTaskNumber) {
 // // note: service workers logs results to popup console
 // // send message
 // myWorker.postMessage(''); // meant for keeping the worker alive
-// // --- Display Active alerts on load -----------------------------------------------
-// displayLocalStorageItems(getAndParseLocalStorageItems());
-// addButton.addEventListener("click", () => saveItemToLocalStorage());
 // // --- User analytics --------------------------------------------------------------
 // @notMvp - for my own use only at first
 // // -- User ID (for user analytics)

@@ -211,7 +211,7 @@ function initializeStorageLocalObject() {
 function saveAlertToStorageLocal() {
   let d = new Date();
   let newDateFormatted = ("0" + d.getDate()).slice(-2) + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
-  let alertObject = {
+  let alertObject = new Object({
     uniqueTimestampId: new Date().getTime(),
     redmineTaskId: redmineTaskNumberDiv.value,
     itemAddedOnReadableDate: newDateFormatted,
@@ -219,24 +219,70 @@ function saveAlertToStorageLocal() {
     valueToCheck: valueDiv.value,
     triggeredInThePast: "no",
     triggeredAtDate: "",
-  };
+  });
   chrome.storage.sync.get('redmineTaskNotificationsExtension', function(data) {
     if (data.redmineTaskNotificationsExtension) {
-      let updatedArray = data.push(alertObject)
-      chrome.storage.sync.set({'redmineTaskNotificationsExtension': updatedArray}, function() {
+      let alertObjectArray = data.redmineTaskNotificationsExtension
+      alertObjectArray.push(alertObject)
+      chrome.storage.sync.set({'redmineTaskNotificationsExtension': alertObjectArray}, function() {
         console.log('chrome.storage.sync new alert was created...');
+      });
+    }
+    clearAndDisplayAlerts()
+  });
+}
+
+// Display alerts
+function clearAndDisplayAlerts() {
+  chrome.storage.sync.get('redmineTaskNotificationsExtension', function(data) {
+    if (data.redmineTaskNotificationsExtension) {
+      activeAlertsListDiv.innerHTML = "";
+      triggeredAlertsListDiv.innerHTML = "";
+      data.redmineTaskNotificationsExtension.forEach(object => {
+        if (object.triggeredInThePast === "no") {
+          activeAlertsListDiv?.insertAdjacentHTML(
+            "beforeend",
+            `
+              <div class="flex-container-activeAndTriggeredAlert">
+                <div id="activeAlertId">${object.redmineTaskId}</div>
+                <div id="activeAlertField">${object.fieldToCheck}</div>
+                <div id="activeAlertValue">${object.valueToCheck}</div>
+                <button class="activeAlertDelete" id="activeAlertDelete${object.uniqueTimestampId}">X</button>
+              </div>
+            `
+          );
+          let deleteButton = document.getElementById(`activeAlertDelete${object.uniqueTimestampId}`) as HTMLButtonElement;
+          deleteButton.addEventListener("click", function() {
+            deleteItemFromLocalStorage(object.uniqueTimestampId)
+          });
+        } else if (object.triggeredInThePast === "yes") {
+          triggeredAlertsListDiv?.insertAdjacentHTML(
+            "beforeend",
+            `
+              <div class="flex-container-activeAndTriggeredAlert">
+                <div id="activeAlertId">${object.redmineTaskId}</div>
+                <div id="activeAlertField">${object.fieldToCheck}</div>
+                <div id="activeAlertValue">${object.valueToCheck}</div>
+                <div id="activeAlertValue">${object.itemAddedOnReadableDate}</div>
+              </div>
+            `
+          );
+        }
       });
     }
   });
 }
 
-// // Display alerts
-// function displayAlerts() {
-//   chrome.storage.sync.get('redmineTaskNotificationsExtension', function(data) {
-//     if (data.redmineTaskNotificationsExtension) {
-      
-//     }
-//   });
+// Add fieldToCheck and valueToCheck labels, also rename fieldToCheck to fieldToCheckValue in saveAlertToStorageLocal
+// Create CSS layout for active / triggered alerts
+// Remove element from DOM on delete button click
+// Clear storage.local on delete button click
+// background.js script to check for statuses and upodate local storage
+// User statistic logging
+// Base select -> status And +1
+// Implement settings
+
+// function deleteAlertFromStorageLocal() {
 // }
 
 // Clear alerts
@@ -257,6 +303,7 @@ function saveAlertToStorageLocal() {
   addButton.addEventListener('click', function() {
     saveAlertToStorageLocal()
   })
+  clearAndDisplayAlerts()
   
 
   version.addEventListener("click", function() {
@@ -266,72 +313,12 @@ function saveAlertToStorageLocal() {
 })()
 
 
-// Base select -> status
-// And +1
 
 
 
 
 
 
-
-
-
-/**
- * @description - Displays all the items in the localStorage
- * @param {object} localStorageItems - Object containing all the items in the localStorage
- * @returns {void}
- */
-/*
- * If status is not triggered, then display it.
- * Also add "delete" button.
- */
-const displayLocalStorageItems = (localStorageItems: any) => {
-  try {
-    activeAlertsListDiv.innerHTML = "";
-    triggeredAlertsListDiv.innerHTML = "";
-  } catch (error) {}
-  for (let key in localStorageItems) {
-    try {
-      let value = localStorageItems[key];
-
-      if (value.triggeredInThePast === "no") {
-        activeAlertsListDiv?.insertAdjacentHTML(
-          "beforeend",
-          `
-            <div class="activeAlert flex-container flex">
-              <div id="activeAlertId">${key}</div>
-              <div id="activeAlertField">${value.fieldToCheck}</div>
-              <div id="activeAlertValue">${value.valueToCheck}</div>
-              <button id="activeAlertDelete${key}" >Delete</button>
-            </div>
-          `
-        );
-        let deleteButton = document.getElementById(
-          `activeAlertDelete${key}`
-        ) as HTMLButtonElement;
-        deleteButton.addEventListener("click", () =>
-          deleteItemFromLocalStorage(key)
-        );
-      } else if (value.triggeredInThePast === "yes") {
-        triggeredAlertsListDiv?.insertAdjacentHTML(
-          "beforeend",
-          `
-            <div class="activeAlert flex-container flex">
-              <div id="activeAlertId">${key}</div>
-              <div id="activeAlertField">${value.fieldToCheck}</div>
-              <div id="activeAlertValue">${value.valueToCheck}</div>
-              <div id="activeAlertValue">${value.triggeredAtDate}</div>
-            </div>
-          `
-        );
-      }
-    } catch (error) {}
-  }
-};
-
-
-// displayLocalStorageItems(getAndParseLocalStorageItems());
 
 
 
@@ -340,46 +327,6 @@ const displayLocalStorageItems = (localStorageItems: any) => {
 
 // addButton.addEventListener("click", () => saveItemToLocalStorage());
 
-
-
-// Save Item
-/* localStorage.setItem(key, value); */
-function saveItemToLocalStorage() {
-  // Build object with most recent data
-  let itemObject: any = {
-    itemAddedOnDate: new Date(),
-    fieldToCheck: fieldDiv.value,
-    valueToCheck: valueDiv.value,
-    triggeredInThePast: "no",
-    triggeredAtDate: "",
-  };
-  let itemObjectString = JSON.stringify(itemObject);
-  /*
-  @param {string} key name
-  @param {string} value
-  */
-  localStorage.setItem(redmineTaskNumberDiv.value, itemObjectString);
-
-  // Refresh "Active alerts" display list
-  displayLocalStorageItems(getAndParseLocalStorageItems());
-
-  // Clear input fields
-  redmineTaskNumberDiv.value = "";
-}
-
-// Retrieve
-// document.querySelector("#issue_notes").value =
-//   localStorage.getItem(RedmineTaskNumber);
-
-/**
- * @description - This function is called when "Delete" button is clicked.
- * @param {string} taskID
- */
-function deleteItemFromLocalStorage(redmineTaskNumber: string) {
-  localStorage.removeItem(redmineTaskNumber);
-  // Refresh "Active alerts" display list
-  displayLocalStorageItems(getAndParseLocalStorageItems());
-}
 
 
 
