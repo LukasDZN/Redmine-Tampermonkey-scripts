@@ -9,11 +9,6 @@
 // Set options
 var options = {searchable: true};
 
-
-
-
-
-
 // --- @testing
 let dummyItemObject1TaskID = "64503"; // Currently in mr_status: "REVIEW"
 let dummyItemObject1: any = {
@@ -49,42 +44,12 @@ before work).
 3 DONE <-- Current
 */
 
-
-
-
-
-
-
-const getStorageLocalObject = () => {
-  // Init an object to store all the items
-  let localStorageItems: any = {};
-  // Get an array of all the localStorage keys (i.e. task IDs)
-  var arrayOfKeys = Object.keys(localStorage);
-  // For every key in the array, get the value and display it
-  for (let key of arrayOfKeys) {
-      let valueString: string | null = localStorage.getItem(key);
-      let valueObject = JSON.parse(valueString!);
-
-      localStorageItems[key] = valueObject;
-  }
-  return localStorageItems;
-};
-
-
-
-
-
-
+// Not used
 const sleep = (ms: number) => {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
 };
-
-
-
-
-
 
 // Get HTML elements from the popup.html DOM
 var redmineTaskNumberDiv = document.getElementById("task_id_input") as HTMLInputElement;
@@ -117,6 +82,27 @@ function removeCreateAlertAndAddWarningWhenUserNotInRedmineTaskPage(callback1, c
       }
     }
   });
+}
+
+async function getAndSetActiveTabRedmineTaskNumber(htmlElement) {
+  if (htmlElement) {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      let redmineTaskNumber = tabs[0].url.split("/issues/")[1].substring(0, 5);
+      htmlElement.value = redmineTaskNumber
+    });
+  }
+}
+
+function redmineTaskNumberValidationAndStyling() {
+  if (redmineTaskNumberDiv.value) {
+    if (/[0-9]{5}/.test(redmineTaskNumberDiv.value) === true) {
+      addButton.disabled = false;
+      redmineTaskNumberDiv.classList.remove("validationFailedRedBorder");
+    } else {
+      addButton.disabled = true;
+      redmineTaskNumberDiv.classList.add("validationFailedRedBorder");
+    }
+  }
 }
 
 async function setRedmineTaskDropdownFields(initialElementCreation = false, callback = null) {
@@ -168,41 +154,14 @@ function clearAllDropdownOptions(dropdownElement) {
   }
 }
 
-async function getAndSetActiveTabRedmineTaskNumber(htmlElement) {
-  if (htmlElement) {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      let redmineTaskNumber = tabs[0].url.split("/issues/")[1].substring(0, 5);
-      htmlElement.value = redmineTaskNumber
-    });
-  }
-}
-
-function clearChromeStorageSync() {
-  if (confirm('Are you sure you want to delete all alerts?')) {
-    chrome.storage.sync.clear(function() {
-      console.log("chrome.storage.sync was cleared...")
-      initializeStorageLocalObject()
-    });
-  }
-};
-
-function redmineTaskNumberValidationAndStyling() {
-  if (redmineTaskNumberDiv.value) {
-    if (/[0-9]{5}/.test(redmineTaskNumberDiv.value) === true) {
-      addButton.disabled = false;
-      redmineTaskNumberDiv.classList.remove("validationFailedRedBorder");
-    } else {
-      addButton.disabled = true;
-      redmineTaskNumberDiv.classList.add("validationFailedRedBorder");
-    }
-  }
-}
-
-function initializeStorageLocalObject() {
+function initializeStorageLocalObject(callback = null) {
   chrome.storage.sync.get('redmineTaskNotificationsExtension', function(data) {
     if (data.redmineTaskNotificationsExtension === undefined) {
       chrome.storage.sync.set({'redmineTaskNotificationsExtension': []}, function() {
         console.log('chrome.storage.sync initial value was set...');
+        if (callback) {
+          callback()
+        }
       });
     }
   });
@@ -232,7 +191,15 @@ function saveAlertToStorageLocal() {
   });
 }
 
-// Display alerts
+function clearChromeStorageSync() {
+  if (confirm('Are you sure you want to delete all alerts?')) {
+    chrome.storage.sync.clear(function() {
+      console.log("chrome.storage.sync was cleared...")
+      initializeStorageLocalObject(clearAndDisplayAlerts)
+    });
+  }
+};
+
 function clearAndDisplayAlerts() {
   chrome.storage.sync.get('redmineTaskNotificationsExtension', function(data) {
     if (data.redmineTaskNotificationsExtension) {
@@ -273,17 +240,18 @@ function clearAndDisplayAlerts() {
   });
 }
 
+// function deleteAlertFromStorageLocal() {
+// }
+
 // Add fieldToCheck and valueToCheck labels, also rename fieldToCheck to fieldToCheckValue in saveAlertToStorageLocal
 // Create CSS layout for active / triggered alerts
+// Don't allow adding two identical alerts
 // Remove element from DOM on delete button click
 // Clear storage.local on delete button click
 // background.js script to check for statuses and upodate local storage
 // User statistic logging
 // Base select -> status And +1
 // Implement settings
-
-// function deleteAlertFromStorageLocal() {
-// }
 
 // Clear alerts
 
@@ -313,27 +281,6 @@ function clearAndDisplayAlerts() {
 })()
 
 
-
-
-
-
-
-
-
-
-
-// // --- Display Active alerts on load -----------------------------------------------
-// displayLocalStorageItems(getAndParseLocalStorageItems());
-
-// addButton.addEventListener("click", () => saveItemToLocalStorage());
-
-
-
-
-
-
-
-
 // User setting to choose the type of alert.
 // Choose update frequency.
 
@@ -350,18 +297,10 @@ function clearAndDisplayAlerts() {
 
 
 
-
-
 // var myWorker = new Worker('background.js');
 // // note: service workers logs results to popup console
 // // send message
 // myWorker.postMessage(''); // meant for keeping the worker alive
-
-
-
-
-
-
 
 
 
