@@ -1,9 +1,5 @@
-// // ---------------------------------------------------------------------------------
-// // Service worker: GET localStorage items from main script
+// // @ts-ignore
 
-// // Service worker can't retrieve values from localStorage.
-// // So, we need to send a request to the main script to retrieve localStorage items.
-// // So the service workers acts as a trigger but not as the script that actually does the heavy lifting.
 
 // // var localStorageItems;
 
@@ -189,7 +185,6 @@
 //   // });
 // }
 
-// // @ts-ignore
 // const getAndParseLocalStorageItemsF = () => {
 //   raiseAlert("60001");
 //   return;

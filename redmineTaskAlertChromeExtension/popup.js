@@ -282,7 +282,7 @@ function clearAndDisplayAlerts() {
             `);
                     let deleteButton = document.getElementById(`activeAlertDelete${object.uniqueTimestampId}`);
                     deleteButton.addEventListener("click", function () {
-                        deleteItemFromLocalStorage(object.uniqueTimestampId);
+                        deleteSingleAlertFromStorageLocal(object.uniqueTimestampId);
                     });
                 }
                 else if (object.triggeredInThePast === "yes") {
@@ -299,10 +299,25 @@ function clearAndDisplayAlerts() {
         }
     });
 }
-// function deleteAlertFromStorageLocal() {
-// }
+function deleteSingleAlertFromStorageLocal(uniqueTimestampId) {
+    chrome.storage.sync.get('redmineTaskNotificationsExtension', function (data) {
+        if (data.redmineTaskNotificationsExtension) {
+            let alertObjectArray = data.redmineTaskNotificationsExtension;
+            alertObjectArray.forEach(function (object, index) {
+                if (object.uniqueTimestampId === uniqueTimestampId) {
+                    alertObjectArray.splice(index, 1);
+                    chrome.storage.sync.set({ 'redmineTaskNotificationsExtension': alertObjectArray }, function () {
+                        console.log('chrome.storage.sync active alert was deleted...');
+                        clearAndDisplayAlerts();
+                    });
+                }
+            });
+        }
+    });
+}
 // Add fieldToCheck and valueToCheck labels, also rename fieldToCheck to fieldToCheckValue in saveAlertToStorageLocal
 // Create CSS layout for active / triggered alerts
+// Don't allow adding two identical alerts
 // Remove element from DOM on delete button click
 // Clear storage.local on delete button click
 // background.js script to check for statuses and upodate local storage

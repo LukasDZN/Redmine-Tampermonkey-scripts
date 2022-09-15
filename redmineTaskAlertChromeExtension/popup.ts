@@ -128,7 +128,7 @@ async function setRedmineTaskDropdownValues(initialElementCreation = false) {
   const selectedFieldId = fieldDiv.value
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
     chrome.tabs.sendMessage(tabs[0].id, "parseRedmineTaskDropdownFieldsToArrayOfObjects", function(response) {
-      response.data.forEach((fieldObject) => {
+      response.data.forEach((fieldObject, index) => { //@todo add "non empty" if index is 0
         if (fieldObject.id === selectedFieldId) {
           fieldObject.value.options.forEach((option) => {
             valueDiv?.insertAdjacentHTML(
@@ -174,8 +174,10 @@ function saveAlertToStorageLocal() {
     uniqueTimestampId: new Date().getTime(),
     redmineTaskId: redmineTaskNumberDiv.value,
     itemAddedOnReadableDate: newDateFormatted,
+    fieldToCheckLabel:
     fieldToCheck: fieldDiv.value,
-    valueToCheck: valueDiv.value,
+    valueToCheckLabel: 
+    valueToCheck: valueDiv.value, // need to change this is in other places as well.
     triggeredInThePast: "no",
     triggeredAtDate: "",
   });
@@ -220,7 +222,7 @@ function clearAndDisplayAlerts() {
           );
           let deleteButton = document.getElementById(`activeAlertDelete${object.uniqueTimestampId}`) as HTMLButtonElement;
           deleteButton.addEventListener("click", function() {
-            deleteItemFromLocalStorage(object.uniqueTimestampId)
+            deleteSingleAlertFromStorageLocal(object.uniqueTimestampId)
           });
         } else if (object.triggeredInThePast === "yes") {
           triggeredAlertsListDiv?.insertAdjacentHTML(
@@ -240,20 +242,48 @@ function clearAndDisplayAlerts() {
   });
 }
 
-// function deleteAlertFromStorageLocal() {
-// }
+function deleteSingleAlertFromStorageLocal(uniqueTimestampId) {
+  chrome.storage.sync.get('redmineTaskNotificationsExtension', function(data) {
+    if (data.redmineTaskNotificationsExtension) {
+      let alertObjectArray = data.redmineTaskNotificationsExtension
+      alertObjectArray.forEach(function(object, index) {
+        if (object.uniqueTimestampId === uniqueTimestampId) {
+          alertObjectArray.splice(index, 1)
+          chrome.storage.sync.set({'redmineTaskNotificationsExtension': alertObjectArray}, function() {
+            console.log('chrome.storage.sync active alert was deleted...');
+            clearAndDisplayAlerts()
+          });
+        }
+      });
+    }
+  });
+}
 
+// Add "non-empty" options when creating a task. A function of "custom option". Marked as @todo in the function above
+// Personal journal about your progress
+  // Had to figure out how extensions work - popup.js / content.js / background.js -> no sources of clear information.
+  // Refactored old code
+  // Not much time to work on this, maybe 10 hours a week
+  // When I do get to work on this, after my job I'm a bit tired
+  // My code structure has improved, my functions are more neat and nice.
 // Add fieldToCheck and valueToCheck labels, also rename fieldToCheck to fieldToCheckValue in saveAlertToStorageLocal
 // Create CSS layout for active / triggered alerts
+// Research payment integration such as stripe (it has to be linked with google account?)
+  // limit alert count for non paying users to 3, but also think about this policy, research extension monetization on indie hackers
 // Don't allow adding two identical alerts
-// Remove element from DOM on delete button click
-// Clear storage.local on delete button click
-// background.js script to check for statuses and upodate local storage
+// background.js script to check for statuses and update storage.local
 // User statistic logging
 // Base select -> status And +1
+  // This is probably the most common usecase
 // Implement settings
+  // Sticky setting icon in the corner (perhaps bottom right) (cuz triggered alerts will overtake the icon)
+  // popup module when clicked (copy code from tampermonkey module)
+  // 3 radio buttons of alert types
+// Get tips on UI design
 
-// Clear alerts
+// Testing
+// User creation and payment system.
+
 
 (function main() {
   removeCreateAlertAndAddWarningWhenUserNotInRedmineTaskPage(
