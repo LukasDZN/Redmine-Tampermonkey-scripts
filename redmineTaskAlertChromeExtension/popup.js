@@ -201,7 +201,10 @@ async function setRedmineTaskDropdownValues(initialElementCreation = false) {
         chrome.tabs.sendMessage(tabs[0].id, "parseRedmineTaskDropdownFieldsToArrayOfObjects", function (response) {
             response.data.forEach((fieldObject) => {
                 if (fieldObject.id === selectedFieldId) {
-                    fieldObject.value.options.forEach((option) => {
+                    fieldObject.value.options.forEach((option, index) => {
+                        if (index === 0) {
+                            valueDiv?.insertAdjacentHTML("beforeend", `<option value="notEmpty"><< Not empty >></option>`);
+                        }
                         valueDiv?.insertAdjacentHTML("beforeend", `<option value="${option.optionValue}" ${option.isSelected === true ? "selected" : ""}>${option.optionText}</option>`);
                     });
                 }
@@ -240,10 +243,12 @@ function saveAlertToStorageLocal() {
         uniqueTimestampId: new Date().getTime(),
         redmineTaskId: redmineTaskNumberDiv.value,
         itemAddedOnReadableDate: newDateFormatted,
-        fieldToCheck: fieldDiv.value,
-        valueToCheck: valueDiv.value,
-        triggeredInThePast: "no",
-        triggeredAtDate: "",
+        fieldToCheckLabel: fieldDiv.options[fieldDiv.selectedIndex].text,
+        fieldToCheckValue: fieldDiv.value,
+        valueToCheckLabel: valueDiv.options[valueDiv.selectedIndex].text,
+        valueToCheckValue: valueDiv.value,
+        triggeredInThePast: false,
+        triggeredAtTimestamp: "",
     });
     chrome.storage.sync.get('redmineTaskNotificationsExtension', function (data) {
         if (data.redmineTaskNotificationsExtension) {
@@ -275,8 +280,8 @@ function clearAndDisplayAlerts() {
                     activeAlertsListDiv?.insertAdjacentHTML("beforeend", `
               <div class="flex-container-activeAndTriggeredAlert">
                 <div id="activeAlertId">${object.redmineTaskId}</div>
-                <div id="activeAlertField">${object.fieldToCheck}</div>
-                <div id="activeAlertValue">${object.valueToCheck}</div>
+                <div id="activeAlertField">${object.fieldToCheckLabel}</div>
+                <div id="activeAlertValue">${object.valueToCheckLabel}</div>
                 <button class="activeAlertDelete" id="activeAlertDelete${object.uniqueTimestampId}">X</button>
               </div>
             `);
@@ -289,8 +294,8 @@ function clearAndDisplayAlerts() {
                     triggeredAlertsListDiv?.insertAdjacentHTML("beforeend", `
               <div class="flex-container-activeAndTriggeredAlert">
                 <div id="activeAlertId">${object.redmineTaskId}</div>
-                <div id="activeAlertField">${object.fieldToCheck}</div>
-                <div id="activeAlertValue">${object.valueToCheck}</div>
+                <div id="activeAlertField">${object.fieldToCheckLabel}</div>
+                <div id="activeAlertValue">${object.valueToCheckLabel}</div>
                 <div id="activeAlertValue">${object.itemAddedOnReadableDate}</div>
               </div>
             `);
@@ -315,16 +320,34 @@ function deleteSingleAlertFromStorageLocal(uniqueTimestampId) {
         }
     });
 }
-// Add fieldToCheck and valueToCheck labels, also rename fieldToCheck to fieldToCheckValue in saveAlertToStorageLocal
+// background.js script to check for statuses and update storage.local
+// Read storage.local
+// Check send a request
+// Compare results
+// Raise alert if there's a match
 // Create CSS layout for active / triggered alerts
+// Research payment integration such as stripe (it has to be linked with google account?)
+// limit alert count for non paying users to 3, but also think about this policy, research extension monetization on indie hackers
 // Don't allow adding two identical alerts
-// Remove element from DOM on delete button click
-// Clear storage.local on delete button click
-// background.js script to check for statuses and upodate local storage
 // User statistic logging
 // Base select -> status And +1
+// This is probably the most common usecase
 // Implement settings
-// Clear alerts
+// Sticky setting icon in the corner (perhaps bottom right) (cuz triggered alerts will overtake the icon)
+// popup module when clicked (copy code from tampermonkey module)
+// 3 radio buttons of alert types
+// Get tips on UI design
+// Personal journal about your progress (newest on top)
+// 19-09-2022
+// Had to figure out how extensions work - popup.js / content.js / background.js -> no sources of clear information.
+// Refactored old code
+// Not much time to work on this, maybe 10 hours a week
+// When I do get to work on this, after my job I'm a bit tired
+// My code structure has improved, my functions are more neat and nice.
+// [DONE 19-09] Add "non-empty" options when creating a task. A function of "custom option". Marked as @todo in the function above
+// [DONE 19-09] Add fieldToCheck and valueToCheck labels, also rename fieldToCheck to fieldToCheckValue in saveAlertToStorageLocal
+// Testing
+// User creation and payment system.
 (function main() {
     removeCreateAlertAndAddWarningWhenUserNotInRedmineTaskPage(getAndSetActiveTabRedmineTaskNumber, setRedmineTaskDropdownFields);
     fieldDiv.addEventListener('change', function () {

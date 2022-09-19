@@ -128,9 +128,15 @@ async function setRedmineTaskDropdownValues(initialElementCreation = false) {
   const selectedFieldId = fieldDiv.value
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
     chrome.tabs.sendMessage(tabs[0].id, "parseRedmineTaskDropdownFieldsToArrayOfObjects", function(response) {
-      response.data.forEach((fieldObject, index) => { //@todo add "non empty" if index is 0
+      response.data.forEach((fieldObject) => { //@todo add "non empty" if index is 0
         if (fieldObject.id === selectedFieldId) {
-          fieldObject.value.options.forEach((option) => {
+          fieldObject.value.options.forEach((option, index) => {
+            if (index === 0) {
+              valueDiv?.insertAdjacentHTML(
+                "beforeend",
+                `<option value="notEmpty"><< Not empty >></option>`
+              );
+            }
             valueDiv?.insertAdjacentHTML(
               "beforeend",
               `<option value="${option.optionValue}" ${option.isSelected === true ? "selected" : ""}>${option.optionText}</option>`
@@ -174,12 +180,13 @@ function saveAlertToStorageLocal() {
     uniqueTimestampId: new Date().getTime(),
     redmineTaskId: redmineTaskNumberDiv.value,
     itemAddedOnReadableDate: newDateFormatted,
-    fieldToCheckLabel:
-    fieldToCheck: fieldDiv.value,
-    valueToCheckLabel: 
-    valueToCheck: valueDiv.value, // need to change this is in other places as well.
-    triggeredInThePast: "no",
-    triggeredAtDate: "",
+    fieldToCheckLabel: fieldDiv.options[fieldDiv.selectedIndex].text,
+    fieldToCheckValue: fieldDiv.value,
+    valueToCheckLabel: valueDiv.options[valueDiv.selectedIndex].text,
+    valueToCheckValue: valueDiv.value,
+    triggeredInThePast: false,
+    triggeredAtTimestamp: "",
+    triggeredAtReadableDate: ""
   });
   chrome.storage.sync.get('redmineTaskNotificationsExtension', function(data) {
     if (data.redmineTaskNotificationsExtension) {
@@ -214,8 +221,8 @@ function clearAndDisplayAlerts() {
             `
               <div class="flex-container-activeAndTriggeredAlert">
                 <div id="activeAlertId">${object.redmineTaskId}</div>
-                <div id="activeAlertField">${object.fieldToCheck}</div>
-                <div id="activeAlertValue">${object.valueToCheck}</div>
+                <div id="activeAlertField">${object.fieldToCheckLabel}</div>
+                <div id="activeAlertValue">${object.valueToCheckLabel}</div>
                 <button class="activeAlertDelete" id="activeAlertDelete${object.uniqueTimestampId}">X</button>
               </div>
             `
@@ -230,8 +237,8 @@ function clearAndDisplayAlerts() {
             `
               <div class="flex-container-activeAndTriggeredAlert">
                 <div id="activeAlertId">${object.redmineTaskId}</div>
-                <div id="activeAlertField">${object.fieldToCheck}</div>
-                <div id="activeAlertValue">${object.valueToCheck}</div>
+                <div id="activeAlertField">${object.fieldToCheckLabel}</div>
+                <div id="activeAlertValue">${object.valueToCheckLabel}</div>
                 <div id="activeAlertValue">${object.itemAddedOnReadableDate}</div>
               </div>
             `
@@ -259,19 +266,16 @@ function deleteSingleAlertFromStorageLocal(uniqueTimestampId) {
   });
 }
 
-// Add "non-empty" options when creating a task. A function of "custom option". Marked as @todo in the function above
-// Personal journal about your progress
-  // Had to figure out how extensions work - popup.js / content.js / background.js -> no sources of clear information.
-  // Refactored old code
-  // Not much time to work on this, maybe 10 hours a week
-  // When I do get to work on this, after my job I'm a bit tired
-  // My code structure has improved, my functions are more neat and nice.
-// Add fieldToCheck and valueToCheck labels, also rename fieldToCheck to fieldToCheckValue in saveAlertToStorageLocal
+// background.js script to check for statuses and update storage.local
+  // Read storage.local
+  // Check send a request
+  // Compare results
+    // Raise alert if there's a match
+
 // Create CSS layout for active / triggered alerts
 // Research payment integration such as stripe (it has to be linked with google account?)
   // limit alert count for non paying users to 3, but also think about this policy, research extension monetization on indie hackers
 // Don't allow adding two identical alerts
-// background.js script to check for statuses and update storage.local
 // User statistic logging
 // Base select -> status And +1
   // This is probably the most common usecase
@@ -280,6 +284,24 @@ function deleteSingleAlertFromStorageLocal(uniqueTimestampId) {
   // popup module when clicked (copy code from tampermonkey module)
   // 3 radio buttons of alert types
 // Get tips on UI design
+// Alerts for queries
+  // Select queries somewhere
+  // Request and parsing for queries
+
+// Personal journal about your progress (newest on top)
+  // 19-09-2022
+  // Got a lot more to learn about web workers and their specialized service workers. 
+  // Found out that DOMparser does not work with background scripts.
+  // Need to find a way to keep a background service worker alive because it will turn idle.
+  // 11-09-2022
+  // Had to figure out how extensions work - popup.js / content.js / background.js -> no sources of clear information.
+  // Refactored old code
+  // Not much time to work on this, maybe 10 hours a week
+  // When I do get to work on this, after my job I'm a bit tired
+  // My code structure has improved, my functions are more neat and nice.
+
+// [DONE 19-09] Add "non-empty" options when creating a task. A function of "custom option". Marked as @todo in the function above
+// [DONE 19-09] Add fieldToCheck and valueToCheck labels, also rename fieldToCheck to fieldToCheckValue in saveAlertToStorageLocal
 
 // Testing
 // User creation and payment system.
