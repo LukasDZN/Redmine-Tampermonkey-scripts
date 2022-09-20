@@ -29,6 +29,7 @@
   "host_permissions": ["*://*/*"],
   "background": {
     "service_worker": "background.js",
+    "persistent": true,
     "type": "module"
   }
 }

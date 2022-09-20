@@ -266,6 +266,46 @@ function deleteSingleAlertFromStorageLocal(uniqueTimestampId) {
   });
 }
 
+function asyncGetStorageLocal(key = 'redmineTaskNotificationsExtension') {
+  return new Promise((resolve) => {
+      chrome.storage.sync.get(key, resolve);
+  });
+}
+
+function asyncSetStorageLocal(key = 'redmineTaskNotificationsExtension', newValue) {
+  return new Promise((resolve) => {
+      chrome.storage.sync.set({key: newValue}, resolve);
+  });
+}
+
+const initializeStorageLocalSettingsObject = async () => {
+  // default settings
+  await asyncSetStorageLocal('redmineTaskNotificationsExtensionSettings', [{
+    browserAlertEnabled: true,
+    newTabEnabled: false,
+    osNotification: false,
+    refreshIntervalInSeconds: 600
+  }])
+}
+
+
+
+// - Displayed alerts should be ordered by date created for active alerts, and date triggered for triggered alerts.
+// https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
+// - Persistent service worker - https://stackoverflow.com/questions/66618136/persistent-service-worker-in-chrome-extension
+
+
+
+// callback or async await
+// https://stackoverflow.com/questions/30763496/how-to-promisify-nodes-child-process-exec-and-child-process-execfile-functions
+// https://www.sohamkamani.com/nodejs/executing-shell-commands/
+// I can only think of a callback / .then() solution but not async await. Unless the function should be called from another function
+// https://www.google.com/search?q=refactor+callback+to+promise&oq=refactor+callbacks+&aqs=chrome.1.69i57j0i22i30l2j0i390l3.3102j1j1&sourceid=chrome&ie=UTF-8
+// Await is basically syntactic sugar for Promises. It makes your asynchronous code look more like synchronous/procedural code, which is easier for humans to understand.
+
+
+
+
 // background.js script to check for statuses and update storage.local
   // Read storage.local
   // Check send a request
@@ -300,6 +340,8 @@ function deleteSingleAlertFromStorageLocal(uniqueTimestampId) {
   // When I do get to work on this, after my job I'm a bit tired
   // My code structure has improved, my functions are more neat and nice.
 
+// [DONE 20-09] Track the array index. If an object is edited, slice out the part of index and add the new object to the same index. So that it's truly edited. -> update, instead, if a difference is found old array's items get replaced with new array's items.
+// [DONE 20-09] Promisify chrome.storage.sync - https://www.reddit.com/r/learnjavascript/comments/nr1zvn/how_to_return_value_from_chromestorage/
 // [DONE 19-09] Add "non-empty" options when creating a task. A function of "custom option". Marked as @todo in the function above
 // [DONE 19-09] Add fieldToCheck and valueToCheck labels, also rename fieldToCheck to fieldToCheckValue in saveAlertToStorageLocal
 
@@ -320,6 +362,7 @@ function deleteSingleAlertFromStorageLocal(uniqueTimestampId) {
     redmineTaskNumberValidationAndStyling()
   })
   initializeStorageLocalObject()
+  initializeStorageLocalSettingsObject()
   addButton.addEventListener('click', function() {
     saveAlertToStorageLocal()
   })
