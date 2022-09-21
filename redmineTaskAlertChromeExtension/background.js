@@ -2,34 +2,40 @@
 // @ts-nocheck
 // https://stackoverflow.com/questions/47075437/cannot-find-namespace-name-chrome
 // These make sure that our function is run every time the browser is opened.
-// chrome.runtime.onInstalled.addListener(function () {
-//   initialize();
-// });
-// chrome.runtime.onStartup.addListener(function () {
-//   initialize();
-// });
-async function initialize() {
-    const storageLocalObjects = await asyncGetStorageLocal(null);
-    const settingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings;
-    const alertCheckFrequencyInSeconds = settingsObject.refreshIntervalInSeconds;
-    setInterval(async function () {
-        await main();
-    }, alertCheckFrequencyInSeconds * 1000);
-}
+chrome.runtime.onInstalled.addListener(function () {
+    initialize();
+});
+chrome.runtime.onStartup.addListener(function () {
+    initialize();
+});
+// async function initialize() {
+//     const storageLocalObjects = await asyncGetStorageLocal(null)
+//     const settingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings
+//     const alertCheckFrequencyInSeconds = settingsObject.refreshIntervalInSeconds
+//     setInterval(async function () {
+//         await main()
+//     }, alertCheckFrequencyInSeconds * 1000);
+// }
 // Should use an alarm https://developer.chrome.com/docs/extensions/mv3/migrating_to_service_workers/
+async function initialize() {
+    await main();
+}
 const main = async () => {
-    const data = await getStorageValuePromise('redmineTaskNotificationsExtension');
+    const storageLocalObjects = await asyncGetStorageLocal(null);
     let wasArrayUpdated = false;
     let d = new Date();
     let newDateFormatted = ("0" + d.getDate()).slice(-2) + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
-    if (data.redmineTaskNotificationsExtension) {
-        let alertObjectArray = data.redmineTaskNotificationsExtension;
+    let alertObjectArray = storageLocalObjects.redmineTaskNotificationsExtension;
+    if (alertObjectArray) {
         let editedObjectsOfAlertObjectArray = [];
         for (const alertObject of alertObjectArray) {
-            // alertObjectArray.forEach(function(alertObject) {
             if (alertObject.triggeredInThePast === false) {
+                console.log('found an active alert');
                 let redmineTaskTextDom = await sendRequestAndGetTextDom(alertObject.redmineTaskId);
-                if (getValueFromTextDom(redmineTaskTextDom, 'issue_status_id') === alertObject.valueToCheckValue) {
+                console.log(redmineTaskTextDom);
+                console.log('value to check: ' + alertObject.valueToCheckValue);
+                console.log('value parsed from text dom: ' + getValueFromTextDom(redmineTaskTextDom, alertObject.fieldToCheckValue));
+                if (getValueFromTextDom(redmineTaskTextDom, alertObject.fieldToCheckValue) === alertObject.valueToCheckValue) {
                     if (wasArrayUpdated === false) {
                         wasArrayUpdated = true;
                     }
@@ -39,7 +45,6 @@ const main = async () => {
                     alertObject.triggeredAtReadableDate = newDateFormatted;
                     editedObjectsOfAlertObjectArray.push(alertObject);
                     // Trigger an alert
-                    const storageLocalObjects = await asyncGetStorageLocal(null);
                     const extensionSettingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings;
                     if (extensionSettingsObject) {
                         if (extensionSettingsObject.browserAlertEnabled === true) {
@@ -50,7 +55,6 @@ const main = async () => {
                 }
             }
         }
-        // );
         if (wasArrayUpdated === true) {
             const updatedAlertObjectArray = replaceObjectsInOriginalArrayWithOtherArrayObjects(alertObjectArray, editedObjectsOfAlertObjectArray, 'uniqueTimestampId');
             asyncSetStorageLocal('redmineTaskNotificationsExtension', updatedAlertObjectArray);

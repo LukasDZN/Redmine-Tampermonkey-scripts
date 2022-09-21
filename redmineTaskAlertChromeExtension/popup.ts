@@ -171,15 +171,11 @@ function clearChromeStorageSync() {
 };
 
 function clearAndDisplayAlerts() {
-  console.log('init')
   chrome.storage.sync.get(null, function(data) {
-    console.log('get from storage')
     if (data.redmineTaskNotificationsExtension) {
-      console.log('data exists')
       activeAlertsListDiv.innerHTML = "";
       triggeredAlertsListDiv.innerHTML = "";
       data.redmineTaskNotificationsExtension.forEach(object => {
-        console.log(object)
         if (object.triggeredInThePast === false) {
           activeAlertsListDiv?.insertAdjacentHTML(
             "beforeend",

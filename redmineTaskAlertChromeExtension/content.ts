@@ -42,7 +42,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({
       data: parseRedmineTaskDropdownFieldsToArrayOfObjects()
     });
-  }
+  } else if (message === 'parseDomString') {
+    sendResponse({
+      data: parseRedmineTaskDropdownFieldsToArrayOfObjects()
+    });
+  } 
   return true; // include 'true' otherwise it might close too early.
 });
 
