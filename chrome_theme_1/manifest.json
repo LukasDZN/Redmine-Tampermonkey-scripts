@@ -3,15 +3,18 @@
   "version": "0.1",
   "name": "ld theme",
   "theme": {
+
+    "images" : {
+      "theme_toolbar" : "img1.png"
+    },
+
     "colors" : {
 
-      "frame" : [44, 65, 57],
+      "frame" : [35, 3, 64],
       "toolbar" : [255, 188, 87],
 
-      "tab_text": [ 255, 188, 87 ], 
-      "tab_background_text": [ 200, 200, 200 ],
-
-      
+      "tab_text": [ 0, 0, 0 ], 
+      "tab_background_text": [ 255, 255, 255 ],
 
       "bookmark_text": [ 255, 255, 255 ],
 
