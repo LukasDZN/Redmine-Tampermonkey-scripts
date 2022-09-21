@@ -1,20 +1,21 @@
 // @ts-nocheck
 
-const alertCheckFrequencyInSeconds = 20
-
 // https://stackoverflow.com/questions/47075437/cannot-find-namespace-name-chrome
 // These make sure that our function is run every time the browser is opened.
-chrome.runtime.onInstalled.addListener(function () {
-  initialize();
-});
-chrome.runtime.onStartup.addListener(function () {
-  initialize();
-});
+// chrome.runtime.onInstalled.addListener(function () {
+//   initialize();
+// });
+// chrome.runtime.onStartup.addListener(function () {
+//   initialize();
+// });
 
-function initialize() {
-  setInterval(async function () {
-    main()
-  }, alertCheckFrequencyInSeconds * 1000);
+async function initialize() {
+    const storageLocalObjects = await asyncGetStorageLocal(null)
+    const settingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings
+    const alertCheckFrequencyInSeconds = settingsObject.refreshIntervalInSeconds
+    setInterval(async function () {
+        await main()
+    }, alertCheckFrequencyInSeconds * 1000);
 }
 // Should use an alarm https://developer.chrome.com/docs/extensions/mv3/migrating_to_service_workers/
 
@@ -28,10 +29,12 @@ const main = async () => {
     if (data.redmineTaskNotificationsExtension) {
         let alertObjectArray = data.redmineTaskNotificationsExtension;
         let editedObjectsOfAlertObjectArray = [];
+
+        for (const alertObject of alertObjectArray) {
         
-        alertObjectArray.forEach(function(alertObject, index) {
+        // alertObjectArray.forEach(function(alertObject) {
             if (alertObject.triggeredInThePast === false) {
-                let redmineTaskTextDom = await sendRequestAndGetDom(alertObject.redmineTaskId)
+                let redmineTaskTextDom = await sendRequestAndGetTextDom(alertObject.redmineTaskId)
                 if (getValueFromTextDom(redmineTaskTextDom, 'issue_status_id') === alertObject.valueToCheckValue) {
                     if (wasArrayUpdated === false) {wasArrayUpdated = true}
                     // Create an updated alert object
@@ -41,7 +44,8 @@ const main = async () => {
                     editedObjectsOfAlertObjectArray.push(alertObject)
 
                     // Trigger an alert
-                    const extensionSettingsObject = await asyncGetStorageLocal('redmineTaskNotificationsExtensionSettings')
+                    const storageLocalObjects = await asyncGetStorageLocal(null)
+                    const extensionSettingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings
                     if (extensionSettingsObject) {
                         if (extensionSettingsObject.browserAlertEnabled === true) {
                             alert(
@@ -53,10 +57,11 @@ const main = async () => {
 
                 }
             }
-        });
+        }
+        // );
         if (wasArrayUpdated === true) {
             const updatedAlertObjectArray = replaceObjectsInOriginalArrayWithOtherArrayObjects(alertObjectArray, editedObjectsOfAlertObjectArray, 'uniqueTimestampId')
-            asyncSetStorageLocal(updatedAlertObjectArray)
+            asyncSetStorageLocal('redmineTaskNotificationsExtension', updatedAlertObjectArray)
             console.log('At least one alert was triggered during main() check...')
         } else if (wasArrayUpdated === false) {
             console.log('No alerts were triggered during main() check...')
@@ -91,15 +96,15 @@ const getValueFromTextDom = (string, fieldId) => {
     return match[1]; // [1] is the group that's found
 }
 
-function asyncGetStorageLocal(key = 'redmineTaskNotificationsExtension') {
+function asyncGetStorageLocal(key) {
     return new Promise((resolve) => {
         chrome.storage.sync.get(key, resolve);
     });
 }
 
-function asyncSetStorageLocal(key = 'redmineTaskNotificationsExtension', newValue) {
+function asyncSetStorageLocal(key, newValue) {
     return new Promise((resolve) => {
-        chrome.storage.sync.set({key: newValue}, resolve);
+        chrome.storage.sync.set({[key]: newValue}, resolve);
     });
 }
 

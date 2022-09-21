@@ -91,44 +91,6 @@
 })(); }));
 // Set options
 var options = { searchable: true };
-// --- @testing
-let dummyItemObject1TaskID = "64503"; // Currently in mr_status: "REVIEW"
-let dummyItemObject1 = {
-    itemAddedOnDate: new Date(),
-    fieldToCheck: "status",
-    valueToCheck: "In progress",
-    triggeredInThePast: "no",
-    triggeredAtDate: "",
-};
-// Expected result: Triggered, because status is Resolved.
-let dummyItemObject2TaskID = "64503";
-let dummyItemObject2 = {
-    itemAddedOnDate: new Date(2022, 1, 1),
-    fieldToCheck: "mr_status",
-    valueToCheck: "DONE",
-    triggeredInThePast: "no",
-    triggeredAtDate: "",
-};
-// Expected result: Not triggered, because mr_status is at REVIEW stage.
-// @feature
-// --> Statuses need to have numbers assigned
-/*
-Let's say that we're looking for when status == "REVIEW",
-but in the span of time when the task status is being checked
-it goes from WIP to DONE (or when your PC is turned off
-before work).
-
-0 NONE <-- When adding a new item
-1 WIP
-2 REVIEW <-- Expected
-3 DONE <-- Current
-*/
-// Not used
-const sleep = (ms) => {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
-};
 // Get HTML elements from the popup.html DOM
 var redmineTaskNumberDiv = document.getElementById("task_id_input");
 var fieldDiv = document.getElementById("field"); // Casting — or more properly, type assertion
@@ -146,11 +108,12 @@ var version = document.getElementById("version");
 var valueDivInstance; // prettifier object for value dropdown
 function removeCreateAlertAndAddWarningWhenUserNotInRedmineTaskPage(callback1, callback2) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        if (/https:\/\/redmine\.tribepayments\.com\/issues\/.+/.test(tabs[0].url) === false) {
+        const isCurrentTabARedminePage = /https:\/\/redmine\.tribepayments\.com\/issues\/.+/.test(tabs[0].url);
+        if (isCurrentTabARedminePage === false) {
             createAlertDiv.classList.add("displayNone");
             createAlertWarning.classList.remove("displayNone");
         }
-        else {
+        else if (isCurrentTabARedminePage === true) {
             if (callback1) {
                 callback1(redmineTaskNumberDiv);
             }
@@ -225,7 +188,7 @@ function clearAllDropdownOptions(dropdownElement) {
     }
 }
 function initializeStorageLocalObject(callback = null) {
-    chrome.storage.sync.get('redmineTaskNotificationsExtension', function (data) {
+    chrome.storage.sync.get(null, function (data) {
         if (data.redmineTaskNotificationsExtension === undefined) {
             chrome.storage.sync.set({ 'redmineTaskNotificationsExtension': [] }, function () {
                 console.log('chrome.storage.sync initial value was set...');
@@ -249,8 +212,9 @@ function saveAlertToStorageLocal() {
         valueToCheckValue: valueDiv.value,
         triggeredInThePast: false,
         triggeredAtTimestamp: "",
+        triggeredAtReadableDate: ""
     });
-    chrome.storage.sync.get('redmineTaskNotificationsExtension', function (data) {
+    chrome.storage.sync.get(null, function (data) {
         if (data.redmineTaskNotificationsExtension) {
             let alertObjectArray = data.redmineTaskNotificationsExtension;
             alertObjectArray.push(alertObject);
@@ -262,21 +226,26 @@ function saveAlertToStorageLocal() {
     });
 }
 function clearChromeStorageSync() {
-    if (confirm('Are you sure you want to delete all alerts?')) {
+    if (confirm('Are you sure you want to delete all alerts and settings?')) {
         chrome.storage.sync.clear(function () {
-            console.log("chrome.storage.sync was cleared...");
+            initializeStorageLocalSettingsObject();
             initializeStorageLocalObject(clearAndDisplayAlerts);
+            console.log("chrome.storage.sync was cleared...");
         });
     }
 }
 ;
 function clearAndDisplayAlerts() {
-    chrome.storage.sync.get('redmineTaskNotificationsExtension', function (data) {
+    console.log('init');
+    chrome.storage.sync.get(null, function (data) {
+        console.log('get from storage');
         if (data.redmineTaskNotificationsExtension) {
+            console.log('data exists');
             activeAlertsListDiv.innerHTML = "";
             triggeredAlertsListDiv.innerHTML = "";
             data.redmineTaskNotificationsExtension.forEach(object => {
-                if (object.triggeredInThePast === "no") {
+                console.log(object);
+                if (object.triggeredInThePast === false) {
                     activeAlertsListDiv?.insertAdjacentHTML("beforeend", `
               <div class="flex-container-activeAndTriggeredAlert">
                 <div id="activeAlertId">${object.redmineTaskId}</div>
@@ -290,7 +259,7 @@ function clearAndDisplayAlerts() {
                         deleteSingleAlertFromStorageLocal(object.uniqueTimestampId);
                     });
                 }
-                else if (object.triggeredInThePast === "yes") {
+                else if (object.triggeredInThePast === true) {
                     triggeredAlertsListDiv?.insertAdjacentHTML("beforeend", `
               <div class="flex-container-activeAndTriggeredAlert">
                 <div id="activeAlertId">${object.redmineTaskId}</div>
@@ -305,7 +274,7 @@ function clearAndDisplayAlerts() {
     });
 }
 function deleteSingleAlertFromStorageLocal(uniqueTimestampId) {
-    chrome.storage.sync.get('redmineTaskNotificationsExtension', function (data) {
+    chrome.storage.sync.get(null, function (data) {
         if (data.redmineTaskNotificationsExtension) {
             let alertObjectArray = data.redmineTaskNotificationsExtension;
             alertObjectArray.forEach(function (object, index) {
@@ -320,6 +289,43 @@ function deleteSingleAlertFromStorageLocal(uniqueTimestampId) {
         }
     });
 }
+function asyncGetStorageLocal(key = null) {
+    return new Promise((resolve) => {
+        chrome.storage.sync.get(key, resolve);
+    });
+}
+function asyncSetStorageLocal(key, newValue) {
+    return new Promise((resolve) => {
+        chrome.storage.sync.set({ [key]: newValue }, resolve);
+    });
+}
+const initializeStorageLocalSettingsObject = async () => {
+    const storageLocalObjects = await asyncGetStorageLocal(null);
+    const settings = storageLocalObjects.redmineTaskNotificationsExtensionSettings;
+    if (settings === undefined) {
+        // default settings
+        await asyncSetStorageLocal('redmineTaskNotificationsExtensionSettings', new Object({
+            browserAlertEnabled: true,
+            newTabEnabled: false,
+            newWindowEnabled: false,
+            osNotificationEnabled: false,
+            playASoundEnabled: false,
+            refreshIntervalInSeconds: 600
+        }));
+        console.log('chrome.storage.sync initial settings value was set...');
+    }
+};
+// You can't await async function within forEach loop.
+// Debugging all of the changes
+// - Displayed alerts should be ordered by date created for active alerts, and date triggered for triggered alerts.
+// https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
+// - Persistent service worker - https://stackoverflow.com/questions/66618136/persistent-service-worker-in-chrome-extension
+// callback or async await
+// https://stackoverflow.com/questions/30763496/how-to-promisify-nodes-child-process-exec-and-child-process-execfile-functions
+// https://www.sohamkamani.com/nodejs/executing-shell-commands/
+// I can only think of a callback / .then() solution but not async await. Unless the function should be called from another function
+// https://www.google.com/search?q=refactor+callback+to+promise&oq=refactor+callbacks+&aqs=chrome.1.69i57j0i22i30l2j0i390l3.3102j1j1&sourceid=chrome&ie=UTF-8
+// Await is basically syntactic sugar for Promises. It makes your asynchronous code look more like synchronous/procedural code, which is easier for humans to understand.
 // background.js script to check for statuses and update storage.local
 // Read storage.local
 // Check send a request
@@ -330,6 +336,7 @@ function deleteSingleAlertFromStorageLocal(uniqueTimestampId) {
 // limit alert count for non paying users to 3, but also think about this policy, research extension monetization on indie hackers
 // Don't allow adding two identical alerts
 // User statistic logging
+// Implement TypeScript
 // Base select -> status And +1
 // This is probably the most common usecase
 // Implement settings
@@ -337,17 +344,47 @@ function deleteSingleAlertFromStorageLocal(uniqueTimestampId) {
 // popup module when clicked (copy code from tampermonkey module)
 // 3 radio buttons of alert types
 // Get tips on UI design
+// Alerts for queries
+// Select queries somewhere
+// Request and parsing for queries
 // Personal journal about your progress (newest on top)
+// 21-09-2022
+// chrome.storage.sync.get('someKey', func(e) {console.log(e)} -> returns {'someKey': {...}} and NOT just {...}
 // 19-09-2022
+// Got a lot more to learn about web workers and their specialized service workers. 
+// Found out that DOMparser does not work with background scripts.
+// Need to find a way to keep a background service worker alive because it will turn idle.
+// 11-09-2022
 // Had to figure out how extensions work - popup.js / content.js / background.js -> no sources of clear information.
 // Refactored old code
 // Not much time to work on this, maybe 10 hours a week
 // When I do get to work on this, after my job I'm a bit tired
 // My code structure has improved, my functions are more neat and nice.
+// [DONE 20-09] Track the array index. If an object is edited, slice out the part of index and add the new object to the same index. So that it's truly edited. -> update, instead, if a difference is found old array's items get replaced with new array's items.
+// [DONE 20-09] Promisify chrome.storage.sync - https://www.reddit.com/r/learnjavascript/comments/nr1zvn/how_to_return_value_from_chromestorage/
 // [DONE 19-09] Add "non-empty" options when creating a task. A function of "custom option". Marked as @todo in the function above
 // [DONE 19-09] Add fieldToCheck and valueToCheck labels, also rename fieldToCheck to fieldToCheckValue in saveAlertToStorageLocal
 // Testing
 // User creation and payment system.
+// @feature
+// --> Statuses need to have numbers assigned
+/*
+Let's say that we're looking for when status == "REVIEW",
+but in the span of time when the task status is being checked
+it goes from WIP to DONE (or when your PC is turned off
+before work).
+
+0 NONE <-- When adding a new item
+1 WIP
+2 REVIEW <-- Expected
+3 DONE <-- Current
+*/
+// Not used
+const sleep = (ms) => {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+};
 (function main() {
     removeCreateAlertAndAddWarningWhenUserNotInRedmineTaskPage(getAndSetActiveTabRedmineTaskNumber, setRedmineTaskDropdownFields);
     fieldDiv.addEventListener('change', function () {
@@ -358,6 +395,7 @@ function deleteSingleAlertFromStorageLocal(uniqueTimestampId) {
         redmineTaskNumberValidationAndStyling();
     });
     initializeStorageLocalObject();
+    initializeStorageLocalSettingsObject();
     addButton.addEventListener('click', function () {
         saveAlertToStorageLocal();
     });

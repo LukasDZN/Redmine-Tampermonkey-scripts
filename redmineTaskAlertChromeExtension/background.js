@@ -1,49 +1,67 @@
 "use strict";
 // @ts-nocheck
-const alertCheckFrequencyInSeconds = 20;
-// Read storage.local - get needed results, for each result send a request, compare results, raise an alert and update storage.local object if there's a match
-// Need to parse the DOM somehow
 // https://stackoverflow.com/questions/47075437/cannot-find-namespace-name-chrome
 // These make sure that our function is run every time the browser is opened.
-chrome.runtime.onInstalled.addListener(function () {
-    initialize();
-});
-chrome.runtime.onStartup.addListener(function () {
-    initialize();
-});
-function initialize() {
+// chrome.runtime.onInstalled.addListener(function () {
+//   initialize();
+// });
+// chrome.runtime.onStartup.addListener(function () {
+//   initialize();
+// });
+async function initialize() {
+    const storageLocalObjects = await asyncGetStorageLocal(null);
+    const settingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings;
+    const alertCheckFrequencyInSeconds = settingsObject.refreshIntervalInSeconds;
     setInterval(async function () {
-        main();
+        await main();
     }, alertCheckFrequencyInSeconds * 1000);
 }
 // Should use an alarm https://developer.chrome.com/docs/extensions/mv3/migrating_to_service_workers/
 const main = async () => {
-    chrome.storage.sync.get('redmineTaskNotificationsExtension', function (data) {
-        if (data.redmineTaskNotificationsExtension) {
-            let alertObjectArray = data.redmineTaskNotificationsExtension;
-            alertObjectArray.forEach(function (alertObject) {
-                if (alertObject.triggeredInThePast === false) {
-                    let redmineTaskDom = await sendRequestAndGetDom(alertObject.redmineTaskId);
-                    // if (redmineTaskDom.querySelector("#issue_status_id").value === alertObject.valueToCheckValue) {
-                    // Update alert object
-                    // let alertObjectArray = data.redmineTaskNotificationsExtension
-                    // alertObjectArray.forEach(function(object, index) {
-                    //     if (object.uniqueTimestampId === uniqueTimestampId) {
-                    //     alertObjectArray.splice(index, 1)
-                    //     chrome.storage.sync.set({'redmineTaskNotificationsExtension': alertObjectArray}, function() {
-                    //         console.log(`chrome.storage.sync active alert id ${alertObject.redmineTaskId} was triggered...`);
-                    //     });
-                    //     }
-                    // });
+    const data = await getStorageValuePromise('redmineTaskNotificationsExtension');
+    let wasArrayUpdated = false;
+    let d = new Date();
+    let newDateFormatted = ("0" + d.getDate()).slice(-2) + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+    if (data.redmineTaskNotificationsExtension) {
+        let alertObjectArray = data.redmineTaskNotificationsExtension;
+        let editedObjectsOfAlertObjectArray = [];
+        for (const alertObject of alertObjectArray) {
+            // alertObjectArray.forEach(function(alertObject) {
+            if (alertObject.triggeredInThePast === false) {
+                let redmineTaskTextDom = await sendRequestAndGetTextDom(alertObject.redmineTaskId);
+                if (getValueFromTextDom(redmineTaskTextDom, 'issue_status_id') === alertObject.valueToCheckValue) {
+                    if (wasArrayUpdated === false) {
+                        wasArrayUpdated = true;
+                    }
+                    // Create an updated alert object
+                    alertObject.triggeredInThePast = true;
+                    alertObject.triggeredAtTimestamp = new Date().getTime();
+                    alertObject.triggeredAtReadableDate = newDateFormatted;
+                    editedObjectsOfAlertObjectArray.push(alertObject);
                     // Trigger an alert
-                    //     console.log('an alert was triggered!...')
-                    // }
+                    const storageLocalObjects = await asyncGetStorageLocal(null);
+                    const extensionSettingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings;
+                    if (extensionSettingsObject) {
+                        if (extensionSettingsObject.browserAlertEnabled === true) {
+                            alert(`#${alertObject.redmineTaskId} triggered an alert. 
+                                Field "${alertObject.fieldToCheckLabel}" value "${alertObject.valueToCheckLabel}" has changed (at ${alertObject.triggeredAtReadableDate}).`);
+                        }
+                    }
                 }
-            });
+            }
         }
-    });
+        // );
+        if (wasArrayUpdated === true) {
+            const updatedAlertObjectArray = replaceObjectsInOriginalArrayWithOtherArrayObjects(alertObjectArray, editedObjectsOfAlertObjectArray, 'uniqueTimestampId');
+            asyncSetStorageLocal('redmineTaskNotificationsExtension', updatedAlertObjectArray);
+            console.log('At least one alert was triggered during main() check...');
+        }
+        else if (wasArrayUpdated === false) {
+            console.log('No alerts were triggered during main() check...');
+        }
+    }
 };
-const sendRequestAndGetDom = async (taskId) => {
+const sendRequestAndGetTextDom = async (taskId) => {
     try {
         const redmineResponse = await fetch(`https://redmine.tribepayments.com/issues/${taskId}`, {
             method: "GET",
@@ -51,15 +69,33 @@ const sendRequestAndGetDom = async (taskId) => {
             body: null,
         });
         let parsedResponse = await redmineResponse.text();
-        console.log(parsedResponse);
+        // https://www.npmjs.com/package/xmldom
         // let parser = new DOMParser();
         // let htmlDoc = parser.parseFromString(parsedResponse, 'text/html');
-        return htmlDoc;
+        return parsedResponse;
     }
     catch (error) {
         console.log("ERROR in sendRequest func" + error);
         return "ERROR in sendRequest func";
     }
+};
+const getValueFromTextDom = (string, fieldId) => {
+    let regex = new RegExp(`id="${fieldId}".+value="([0-9]+)"`);
+    let match = regex.exec(string);
+    return match[1]; // [1] is the group that's found
+};
+function asyncGetStorageLocal(key) {
+    return new Promise((resolve) => {
+        chrome.storage.sync.get(key, resolve);
+    });
+}
+function asyncSetStorageLocal(key, newValue) {
+    return new Promise((resolve) => {
+        chrome.storage.sync.set({ [key]: newValue }, resolve);
+    });
+}
+const replaceObjectsInOriginalArrayWithOtherArrayObjects = (initialArray, replacementValueArray, key) => {
+    return initialArray.map(obj => replacementValueArray.find(o => o[key] === obj[key]) || obj);
 };
 // // Raise an alert via Desktop notification
 // // @feature - can add text with changes what happened to the ticket
