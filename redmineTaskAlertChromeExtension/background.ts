@@ -1,27 +1,39 @@
 // @ts-nocheck
 
+const domainName = "redmine.tribepayments.com"
+const redmineIssueUrl = `https://${domainName}/issues/`
+
 // https://stackoverflow.com/questions/47075437/cannot-find-namespace-name-chrome
 // These make sure that our function is run every time the browser is opened.
 chrome.runtime.onInstalled.addListener(function () {
-  initialize();
+  initializeAlarm();
 });
 chrome.runtime.onStartup.addListener(function () {
-  initialize();
+  initializeAlarm();
 });
 
-// async function initialize() {
+
+// async function initializeAlarm() {
 //     const storageLocalObjects = await asyncGetStorageLocal(null)
 //     const settingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings
-//     const alertCheckFrequencyInSeconds = settingsObject.refreshIntervalInSeconds
-//     setInterval(async function () {
-//         await main()
-//     }, alertCheckFrequencyInSeconds * 1000);
+//     const alertCheckFrequencyInMinutes = settingsObject.refreshIntervalInMinutes
+//     // https://developer.chrome.com/docs/extensions/reference/alarms/#type-Alarm
+//     // "Chrome limits alarms to at most once every 1 minute"
+//     // To help you debug your app or extension, when you've loaded it unpacked, there's no limit to how often the alarm can fire.
+//     chrome.alarms.create('mainFunction', delayInMinutes = { periodInMinutes: alertCheckFrequencyInMinutes });
 // }
-// Should use an alarm https://developer.chrome.com/docs/extensions/mv3/migrating_to_service_workers/
 
-async function initialize() {
-    await main()
+async function initializeAlarm() {
+    chrome.alarms.get('mainFunction', alarm => {
+        if (!alarm) {
+            chrome.alarms.create('mainFunction', { periodInMinutes: 0.2 });
+        }
+    })
 }
+
+chrome.alarms.onAlarm.addListener(() => {
+    main()
+})
 
 const main = async () => {
     const storageLocalObjects = await asyncGetStorageLocal(null);
@@ -52,12 +64,14 @@ const main = async () => {
                     const extensionSettingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings
                     if (extensionSettingsObject) {
                         if (extensionSettingsObject.browserAlertEnabled === true) {
-                            alert(
-                                `#${alertObject.redmineTaskId} triggered an alert. 
-                                Field "${alertObject.fieldToCheckLabel}" value "${alertObject.valueToCheckLabel}" has changed (at ${alertObject.triggeredAtReadableDate}).`
-                            )
+                            sendMessageToContentScript('raiseAlert', new Object({
+                                'url':  redmineIssueUrl + alertObject.redmineTaskId,
+                                'text': `#${alertObject.redmineTaskId} triggered an alert. Field "${alertObject.fieldToCheckLabel}" value "${alertObject.valueToCheckLabel}" has changed (at ${alertObject.triggeredAtReadableDate}).`
+                            }))
                         }
                     }
+
+
 
                 }
             }
@@ -83,10 +97,6 @@ const sendRequestAndGetTextDom = async (taskId) => {
             }
         );
         let htmlString = await redmineResponse.text()
-
-        // Send htmlString to content script and retrieve element value for id = alertObject.fieldToCheckValue
-        
-
         return htmlString;
     } catch (error) {
         console.log("ERROR in sendRequest func" + error);
@@ -95,9 +105,9 @@ const sendRequestAndGetTextDom = async (taskId) => {
 };
 
 const getValueFromTextDom = (string, fieldId) => {
-    let regex = new RegExp(`id="${fieldId}".+value="([0-9]+)"`);
+    let regex = new RegExp(`id="${fieldId}"(.|\\n)+?selected="selected"\\svalue="(.*)"`);
     let match = regex.exec(string);
-    return match[1]; // [1] is the group that's found
+    return match[2]; // [1] is the group that's found
 }
 
 function asyncGetStorageLocal(key) {
@@ -116,6 +126,16 @@ const replaceObjectsInOriginalArrayWithOtherArrayObjects = (initialArray, replac
     return initialArray.map(obj => replacementValueArray.find(o => o[key] === obj[key]) || obj);
 }
 
+const sendMessageToContentScript = (action, requestData) => {
+    chrome.tabs.create({ url: requestData.url });
+    // chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+    //     chrome.tabs.sendMessage(tabs[0].id, new Object({'action': action, 'data': requestData}), function(response) {
+    //         if (response) {
+    //             console.log('background.js worker received a response from content.js...')
+    //         }
+    //     })
+    // })
+}
 
 
 

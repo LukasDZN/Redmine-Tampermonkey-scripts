@@ -13,7 +13,7 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.tribepayments.com/*"
+        "*://*/*"
       ],
       "js": [
         "content.js"
@@ -24,7 +24,8 @@
     "storage",
     "notifications",
     "tabs",
-    "activeTab"
+    "activeTab",
+    "alarms"
   ],
   "host_permissions": ["*://*/*"],
   "background": {

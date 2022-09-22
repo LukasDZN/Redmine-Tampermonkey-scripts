@@ -38,13 +38,15 @@ function parseRedmineTaskDropdownFieldsToArrayOfObjects() {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message === 'parseRedmineTaskDropdownFieldsToArrayOfObjects') {
+  if (message.action === 'parseRedmineTaskDropdownFieldsToArrayOfObjects') {
     sendResponse({
       data: parseRedmineTaskDropdownFieldsToArrayOfObjects()
     });
-  } else if (message === 'parseDomString') {
+  } else if (message.action === 'raiseAlert') {
+    console.log('content.js received a message for raiseAlert...')
+    // chrome.tabs.create({ url: message.data.url });
     sendResponse({
-      data: parseRedmineTaskDropdownFieldsToArrayOfObjects()
+      data: ''
     });
   } 
   return true; // include 'true' otherwise it might close too early.
