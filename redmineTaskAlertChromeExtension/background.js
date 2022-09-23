@@ -1,7 +1,7 @@
 "use strict";
 // @ts-nocheck
-const domainName = "redmine.tribepayments.com";
-const redmineIssueUrl = `https://${domainName}/issues/`;
+const domainName = "https://redmine.tribepayments.com";
+const redmineIssueUrl = `${domainName}/issues/`;
 // https://stackoverflow.com/questions/47075437/cannot-find-namespace-name-chrome
 // These make sure that our function is run every time the browser is opened.
 chrome.runtime.onInstalled.addListener(function () {

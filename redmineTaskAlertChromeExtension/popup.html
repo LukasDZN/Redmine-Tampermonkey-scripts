@@ -42,6 +42,14 @@
         text-align: center;
       }
 
+      ::placeholder {
+        color: lightgray;
+      }
+
+      .marginBelow2rem {
+        margin-bottom: 1.5rem;
+      }
+
       hr {
         /* border-top: 7.5px dotted red; */
         /* border-width: 7.5px; */
@@ -135,10 +143,15 @@
         font-size: 0.85rem!important;
       }
 
-      input {
+      .flex-container-createAlert input {
         width: 4rem;
         letter-spacing: 0.075rem;
         text-align: center;
+      }
+
+      .footnote {
+        font-size: 0.6rem;
+        color: lightgray;
       }
 
       button {
@@ -218,7 +231,6 @@
           100% {
               clip-path: inset(0 0 94% 0);
           }
-          
           25% {
               clip-path: inset(0 94% 0 0);
           }
@@ -242,11 +254,172 @@
         display: none;
       }
 
+      
+      ::-webkit-scrollbar {
+        width: 20px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background-color: transparent;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background-color: #d6dee1;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background-color: #d6dee1;
+        border-radius: 20px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background-color: #d6dee1;
+        border-radius: 20px;
+        border: 6px solid transparent;
+        background-clip: content-box;
+      }
+
+      #openSettingsIcon > img, #closeSettingsModuleIcon {
+        float: right;
+        height: 1rem;
+        width: auto;
+        filter: invert(50%);
+        margin-top: 0.45rem;
+        margin-right: 0.3rem;
+        font-size: 2.4rem;
+        color: lightgray;
+      }
+
+      #openSettingsIcon > img:hover, #closeSettingsModuleIcon {
+        cursor: pointer;
+        filter: invert(60%);
+        color: gray;
+      }
+
+      #openSettingsIcon > img:active {
+        filter: invert(70%);
+        color: black;
+      }
+
+      /* Settings modal content */
+
+      /* settingDiv */
+      .settingConfigDiv {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        align-items: center;
+      }
+      #refreshIntervalInMinutes, #domainName {
+        text-align: left;
+        min-width: fit-content; 
+      }
+
+      #refreshIntervalInMinutes {
+        width: 4rem;
+      }
+
+      #domainName {
+        width: 12rem;
+      }
+
+      .gridWrapper {
+        display: grid;
+        grid-template-columns: 60% 40%;
+      }
+
+      #settingsModalContentClass {
+        background-color: #fefefe;
+        color: #000;
+        margin: 2rem auto 4rem auto;
+        padding: 2.5rem;
+        border: 1px solid #888;
+        width: fit-content;
+        border-radius: 6px;
+        font-family: Inter, sans-serif;
+        height: auto;
+        overflow: auto;
+      }
+
+      #settingsModalId {
+        font-size: 0.8rem;
+      }
+
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+        transform: scale(0.8);
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+        transform: scale(0.8);
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 6px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+      }
+
+      input:checked + .slider {
+        background-color: #00C853;
+      }
+
+      input:focus + .slider {
+        box-shadow: 0 0 1px #00C853;
+      }
+
+      input:checked + .slider:before {
+        -webkit-transform: translateX(26px);
+        -ms-transform: translateX(26px);
+        transform: translateX(26px);
+      }
+
+      /* Rounded sliders */
+      .slider.round {
+        border-radius: 34px;
+      }
+
+      .slider.round:before {
+        border-radius: 50%;
+      }
+
     </style>
     <script type="module" src="popup.js"></script>
   </head>
 
   <body>
+
+    <!-- Settings gear icon -->
+    <div id="openSettingsIcon">
+      <img src="gearIcon.png" />
+    </div>
+
+    <!-- Close X icon -->
+    <span id="closeSettingsModuleIcon" style="display: none;">&times;</span>
+
     <div>
       <div class="modal-header">
         <h1 class="logo">
@@ -255,6 +428,59 @@
           <span id="version" title="Click to clear cache">v1.0.0</span>
         </h1>
       </div>
+
+    <!-- Settings module -->
+    <div id="settingsModalId" style="display: none;">
+      <div id="settingsModalContentClass">
+        <h1 class="marginBelow2rem">Settings</h1>
+
+        <h3>Alert types</h3>
+        <p class="marginBelow2rem">Choose how you would like to be informed about a triggered alert.</p>
+
+        <div class="settingConfigDiv gridWrapper">
+          <p>Open the triggered task in a new tab.</p>
+          <label class="switch">
+            <input type="checkbox" checked>
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <div class="settingConfigDiv gridWrapper">
+          <p>Display a browser alert.</p>
+          <label class="switch">
+            <input type="checkbox" checked>
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <div class="settingConfigDiv gridWrapper">
+          <p>Display an OS notification.</p>
+          <label class="switch">
+            <input type="checkbox" checked>
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <div>
+          <p>Alert refresh interval in minutes (lower values might impact browser performance).</p>
+          <input type="text" id="refreshIntervalInMinutes" placeholder="10" required />
+        </div>
+
+        <div>
+          <p>Configure a domain name in order for the extension to function properly.</p>
+          <input type="text" id="domainName" placeholder="https://mydomain.com" required />
+        </div>
+
+        <button id="saveSettingsButton">Save</button>
+
+        <!-- <div class="footnote marginBelow2rem" style="">
+          Settings will be saved after exiting.
+        </div> -->
+
+        </div>
+    </div>
+
+    <div id="extensionContent">
       <div class="modal-content" id="introductionText">
         <p>
           Select task ID, the desired field and its value. When the selected criteria is trigerred -
@@ -309,14 +535,7 @@
       </div>
 
       <section class="activeAlerts">
-        <div id="activeAlertsList">
-          <!-- <div class="activeAlert flex">
-            <div id="activeAlertId"></div>
-            <div id="activeAlertField"></div>
-            <div id="activeAlertValue"></div>
-            <div id="activeAlertDelete"></div>
-            </div> -->
-        </div>
+        <div id="activeAlertsList"></div>
       </section>
 
       <hr />
@@ -327,15 +546,9 @@
       </div>
 
       <section class="triggeredAlerts">
-        <div id="triggeredAlertsList">
-          <!-- <div class="activeAlert flex">
-            <div id="activeAlertId"></div>
-            <div id="activeAlertField"></div>
-            <div id="activeAlertValue"></div>
-            <div id="activeAlertDelete"></div>
-            </div> -->
-        </div>
+        <div id="triggeredAlertsList"></div>
       </section>
+    </div>
 
   </div>
 

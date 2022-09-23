@@ -27,6 +27,19 @@ var version = document.getElementById("version") as HTMLButtonElement;
 
 var valueDivInstance; // prettifier object for value dropdown
 
+var openSettingsIcon = document.getElementById("openSettingsIcon") as HTMLButtonElement;
+var settingsModal = document.getElementById('settingsModalId') as HTMLButtonElement;
+var closeSettingsSpan = document.getElementById('closeSettingsModuleIcon') as HTMLButtonElement;
+var extensionContent = document.getElementById('extensionContent') as HTMLButtonElement;
+var settingsRefreshIntervalInMinutes = document.getElementById('refreshIntervalInMinutes') as HTMLButtonElement;
+// Sliders
+
+
+var saveSettingsButton = document.getElementById('saveSettingsButton') as HTMLButtonElement;
+
+
+
+
 function removeCreateAlertAndAddWarningWhenUserNotInRedmineTaskPage(callback1, callback2) {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     const isCurrentTabARedminePage = /https:\/\/redmine\.tribepayments\.com\/issues\/.+/.test(tabs[0].url)
@@ -53,6 +66,7 @@ async function getAndSetActiveTabRedmineTaskNumber(htmlElement) {
   }
 }
 
+// Regex validators
 function redmineTaskNumberValidationAndStyling() {
   if (redmineTaskNumberDiv.value) {
     if (/[0-9]{5}/.test(redmineTaskNumberDiv.value) === true) {
@@ -61,6 +75,20 @@ function redmineTaskNumberValidationAndStyling() {
     } else {
       addButton.disabled = true;
       redmineTaskNumberDiv.classList.add("validationFailedRedBorder");
+    }
+  }
+}
+
+const validatorIntegerMoreThanOne = (input) => {
+  return /^[1-9]{1,}/.test(input)
+}
+
+const textFieldValidator = (textInputElement, validator) => {
+  if (textInputElement.value) {
+    if (validator(textInputElement.value) === true) {
+      textInputElement.classList.remove("validationFailedRedBorder");
+    } else {
+      textInputElement.classList.add("validationFailedRedBorder");
     }
   }
 }
@@ -227,7 +255,7 @@ function deleteSingleAlertFromStorageLocal(uniqueTimestampId) {
   });
 }
 
-function asyncGetStorageLocal(key = null) {
+function asyncGetStorageLocal(key) {
   return new Promise((resolve) => {
       chrome.storage.sync.get(key, resolve);
   });
@@ -244,7 +272,7 @@ const initializeStorageLocalSettingsObject = async () => {
   const settings = storageLocalObjects.redmineTaskNotificationsExtensionSettings
   if (settings === undefined) {
     // default settings
-    await asyncSetStorageLocal('redmineTaskNotificationsExtensionSettings', new Object({
+    await asyncSetStorageLocal(null, new Object({
       browserAlertEnabled: true,
       newTabEnabled: false,
       newWindowEnabled: false,
@@ -255,6 +283,75 @@ const initializeStorageLocalSettingsObject = async () => {
     console.log('chrome.storage.sync initial settings value was set...');
   }
 }
+
+const settingModalDisplay = () => {
+  // When the user clicks the button, open the settingModal
+  openSettingsIcon?.addEventListener('click', function () {
+    settingsModal.style.display = 'block';
+    openSettingsIcon.style.display = 'none';
+    closeSettingsSpan.style.display = 'block';
+    extensionContent.style.display = 'none';
+  });
+  // When the user clicks on <span> (x), close the settingModal
+  closeSettingsSpan?.addEventListener('click', function () {
+    settingsModal.style.display = 'none';
+    openSettingsIcon.style.display = 'block';
+    closeSettingsSpan.style.display = 'none';
+    extensionContent.style.display = 'block';
+  });
+  // When the user clicks anywhere outside of the settingModal, close it
+  window?.addEventListener('click', function (event) {
+    if (event.target == settingsModal) {
+      settingsModal.style.display = 'none';
+      openSettingsIcon.style.display = 'block';
+      closeSettingsSpan.style.display = 'none';
+      extensionContent.style.display = 'block';
+    }
+  });
+}
+
+// function asyncGetStorageLocal(key) {
+//   return new Promise((resolve) => {
+//       chrome.storage.sync.get(key, resolve);
+//   });
+// }
+
+// function asyncSetStorageLocal(key, newValue) {
+//   return new Promise((resolve) => {
+//       chrome.storage.sync.set({[key]: newValue}, resolve);
+//   });
+// }
+
+const storageLocalObjects = await asyncGetStorageLocal(null)
+let settingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings
+
+settingsObject.browserAlertEnabled
+settingsObject.newTabEnabled
+settingsObject.newWindowEnabled
+settingsObject.osNotificationEnabled
+settingsObject.playASoundEnabled
+settingsObject.refreshIntervalInMinutes
+
+const displaySettingsDataWithinModule = () => {
+  
+  settingsRefreshIntervalInMinutes.value = settingsObject.refreshIntervalInMinutes
+}
+
+
+saveSettingsButton?.addEventListener('click', () => {
+  await asyncSetStorageLocal(null, new Object({
+    browserAlertEnabled: ,
+    newTabEnabled: ,
+    newWindowEnabled: ,
+    osNotificationEnabled: ,
+    playASoundEnabled: ,
+    refreshIntervalInMinutes: 
+  }))
+
+  // close module on save
+})
+
+
 
 // You can't await async function within forEach loop.
 // Debugging all of the changes
@@ -360,6 +457,12 @@ const sleep = (ms: number) => {
 
   version.addEventListener("click", function() {
     clearChromeStorageSync()
+  })
+
+  settingModalDisplay()
+
+  settingsRefreshIntervalInMinutes.addEventListener('input', function() {
+    textFieldValidator(settingsRefreshIntervalInMinutes, validatorIntegerMoreThanOne)
   })
 
 })()

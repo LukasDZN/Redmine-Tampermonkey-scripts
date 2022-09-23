@@ -106,6 +106,11 @@ var addButton = document.getElementById("addButton");
 var clearButton = document.getElementById("clearButton");
 var version = document.getElementById("version");
 var valueDivInstance; // prettifier object for value dropdown
+var openSettingsIcon = document.getElementById("openSettingsIcon");
+var settingsModal = document.getElementById('settingsModalId');
+var closeSettingsSpan = document.getElementById('closeSettingsModuleIcon');
+var extensionContent = document.getElementById('extensionContent');
+var settingsRefreshIntervalInMinutes = document.getElementById('refreshIntervalInMinutes');
 function removeCreateAlertAndAddWarningWhenUserNotInRedmineTaskPage(callback1, callback2) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         const isCurrentTabARedminePage = /https:\/\/redmine\.tribepayments\.com\/issues\/.+/.test(tabs[0].url);
@@ -131,6 +136,7 @@ async function getAndSetActiveTabRedmineTaskNumber(htmlElement) {
         });
     }
 }
+// Regex validators
 function redmineTaskNumberValidationAndStyling() {
     if (redmineTaskNumberDiv.value) {
         if (/[0-9]{5}/.test(redmineTaskNumberDiv.value) === true) {
@@ -143,6 +149,19 @@ function redmineTaskNumberValidationAndStyling() {
         }
     }
 }
+const validatorIntegerMoreThanOne = (input) => {
+    return /^[1-9]{1,}/.test(input);
+};
+const textFieldValidator = (textInputElement, validator) => {
+    if (textInputElement.value) {
+        if (validator(textInputElement.value) === true) {
+            textInputElement.classList.remove("validationFailedRedBorder");
+        }
+        else {
+            textInputElement.classList.add("validationFailedRedBorder");
+        }
+    }
+};
 async function setRedmineTaskDropdownFields(initialElementCreation = false, callback = null) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         chrome.tabs.sendMessage(tabs[0].id, new Object({ 'action': "parseRedmineTaskDropdownFieldsToArrayOfObjects" }), function (response) {
@@ -311,6 +330,31 @@ const initializeStorageLocalSettingsObject = async () => {
         console.log('chrome.storage.sync initial settings value was set...');
     }
 };
+const settingModalDisplay = () => {
+    // When the user clicks the button, open the settingModal
+    openSettingsIcon?.addEventListener('click', function () {
+        settingsModal.style.display = 'block';
+        openSettingsIcon.style.display = 'none';
+        closeSettingsSpan.style.display = 'block';
+        extensionContent.style.display = 'none';
+    });
+    // When the user clicks on <span> (x), close the settingModal
+    closeSettingsSpan?.addEventListener('click', function () {
+        settingsModal.style.display = 'none';
+        openSettingsIcon.style.display = 'block';
+        closeSettingsSpan.style.display = 'none';
+        extensionContent.style.display = 'block';
+    });
+    // When the user clicks anywhere outside of the settingModal, close it
+    window?.addEventListener('click', function (event) {
+        if (event.target == settingsModal) {
+            settingsModal.style.display = 'none';
+            openSettingsIcon.style.display = 'block';
+            closeSettingsSpan.style.display = 'none';
+            extensionContent.style.display = 'block';
+        }
+    });
+};
 // You can't await async function within forEach loop.
 // Debugging all of the changes
 // - Displayed alerts should be ordered by date created for active alerts, and date triggered for triggered alerts.
@@ -395,6 +439,10 @@ const sleep = (ms) => {
     clearAndDisplayAlerts();
     version.addEventListener("click", function () {
         clearChromeStorageSync();
+    });
+    settingModalDisplay();
+    settingsRefreshIntervalInMinutes.addEventListener('input', function () {
+        textFieldValidator(settingsRefreshIntervalInMinutes, validatorIntegerMoreThanOne);
     });
 })();
 // User setting to choose the type of alert.
