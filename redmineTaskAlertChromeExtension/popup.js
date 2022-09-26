@@ -96,7 +96,7 @@ var redmineTaskNumberDiv = document.getElementById("task_id_input");
 var fieldDiv = document.getElementById("field"); // Casting — or more properly, type assertion
 var valueDiv = document.getElementById("addValue");
 var createAlertDiv = document.getElementById("createAlert");
-var activeAlertsListDiv = document.getElementById("activeAlertsList");
+var activeAlertsListTbody = document.getElementById("activeAlertsListTbody");
 var triggeredAlertsListTbody = document.getElementById("triggeredAlertsListTbody");
 var addButton = document.getElementById("addButton");
 var clearButton = document.getElementById("clearButton");
@@ -234,13 +234,13 @@ function initializeStorageLocalObject(callback = null) {
     });
 }
 function saveAlertToStorageLocal() {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        chrome.tabs.sendMessage(tabs[0].id, new Object({ 'action': "parseRedmineTaskDropdownFieldsToArrayOfObjects" }), function (response) {
-            response.data.forEach((fieldObject, index) => {
-                // Find selected value of the desired field
-            });
-        });
-    });
+    // chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+    //   chrome.tabs.sendMessage(tabs[0].id, new Object({'action': "parseRedmineTaskDropdownFieldsToArrayOfObjects"}), function(response) {
+    //     response.data.forEach((fieldObject, index) => {
+    //       // Find selected value of the desired field
+    //     })
+    //   })
+    // })
     let d = new Date();
     let newDateFormatted = ("0" + d.getDate()).slice(-2) + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
     let alertObject = new Object({
@@ -267,7 +267,50 @@ function saveAlertToStorageLocal() {
         }
         clearAndDisplayAlerts();
     });
+    // User analytics
+    (async () => {
+        try {
+            const storageLocalObjects = await asyncGetStorageLocal(null);
+            const settings = storageLocalObjects.redmineTaskNotificationsExtensionSettings;
+            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                chrome.tabs.sendMessage(tabs[0].id, new Object({ 'action': "getUserInitials" }), function (response) {
+                    response.data;
+                });
+            });
+            fetch('https://docs.google.com/forms/u/0/d/e/1FAIpQLSeCG85Vno3ZbydBiJjwP6P-nYj-1ZElDBEznt7n4LK5cfJFag/formResponse', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    "entry.1257070925": newDateFormatted,
+                    "entry.1232033723": response.data,
+                    "entry.1273942264": redmineTaskNumberDiv.value,
+                    "entry.1822505748": fieldDiv.options[fieldDiv.selectedIndex].text,
+                    "entry.1949912164": valueDiv.options[valueDiv.selectedIndex].text,
+                    "entry.879864049": settings, // settings object      
+                })
+            });
+        }
+        catch (e) {
+            console.log(e);
+        }
+    });
 }
+// Rewrite into async func
+// const asyncQueryContentScript = (action) => {
+//   return new Promise((chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+//     chrome.tabs.sendMessage(tabs[0].id, new Object({'action': action, 'data': requestData}), function(response) {
+//         if (response) {
+//             console.log('background.js worker received a response from content.js...')
+//         }
+//     })
+//   ))
+//   return new Promise((resolve) => {
+//     chrome.storage.sync.get(key, resolve);
+//   });
+// })
+// }
 function clearChromeStorageSync() {
     if (confirm('Are you sure you want to delete all alerts and settings?')) {
         chrome.storage.sync.clear(function () {
@@ -281,17 +324,17 @@ function clearChromeStorageSync() {
 function clearAndDisplayAlerts() {
     chrome.storage.sync.get(null, function (data) {
         if (data.redmineTaskNotificationsExtension) {
-            activeAlertsListDiv.innerHTML = "";
+            activeAlertsListTbody.innerHTML = "";
             triggeredAlertsListTbody.innerHTML = "";
             data.redmineTaskNotificationsExtension.forEach(object => {
                 if (object.triggeredInThePast === false) {
-                    activeAlertsListDiv?.insertAdjacentHTML("beforeend", `
-              <div class="flex-container-activeAndTriggeredAlert">
-                <div>${object.redmineTaskId}</div>
-                <div>${object.fieldToCheckLabel}</div>
-                <div>${object.valueToCheckLabel}</div>
-                <button class="genericButton activeAlertDelete" id="activeAlertDelete${object.uniqueTimestampId}">X</button>
-              </div>
+                    activeAlertsListTbody?.insertAdjacentHTML("beforeend", `
+              <tr>
+                <td>${object.redmineTaskId}</td>
+                <td>${object.fieldToCheckLabel}</td>
+                <td>${object.valueToCheckLabel}</td>
+                <td class="textAlignCenter"><button class="genericButton activeAlertDelete" id="activeAlertDelete${object.uniqueTimestampId}">Delete</button></td>
+              </tr>
             `);
                     let deleteButton = document.getElementById(`activeAlertDelete${object.uniqueTimestampId}`);
                     deleteButton.addEventListener("click", function () {
@@ -452,8 +495,7 @@ const saveSettingsFromUiToStorageLocal = () => {
 // Don't allow adding two identical alerts
 // User statistic logging
 // Implement TypeScript
-// Base select -> status And +1
-// This is probably the most common usecase
+// This is the most common usecase
 // Implement settings
 // Sticky setting icon in the corner (perhaps bottom right) (cuz triggered alerts will overtake the icon)
 // popup module when clicked (copy code from tampermonkey module)
@@ -533,49 +575,3 @@ before work).
         clearChromeStorageSync();
     });
 })();
-// User setting to choose the type of alert.
-// Choose update frequency.
-// background.js to listen to changes / alternative is to read local storage every minute?
-// chrome.storage.onChanged.addListener(function (changes, namespace) {
-//   for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
-//     console.log(
-//       `Storage key "${key}" in namespace "${namespace}" changed.`,
-//       `Old value was "${oldValue}", new value is "${newValue}".`
-//     );
-//   }
-// });
-// var myWorker = new Worker('background.js');
-// // note: service workers logs results to popup console
-// // send message
-// myWorker.postMessage(''); // meant for keeping the worker alive
-// // --- User analytics --------------------------------------------------------------
-// @notMvp - for my own use only at first
-// // -- User ID (for user analytics)
-// /** Send data whenever a user creates a new alert.
-//  *
-//  *
-//  */
-// // User ID
-// // Try because
-// // the user might not be in the Development task page
-// try {
-//   var userLink = document.querySelector("#loggedas a").textContent;
-//   var userID = userLink.match(/(\d*)$/i)[0];
-//   // Send data to Google sheet (TODO create statistics sheet and test writing to it.)
-//   // ID are mapped in the Google sheet
-//   let body = {
-//     [new Date().getTime()]: {
-//       date: new Date(),
-//       redmineTaskNumber: userID,
-//       redmineTaskStatus: RedmineTaskNumber,
-//       redmineMrStatus: RedmineTaskStatus,
-//       redmineTestStatus: RedmineTaskStatus,
-//       redmineDeployedToSandboxStatus: RedmineTaskStatus,
-//     },
-//   };
-//   // select where body.id = "1384185442"
-//   // fetch('https://example.com') // POST
-//   // include credentials: true
-// } catch (error) {
-//   //   console.log(error);
-// }

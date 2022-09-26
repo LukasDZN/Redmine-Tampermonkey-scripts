@@ -38,7 +38,7 @@
 
       h2 {
         font-size: 1.4rem;
-        margin: 1rem 0 1rem 0;
+        margin: 2rem 0 1.5rem 0;
         text-align: center;
       }
 
@@ -108,49 +108,75 @@
       .flex-container-createAlert {
         display: flex;
         /* justify-content: space-between; */
-        padding: 0.5rem 1rem;
-        background-image: linear-gradient(62deg, #fcd5be 0%, #dee1fc 100%);
+        padding: 0.7rem 1rem;
+        /* background-image: linear-gradient(62deg, #fcd5be 0%, #dee1fc 100%); */
+        background-color: white;
         border-radius: 4px;
         margin-bottom: 1rem;
-      }
-
-      .flex-container-activeAndTriggeredAlert {
-        display: flex;
-        /* justify-content: space-between; */
-        padding: 0.5rem 1rem;
-        /* background-image: linear-gradient(62deg, #f9ffa7 0%, #ffcc8a 100%); */
-        background-color: #f0f1ff;
-        outline: solid 1px lightgray;
-        border-radius: 3px;
-        margin-bottom: 0.3rem;
-        font-size: 0.9rem;
-      }
-
-      .flex-container-child-createAlert {
-        display: flex;
-        flex-direction: column;
-        padding: 0 0.8rem;
-        align-items: center;
-        opacity: 1;
-        transition: opacity 0.2s ease-in-out;
+        box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
       }
 
       .genericTable {
+        table-layout: fixed;
         text-align: left;
         width: 100%;
         height: 100%;
+        border-radius: 6px;
+        /* border-spacing: 0 1em; */
       }
-
+      
       .genericTable > thead, .genericTable > tbody {
-        padding: 0.2rem 0.4rem;
+        border-radius: 6px;
       }
 
       .genericTable > thead {
-        outline: solid 1px gray;
+        box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
       }
 
       .genericTable > tbody {
-        outline: solid 1px gray;
+        box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+      }
+
+      .genericTable > tbody > tr > td:nth-child(1), .genericTable > thead > tr > th:nth-child(1) {
+        width: 12%;
+      }
+
+      .genericTable > tbody > tr > td:nth-child(2), .genericTable > thead > tr > th:nth-child(2) {
+        width: 31%;
+      }
+
+      .genericTable > tbody > tr > td:nth-child(3), .genericTable > thead > tr > th:nth-child(3) {
+        width: 31%;
+      }
+
+      .genericTable > tbody > tr > td:nth-child(4), .genericTable > thead > tr > th:nth-child(4) {
+        width: 26%;
+      }
+
+      .genericTable > thead > tr > th, .genericTable > tbody > tr > td {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+      }
+
+      .genericTable > tbody > tr > td {
+        border-bottom: solid 1px rgb(216, 216, 216);
+        margin-bottom: -1px;
+      }
+
+      .textAlignCenter {
+        text-align: center;
+      }
+
+      /* .genericTable > thead > tr > th {
+        
+      } */
+      
+      #activeAlertsListThead {
+        background-color: #EDD94C;
+      }
+
+      #triggeredAlertListThead {
+        background-color: lightgray;
       }
 
       label {
@@ -172,6 +198,10 @@
       select, input, .nice-select {
         font-size: 0.85rem!important;
       }
+
+      /* input:disabled {
+        background-color: white;
+      } */
 
       .flex-container-createAlert input {
         height: 2rem;
@@ -231,19 +261,19 @@
 
       .activeAlertDelete {
         background-color: white;
-        color: rgb(255 128 128);
+        color: rgb(235, 103, 103);
         outline: solid 1px #ffffff;
-        font-size: 1rem;
-        font-weight: bold;
+        font-size: 0.85rem;
+        /* font-weight: bold; */
       }
 
       .activeAlertDelete:hover {
-        background-color: rgb(253, 180, 180);
+        background-color: rgb(216, 111, 111);
         color: white;
       }
 
       .activeAlertDelete:active {
-        background-color: rgb(196, 82, 82);
+        background-color: rgb(182, 69, 69);
         color: white;
       }
 
@@ -626,13 +656,11 @@
     <div id="extensionContent">
       <div class="modal-content" id="introductionText">
         <p>
-          Select task ID, the desired field and its value. When the selected criteria is trigerred -
-          you will receive a notification.
+          Select the desired field and value. When the selected criteria is triggered -
+          you will be notified according to your preferences which can be configured in settings (top right).
           Alerts sync accross devices that share the same google account.
         </p>
       </div>
-
-      <hr />
 
       <!-- Create an alert -->
       <div class="modal-content">
@@ -670,44 +698,41 @@
           </div>
       </section>
 
-      <hr />
-
       <!-- Active alerts -->
       <div class="modal-content">
         <h2><span id="activeSpan">Active</span> alerts</h2>
       </div>
 
-      <section class="activeAlerts">
-        <div id="activeAlertsList"></div>
-      </section>
-
-      <hr />
+        <table class="genericTable" id="activeAlertsListTable">
+          <thead id="activeAlertsListThead">
+            <tr>
+              <th>Task ID</th>
+              <th>Field name</th>
+              <th>Field value</th>
+              <th>&nbsp;</th>
+            </tr>
+          </thead>
+          <tbody id="activeAlertsListTbody">
+            <!-- Inserted via JS -->
+          </tbody>
+        </table>
 
       <!-- Triggered alerts -->
       <div class="modal-content">
         <h2><span id="triggeredSpan">Triggered</span> alerts</h2>
       </div>
       <table class="genericTable" id="triggeredAlertsListTable">
-        <thead>
+        <thead id="triggeredAlertListThead">
           <tr>
             <th>Task ID</th>
             <th>Field name</th>
             <th>Field value</th>
-            <th>Trigerred at</th>
+            <th>Triggered at</th>
           </tr>
         </thead>
         <tbody id="triggeredAlertsListTbody">
           <!-- Inserted via JS -->
         </tbody>
-      </table>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Month</th>
-            <th>Savings</th>
-          </tr>
-        </thead>
       </table>
 
     </div>

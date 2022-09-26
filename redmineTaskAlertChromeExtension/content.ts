@@ -48,7 +48,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({
       data: ''
     });
-  } 
+  } else if (message.action === 'getUserInitials') {
+    // Extracted from Redmine task page: "<div id="loggedas">Logged in as <a class="user active" href="/users/186">ld</a></div>""
+    const redmineUserInitials = document.querySelector("#loggedas > a.user.active").textContent
+    sendResponse({
+      data: redmineUserInitials
+    });
+  } else if (message.action === 'getSelectedFieldAndValue') {
+    // // Extracted from Redmine task page: "<div id="loggedas">Logged in as <a class="user active" href="/users/186">ld</a></div>""
+    // const selectedField = document.querySelector("#")
+    // sendResponse({
+    //   data: new Object({
+    //     "selectedField": ,
+    //     "selectedValue":  
+    //   })
+    // });
+  }
   return true; // include 'true' otherwise it might close too early.
 });
 
