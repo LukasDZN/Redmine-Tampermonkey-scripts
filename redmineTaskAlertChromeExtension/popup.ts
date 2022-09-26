@@ -15,12 +15,8 @@ var redmineTaskNumberDiv = document.getElementById("task_id_input") as HTMLInput
 var fieldDiv = document.getElementById("field") as HTMLInputElement; // Casting — or more properly, type assertion
 var valueDiv = document.getElementById("addValue") as HTMLInputElement;
 var createAlertDiv = document.getElementById("createAlert") as HTMLInputElement;
-var activeAlertIdDiv = document.getElementById("activeAlertId") as HTMLInputElement;
-var activeAlertFieldDiv = document.getElementById("activeAlertField") as HTMLInputElement;
-var activeAlertValueDiv = document.getElementById("activeAlertValue") as HTMLInputElement;
-var activeAlertDeleteDiv = document.getElementById("activeAlertDelete") as HTMLInputElement;
 var activeAlertsListDiv = document.getElementById("activeAlertsList") as HTMLDivElement;
-var triggeredAlertsListDiv = document.getElementById("triggeredAlertsList") as HTMLDivElement;
+var triggeredAlertsListTbody = document.getElementById("triggeredAlertsListTbody") as HTMLDivElement;
 var addButton = document.getElementById("addButton") as HTMLButtonElement;
 var clearButton = document.getElementById("clearButton") as HTMLButtonElement;
 var version = document.getElementById("version") as HTMLButtonElement;
@@ -228,16 +224,16 @@ function clearAndDisplayAlerts() {
   chrome.storage.sync.get(null, function(data) {
     if (data.redmineTaskNotificationsExtension) {
       activeAlertsListDiv.innerHTML = "";
-      triggeredAlertsListDiv.innerHTML = "";
+      triggeredAlertsListTbody.innerHTML = "";
       data.redmineTaskNotificationsExtension.forEach(object => {
         if (object.triggeredInThePast === false) {
           activeAlertsListDiv?.insertAdjacentHTML(
             "beforeend",
             `
               <div class="flex-container-activeAndTriggeredAlert">
-                <div id="activeAlertId">${object.redmineTaskId}</div>
-                <div id="activeAlertField">${object.fieldToCheckLabel}</div>
-                <div id="activeAlertValue">${object.valueToCheckLabel}</div>
+                <div>${object.redmineTaskId}</div>
+                <div>${object.fieldToCheckLabel}</div>
+                <div>${object.valueToCheckLabel}</div>
                 <button class="genericButton activeAlertDelete" id="activeAlertDelete${object.uniqueTimestampId}">X</button>
               </div>
             `
@@ -247,15 +243,15 @@ function clearAndDisplayAlerts() {
             deleteSingleAlertFromStorageLocal(object.uniqueTimestampId)
           });
         } else if (object.triggeredInThePast === true) {
-          triggeredAlertsListDiv?.insertAdjacentHTML(
+          triggeredAlertsListTbody?.insertAdjacentHTML(
             "beforeend",
             `
-              <div class="flex-container-activeAndTriggeredAlert">
-                <div id="activeAlertId">${object.redmineTaskId}</div>
-                <div id="activeAlertField">${object.fieldToCheckLabel}</div>
-                <div id="activeAlertValue">${object.valueToCheckLabel}</div>
-                <div id="activeAlertValue">${object.itemAddedOnReadableDate}</div>
-              </div>
+              <tr>
+                <td>${object.redmineTaskId}</td>
+                <td>${object.fieldToCheckLabel}</td>
+                <td>${object.valueToCheckLabel}</td>
+                <td>${object.itemAddedOnReadableDate}</td>
+              </tr>
             `
           );
         }

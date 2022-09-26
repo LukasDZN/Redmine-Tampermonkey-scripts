@@ -1,8 +1,5 @@
 // @ts-nocheck
 
-const domainName = "https://redmine.tribepayments.com"
-const redmineIssueUrl = `${domainName}/issues/`
-
 // https://stackoverflow.com/questions/47075437/cannot-find-namespace-name-chrome
 // These make sure that our function is run every time the browser is opened.
 chrome.runtime.onInstalled.addListener(function () {  // called when you manually reload the extension within chrome://extensions, or when the extension calls chrome.runtime.reload()
@@ -40,13 +37,16 @@ chrome.alarms.onAlarm.addListener(() => {
 })
 
 const main = async () => {
+    
     const storageLocalObjects = await asyncGetStorageLocal(null);
+
     let wasArrayUpdated = false;
 
     let d = new Date();
     let newDateFormatted = ("0" + d.getDate()).slice(-2) + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
 
-    let alertObjectArray = storageLocalObjects.redmineTaskNotificationsExtension
+    let alertObjectArray = storageLocalObjects.redmineTaskNotificationsExtension 
+    const redmineIssueUrl = `${alertObjectArray.domainName}/issues/`
     if (!!alertObjectArray.length) {
         let editedObjectsOfAlertObjectArray = [];
         for (const alertObject of alertObjectArray) {
@@ -57,11 +57,7 @@ const main = async () => {
                 // console.log('value parsed from text dom: ' + getValueFromTextDom(redmineTaskTextDom, alertObject.fieldToCheckValue))
                 const parsedValue = getValueFromTextDom(redmineTaskTextDom, alertObject.fieldToCheckValue)
                 if (parsedValue === alertObject.valueToCheckValue || (parsedValue !== "" && alertObject.valueToCheckValue === "notEmpty")) {
-
-                        console.log('fired')
-                    
                         if (wasArrayUpdated === false) {wasArrayUpdated = true}
-
                         // Create an updated alert object
                         alertObject.triggeredInThePast = true;
                         alertObject.triggeredAtTimestamp = new Date().getTime();

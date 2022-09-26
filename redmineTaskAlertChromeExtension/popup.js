@@ -96,12 +96,8 @@ var redmineTaskNumberDiv = document.getElementById("task_id_input");
 var fieldDiv = document.getElementById("field"); // Casting — or more properly, type assertion
 var valueDiv = document.getElementById("addValue");
 var createAlertDiv = document.getElementById("createAlert");
-var activeAlertIdDiv = document.getElementById("activeAlertId");
-var activeAlertFieldDiv = document.getElementById("activeAlertField");
-var activeAlertValueDiv = document.getElementById("activeAlertValue");
-var activeAlertDeleteDiv = document.getElementById("activeAlertDelete");
 var activeAlertsListDiv = document.getElementById("activeAlertsList");
-var triggeredAlertsListDiv = document.getElementById("triggeredAlertsList");
+var triggeredAlertsListTbody = document.getElementById("triggeredAlertsListTbody");
 var addButton = document.getElementById("addButton");
 var clearButton = document.getElementById("clearButton");
 var version = document.getElementById("version");
@@ -286,14 +282,14 @@ function clearAndDisplayAlerts() {
     chrome.storage.sync.get(null, function (data) {
         if (data.redmineTaskNotificationsExtension) {
             activeAlertsListDiv.innerHTML = "";
-            triggeredAlertsListDiv.innerHTML = "";
+            triggeredAlertsListTbody.innerHTML = "";
             data.redmineTaskNotificationsExtension.forEach(object => {
                 if (object.triggeredInThePast === false) {
                     activeAlertsListDiv?.insertAdjacentHTML("beforeend", `
               <div class="flex-container-activeAndTriggeredAlert">
-                <div id="activeAlertId">${object.redmineTaskId}</div>
-                <div id="activeAlertField">${object.fieldToCheckLabel}</div>
-                <div id="activeAlertValue">${object.valueToCheckLabel}</div>
+                <div>${object.redmineTaskId}</div>
+                <div>${object.fieldToCheckLabel}</div>
+                <div>${object.valueToCheckLabel}</div>
                 <button class="genericButton activeAlertDelete" id="activeAlertDelete${object.uniqueTimestampId}">X</button>
               </div>
             `);
@@ -303,13 +299,13 @@ function clearAndDisplayAlerts() {
                     });
                 }
                 else if (object.triggeredInThePast === true) {
-                    triggeredAlertsListDiv?.insertAdjacentHTML("beforeend", `
-              <div class="flex-container-activeAndTriggeredAlert">
-                <div id="activeAlertId">${object.redmineTaskId}</div>
-                <div id="activeAlertField">${object.fieldToCheckLabel}</div>
-                <div id="activeAlertValue">${object.valueToCheckLabel}</div>
-                <div id="activeAlertValue">${object.itemAddedOnReadableDate}</div>
-              </div>
+                    triggeredAlertsListTbody?.insertAdjacentHTML("beforeend", `
+              <tr>
+                <td>${object.redmineTaskId}</td>
+                <td>${object.fieldToCheckLabel}</td>
+                <td>${object.valueToCheckLabel}</td>
+                <td>${object.itemAddedOnReadableDate}</td>
+              </tr>
             `);
                 }
             });
