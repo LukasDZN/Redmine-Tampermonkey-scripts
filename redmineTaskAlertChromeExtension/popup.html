@@ -18,10 +18,10 @@
       
       /* Modal Structure */
 
-      html, body {
-        font-family: "Menlo", monospace;
+      body {
+        font-family: Inter, sans-serif;
         font-size: 16px;
-        margin: 0;
+        margin: 1rem;
         padding: 0;
         width: 715px;
         min-height: 600px;
@@ -29,7 +29,7 @@
       }
 
       h1 {
-        font-size: 1.6rem;
+        font-size: 1.8rem;
         font-weight: 400;
         margin: 0;
         color: #2f5876;
@@ -37,7 +37,7 @@
       }
 
       h2 {
-        font-size: 1.2rem;
+        font-size: 1.4rem;
         margin: 1rem 0 1rem 0;
         text-align: center;
       }
@@ -73,7 +73,7 @@
 
       #introductionText {
         margin: auto 8rem;
-        font-size: 0.8rem;
+        font-size: 1rem;
         text-align: justify;
       }
 
@@ -119,6 +119,7 @@
         outline: solid 1px lightgray;
         border-radius: 3px;
         margin-bottom: 0.3rem;
+        font-size: 0.9rem;
       }
 
       .flex-container-child-createAlert {
@@ -143,7 +144,7 @@
         outline: none;
         border-radius: 4px;
         color: #444;
-        height: 31px;
+        height: 1.5rem;
       }
 
       select, input, .nice-select {
@@ -158,7 +159,7 @@
 
       .footnote {
         font-size: 0.7rem;
-        color: lightgray;
+        color: rgb(190, 190, 190);
       }
 
 
@@ -206,17 +207,21 @@
           /* Delete active alert */
 
       .activeAlertDelete {
-        background-color: rgb(255 128 128);
-        font-size: 1.2rem;
+        background-color: white;
+        color: rgb(255 128 128);
+        outline: solid 1px #ffffff;
+        font-size: 1rem;
         font-weight: bold;
       }
 
       .activeAlertDelete:hover {
         background-color: rgb(253, 180, 180);
+        color: white;
       }
 
       .activeAlertDelete:active {
         background-color: rgb(196, 82, 82);
+        color: white;
       }
 
       .validationFailedRedBorder {
@@ -331,8 +336,7 @@
 
 
       #openSettingsIcon > img {
-        /* float: right; */
-        position: fixed;
+        position: absolute;
         top: 0.2rem;
         right: 0.2rem; 
         filter: invert(50%);
@@ -381,21 +385,21 @@
 
       /* settingDiv */
       .settingConfigDiv {
-        margin-top: 10px;
-        margin-bottom: 10px;
+        margin-top: 0.4rem;
+        margin-bottom: 0.4rem;
         align-items: center;
-      }
-      #refreshIntervalInMinutes, #domainName {
-        text-align: left;
-        min-width: fit-content; 
       }
 
       #refreshIntervalInMinutes {
-        width: 4rem;
+        display: block;
+        text-align: left;
+        width: 2rem;
       }
 
       #domainName {
-        width: 12rem;
+        display: block;
+        text-align: left;
+        width: 100%;
       }
 
       .gridWrapper {
@@ -411,14 +415,13 @@
         border: 1px solid #888;
         width: fit-content;
         border-radius: 6px;
-        font-family: Inter, sans-serif;
         height: auto;
         overflow: auto;
         max-height: 85vh;
       }
 
       #settingsModalId {
-        font-size: 0.8rem;
+        font-size: 1rem;
         margin-top: 1rem;
         margin-bottom: 2rem;
       }
@@ -505,6 +508,14 @@
         border-radius: 50%;
       }
 
+
+      .flexTextAreaWithDescription {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0.5rem;
+      }
+
     </style>
     <script type="module" src="popup.js"></script>
   </head>
@@ -554,6 +565,14 @@
         </div>
 
         <div class="settingConfigDiv gridWrapper">
+          <p>Display an extension notification badge.</p>
+          <label class="switch">
+            <input type="checkbox" id="iconBadgeEnabledSwitch">
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <div class="settingConfigDiv gridWrapper">
           <p>Display an OS notification.</p>
           <label class="switch">
             <input type="checkbox" id="osNotificationEnabledSwitch">
@@ -562,8 +581,11 @@
         </div>
 
         <div>
-          <p>Alert refresh interval in minutes (lower values might impact browser performance).</p>
-          <input type="text" id="refreshIntervalInMinutes" placeholder="10" required />
+          <p>Alert refresh interval (low values might impact browser performance).</p>
+          <div class="flexTextAreaWithDescription">
+            <input type="text" id="refreshIntervalInMinutes" placeholder="10" required />
+            <p>minutes.</p>
+          </div>
         </div>
 
         <div class="marginBelowSmall">
@@ -600,7 +622,7 @@
         <div class="flex-container-createAlert">
           <div class="flex-container-child-createAlert">
             <label for="task_id_input">Task ID</label>
-            <input type="text" id="task_id_input" name="task_id_input" pattern="[0-9]{6}" minlength="5" maxlength="5" required />
+            <input type="text" id="task_id_input" name="task_id_input" pattern="[0-9]{6}" minlength="5" maxlength="5" disabled />
           </div>
 
           <div class="flex-container-child-createAlert">

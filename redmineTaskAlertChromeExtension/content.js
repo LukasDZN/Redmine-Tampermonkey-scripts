@@ -36,7 +36,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     else if (message.action === 'raiseAlert') {
         console.log('content.js received a message for raiseAlert...');
-        // chrome.tabs.create({ url: message.data.url });
+        alert(`${message.data.text}`);
         sendResponse({
             data: ''
         });

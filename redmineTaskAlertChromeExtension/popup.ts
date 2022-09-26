@@ -35,6 +35,7 @@ var extensionContent = document.getElementById('extensionContent') as HTMLButton
 // Settings sliders
 var newTabEnabledSwitch = document.getElementById('newTabEnabledSwitch') as HTMLButtonElement;
 var browserAlertEnabledSwitch = document.getElementById('browserAlertEnabledSwitch') as HTMLButtonElement;
+var iconBadgeEnabledSwitch = document.getElementById('iconBadgeEnabledSwitch') as HTMLButtonElement;
 var osNotificationEnabledSwitch = document.getElementById('osNotificationEnabledSwitch') as HTMLButtonElement;
 // Settings text input
 var settingsRefreshIntervalInMinutes = document.getElementById('refreshIntervalInMinutes') as HTMLButtonElement;
@@ -88,8 +89,12 @@ const validatorIntegerMoreThanOne = (input) => {
   return /^[1-9]{1,}/.test(input) && /^[0-9]+$/.test(input)
 }
 
+const validatorNotEmpty = (input) => {
+  return input !== ""
+}
+
 const textFieldValidator = (textInputElement, validator, buttonElement = null) => {
-  if (textInputElement.value) {
+  if (textInputElement.value !== undefined) {
     if (validator(textInputElement.value) === true) {
       textInputElement.classList.remove("validationFailedRedBorder");
       if (buttonElement !== null) {
@@ -173,6 +178,14 @@ function initializeStorageLocalObject(callback = null) {
 }
 
 function saveAlertToStorageLocal() {
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+    chrome.tabs.sendMessage(tabs[0].id, new Object({'action': "parseRedmineTaskDropdownFieldsToArrayOfObjects"}), function(response) {
+      response.data.forEach((fieldObject, index) => {
+        // Find selected value of the desired field
+
+      })
+    })
+  })
   let d = new Date();
   let newDateFormatted = ("0" + d.getDate()).slice(-2) + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
   let alertObject = new Object({
@@ -183,6 +196,8 @@ function saveAlertToStorageLocal() {
     fieldToCheckValue: fieldDiv.value,
     valueToCheckLabel: valueDiv.options[valueDiv.selectedIndex].text,
     valueToCheckValue: valueDiv.value,
+    // initialValue: ,
+    // initialLabel: ,
     triggeredInThePast: false,
     triggeredAtTimestamp: "",
     triggeredAtReadableDate: ""
@@ -283,11 +298,12 @@ const initializeStorageLocalSettingsObject = async () => {
   const settings = storageLocalObjects.redmineTaskNotificationsExtensionSettings
   if (settings === undefined) {
     // default settings
-    await asyncSetStorageLocal(null, new Object({
+    await asyncSetStorageLocal('redmineTaskNotificationsExtensionSettings', new Object({
+      newTabEnabled: true,
       browserAlertEnabled: true,
-      newTabEnabled: false,
-      newWindowEnabled: false,
+      iconBadgeEnabled: true,
       osNotificationEnabled: false,
+      newWindowEnabled: false,
       playASoundEnabled: false,
       refreshIntervalInMinutes: 10,
       domainName: '',
@@ -303,7 +319,7 @@ const closeActions = () => {
   extensionContent.classList.remove('blackOpaque', 'hideScrollbar');
 }
 
-const settingModalDisplay = () => {
+const settingModalDisplay = async () => {
   // When the user clicks the button, open the settingModal
   openSettingsIcon?.addEventListener('click', function () {
     clearAndDisplaySettings();
@@ -325,82 +341,65 @@ const settingModalDisplay = () => {
   // });
 }
 
-// function asyncGetStorageLocal(key) {
-//   return new Promise((resolve) => {
-//       chrome.storage.sync.get(key, resolve);
-//   });
-// }
-
-// function asyncSetStorageLocal(key, newValue) {
-//   return new Promise((resolve) => {
-//       chrome.storage.sync.set({[key]: newValue}, resolve);
-//   });
-// }
-
-
-
-
 const clearAndDisplaySettings = async () => {
-
   const storageLocalObjects = await asyncGetStorageLocal(null)
   let settingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings
-  
     if (settingsObject) {
-      // Display data from storage.local
 
-        // Sliders
-        const ifValueTrueThenCheckboxChecked = (value, checkboxElement) => {
-          if (value && checkboxElement) {
-            if (value === true) {
-              checkboxElement.checked = true
-            }
+      // Set settings values
+      // Sliders
+      const ifValueTrueThenCheckboxChecked = (value, checkboxElement) => {
+        if (value && checkboxElement) {
+          if (value === true) {
+            checkboxElement.checked = true
           }
         }
-        ifValueTrueThenCheckboxChecked(settingsObject.newTabEnabled, newTabEnabledSwitch)
-        ifValueTrueThenCheckboxChecked(settingsObject.browserAlertEnabled, browserAlertEnabledSwitch)
-        ifValueTrueThenCheckboxChecked(settingsObject.osNotificationEnabled, osNotificationEnabledSwitch)
-      
-        // Input fields
-        const setInputFieldValue = (value, inputFieldElement) => {
-          if (value && inputFieldElement) {
-            inputFieldElement.value = value
-          }
+      }
+      ifValueTrueThenCheckboxChecked(settingsObject.newTabEnabled, newTabEnabledSwitch)
+      ifValueTrueThenCheckboxChecked(settingsObject.browserAlertEnabled, browserAlertEnabledSwitch)
+      ifValueTrueThenCheckboxChecked(settingsObject.osNotificationEnabled, osNotificationEnabledSwitch)
+      // Input fields
+      const setInputFieldValue = (value, inputFieldElement) => {
+        if (value && inputFieldElement) {
+          inputFieldElement.value = value
         }
-        setInputFieldValue(settingsObject.refreshIntervalInMinutes, settingsRefreshIntervalInMinutes)
-        setInputFieldValue(settingsObject.domainName, settingsDomainName)
+      }
+      setInputFieldValue(settingsObject.refreshIntervalInMinutes, settingsRefreshIntervalInMinutes)
+      setInputFieldValue(settingsObject.domainName, settingsDomainName)
 
-      // Build a new settings item
-      // It needs to be settings that were initially retrieved vs some new updated values -> basically get all values from UI
-      let updatedSettingsObject = new Object({
-        browserAlertEnabled: browserAlertEnabledSwitch.checked ? true : false,
-        newTabEnabled: browserAlertEnabledSwitch.checked ? true : false,
-        newWindowEnabled: false,
-        osNotificationEnabled: browserAlertEnabledSwitch.checked ? true : false,
-        playASoundEnabled: false,
-        refreshIntervalInMinutes: settingsRefreshIntervalInMinutes.value,
-        domainName: settingsDomainName.value,
-      })
-      
-      // Enable setting save button upon change
-      // if (updatedSettingsObject !== settingsObject) {
-      //   make button active
-      // }
-      // Or, track whether there were changes to a slider / text field
-
-      // Save settings
-      saveSettingsButton?.addEventListener('click', () => {
-        asyncSetStorageLocal(null, updatedSettingsObject)
-        // close module on save
-        closeActions()
-      })
+      // re-run validations since opening the module last time
+      settingsRefreshIntervalInMinutesValidation()
+      settingsDomainNameValidation()
       
     }
 }
 
+const settingsRefreshIntervalInMinutesValidation = () => {
+  textFieldValidator(settingsRefreshIntervalInMinutes, validatorIntegerMoreThanOne, saveSettingsButton)
+}
 
+const settingsDomainNameValidation = () => {
+  textFieldValidator(settingsDomainName, validatorNotEmpty, saveSettingsButton)
+}
 
+function addMultipleEventListener(element, events, handler) {
+  events.forEach(e => element.addEventListener(e, handler))
+}
 
-
+const saveSettingsFromUiToStorageLocal = () => {
+  // Get values from UI and build a new settings object
+  let updatedSettingsObject = new Object({
+    browserAlertEnabled: browserAlertEnabledSwitch.checked ? true : false,
+    newTabEnabled: newTabEnabledSwitch.checked ? true : false,
+    iconBadgeEnabled: iconBadgeEnabledSwitch.checked ? true : false,
+    newWindowEnabled: false,
+    osNotificationEnabled: osNotificationEnabledSwitch.checked ? true : false,
+    playASoundEnabled: false,
+    refreshIntervalInMinutes: settingsRefreshIntervalInMinutes.value,
+    domainName: settingsDomainName.value,
+  })
+  asyncSetStorageLocal('redmineTaskNotificationsExtensionSettings', updatedSettingsObject)
+}
 
 
 // You can't await async function within forEach loop.
@@ -477,19 +476,17 @@ before work).
 3 DONE <-- Current
 */
 
-// Not used
-const sleep = (ms: number) => {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-};
-
-
 (function main() {
+
+  // Remove chrome extension notification badge 
+  chrome.action.setBadgeText({text: ""})
+
+  // Check if user is on a Redmine page, if yes, prefill extension fields
   removeCreateAlertAndAddWarningWhenUserNotInRedmineTaskPage(
     getAndSetActiveTabRedmineTaskNumber, 
     setRedmineTaskDropdownFields
   )
+
   fieldDiv.addEventListener('change', function() {
     clearAllDropdownOptions(valueDiv);
     setRedmineTaskDropdownValues();
@@ -497,22 +494,33 @@ const sleep = (ms: number) => {
   redmineTaskNumberDiv.addEventListener('input', function() {
     redmineTaskNumberValidationAndStyling()
   })
+
+  // Initialize values for new users (or after clearing storage.local)
   initializeStorageLocalObject()
   initializeStorageLocalSettingsObject()
+
+  // Display alerts
+  clearAndDisplayAlerts()
+  // Save alerts
   addButton.addEventListener('click', function() {
     saveAlertToStorageLocal()
   })
-  clearAndDisplayAlerts()
   
-
-  version.addEventListener("click", function() {
-    clearChromeStorageSync()
+  // Settings
+  settingModalDisplay()
+  // Settings - Validators
+  addMultipleEventListener(settingsRefreshIntervalInMinutes, ['input'], settingsRefreshIntervalInMinutesValidation) // change is unneeded: ['input', 'change']
+  settingsDomainName.addEventListener('input', () => settingsDomainNameValidation())
+  // Save settings
+  saveSettingsButton?.addEventListener('click', () => {
+    saveSettingsFromUiToStorageLocal()
+    // close module on save
+    closeActions()
   })
 
-  settingModalDisplay()
-
-  settingsRefreshIntervalInMinutes.addEventListener('input', function() {
-    textFieldValidator(settingsRefreshIntervalInMinutes, validatorIntegerMoreThanOne, saveSettingsButton)
+  // Other
+  version.addEventListener("click", function() {
+    clearChromeStorageSync()
   })
 
 })()

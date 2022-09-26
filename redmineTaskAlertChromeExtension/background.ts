@@ -5,13 +5,14 @@ const redmineIssueUrl = `${domainName}/issues/`
 
 // https://stackoverflow.com/questions/47075437/cannot-find-namespace-name-chrome
 // These make sure that our function is run every time the browser is opened.
-// chrome.runtime.onInstalled.addListener(function () {
-//   initializeAlarm();
-// });
-// chrome.runtime.onStartup.addListener(function () {
-//   initializeAlarm();
-// });
+chrome.runtime.onInstalled.addListener(function () {  // called when you manually reload the extension within chrome://extensions, or when the extension calls chrome.runtime.reload()
+  initializeAlarm();
+});
+chrome.runtime.onStartup.addListener(function () {  // only called when Chrome starts, not when the extension starts.
+  initializeAlarm();
+});
 
+// initializeAlarm();
 
 // async function initializeAlarm() {
 //     const storageLocalObjects = await asyncGetStorageLocal(null)
@@ -21,19 +22,22 @@ const redmineIssueUrl = `${domainName}/issues/`
 //     // "Chrome limits alarms to at most once every 1 minute"
 //     // To help you debug your app or extension, when you've loaded it unpacked, there's no limit to how often the alarm can fire.
 //     chrome.alarms.create('mainFunction', delayInMinutes = { periodInMinutes: alertCheckFrequencyInMinutes });
+        // chrome.alarms.onAlarm.addListener(() => {
+        //     main()
+        // })
 // }
 
-async function initializeAlarm() {
+function initializeAlarm() {
     chrome.alarms.get('mainFunction', alarm => {
         if (!alarm) {
             chrome.alarms.create('mainFunction', { periodInMinutes: 0.2 });
         }
     })
-
-    chrome.alarms.onAlarm.addListener(() => {
-        main()
-    })
 }
+
+chrome.alarms.onAlarm.addListener(() => {
+    main()
+})
 
 const main = async () => {
     const storageLocalObjects = await asyncGetStorageLocal(null);
@@ -43,35 +47,61 @@ const main = async () => {
     let newDateFormatted = ("0" + d.getDate()).slice(-2) + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
 
     let alertObjectArray = storageLocalObjects.redmineTaskNotificationsExtension
-    if (alertObjectArray) {
+    if (!!alertObjectArray.length) {
         let editedObjectsOfAlertObjectArray = [];
         for (const alertObject of alertObjectArray) {
             if (alertObject.triggeredInThePast === false) {
-                console.log('found an active alert')
+                // console.log('found an active alert')
                 let redmineTaskTextDom = await sendRequestAndGetTextDom(alertObject.redmineTaskId)
-                console.log(redmineTaskTextDom)
-                console.log('value to check: ' + alertObject.valueToCheckValue)
-                console.log('value parsed from text dom: ' + getValueFromTextDom(redmineTaskTextDom, alertObject.fieldToCheckValue))
-                if (getValueFromTextDom(redmineTaskTextDom, alertObject.fieldToCheckValue) === alertObject.valueToCheckValue) {
-                    if (wasArrayUpdated === false) {wasArrayUpdated = true}
-                    // Create an updated alert object
-                    alertObject.triggeredInThePast = true;
-                    alertObject.triggeredAtTimestamp = new Date().getTime();
-                    alertObject.triggeredAtReadableDate = newDateFormatted;
-                    editedObjectsOfAlertObjectArray.push(alertObject)
+                // console.log('value to check: ' + alertObject.valueToCheckValue)
+                // console.log('value parsed from text dom: ' + getValueFromTextDom(redmineTaskTextDom, alertObject.fieldToCheckValue))
+                const parsedValue = getValueFromTextDom(redmineTaskTextDom, alertObject.fieldToCheckValue)
+                if (parsedValue === alertObject.valueToCheckValue || (parsedValue !== "" && alertObject.valueToCheckValue === "notEmpty")) {
 
-                    // Trigger an alert
-                    const extensionSettingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings
-                    if (extensionSettingsObject) {
-                        if (extensionSettingsObject.browserAlertEnabled === true) {
-                            sendMessageToContentScript('raiseAlert', new Object({
-                                'url':  redmineIssueUrl + alertObject.redmineTaskId,
-                                'text': `#${alertObject.redmineTaskId} triggered an alert. Field "${alertObject.fieldToCheckLabel}" value "${alertObject.valueToCheckLabel}" has changed (at ${alertObject.triggeredAtReadableDate}).`
-                            }))
+                        console.log('fired')
+                    
+                        if (wasArrayUpdated === false) {wasArrayUpdated = true}
+
+                        // Create an updated alert object
+                        alertObject.triggeredInThePast = true;
+                        alertObject.triggeredAtTimestamp = new Date().getTime();
+                        alertObject.triggeredAtReadableDate = newDateFormatted;
+                        editedObjectsOfAlertObjectArray.push(alertObject)
+
+                        const extensionSettingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings
+                        if (extensionSettingsObject) {
+
+                            // Raise a browser alert in the currently active tab (either newly created or present one depending on user preference)
+                            if (extensionSettingsObject.newTabEnabled === true) {
+                                chrome.tabs.create({ url: redmineIssueUrl + alertObject.redmineTaskId });
+                            }
+
+                            const sendMessageToActiveTabContentScript = (action, requestData) => {
+                                chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+                                    chrome.tabs.sendMessage(tabs[0].id, new Object({'action': action, 'data': requestData}), function(response) {
+                                        if (response) {
+                                            console.log('background.js worker received a response from content.js...')
+                                        }
+                                    })
+                                })
+                            }
+                            // Create and focus on a new Redmine tab with the triggered task page
+                            if (extensionSettingsObject.browserAlertEnabled === true) {
+                                await sleep(3 * 1000)
+                                sendMessageToActiveTabContentScript('raiseAlert', new Object({
+                                    'text': `#${alertObject.redmineTaskId} triggered an alert because "${alertObject.fieldToCheckLabel}" value has changed to "${alertObject.valueToCheckLabel}" (at ${alertObject.triggeredAtReadableDate}).`
+                                }))
+                            }
+
+                            if (extensionSettingsObject.iconBadgeEnabled === true) {
+                                chrome.action.setBadgeText({text: " "})
+                                chrome.action.setBadgeBackgroundColor(
+                                    {color: '#FF3C3C'},
+                                    () => { /* ... */ },
+                                );
+                            }
+
                         }
-                    }
-
-
 
                 }
             }
@@ -83,6 +113,9 @@ const main = async () => {
         } else if (wasArrayUpdated === false) {
             console.log('No alerts were triggered during main() check...')
         }
+        await sleep(1 * 1000)
+    } else {
+        console.log('No active alerts were found, therefore none were checked...')
     }
 };
 
@@ -107,7 +140,15 @@ const sendRequestAndGetTextDom = async (taskId) => {
 const getValueFromTextDom = (string, fieldId) => {
     let regex = new RegExp(`id="${fieldId}"(.|\\n)+?selected="selected"\\svalue="(.*)"`);
     let match = regex.exec(string);
-    return match[2]; // [1] is the group that's found
+    if (match) {
+        if (match[2]) {
+            return match[2]  // [1] is the 1st group that's found
+        } else {
+            return ""
+        }
+    } else {
+        return ""
+    }
 }
 
 function asyncGetStorageLocal(key) {
@@ -126,20 +167,21 @@ const replaceObjectsInOriginalArrayWithOtherArrayObjects = (initialArray, replac
     return initialArray.map(obj => replacementValueArray.find(o => o[key] === obj[key]) || obj);
 }
 
-const sendMessageToContentScript = (action, requestData) => {
-    chrome.tabs.create({ url: requestData.url });
-    // chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
-    //     chrome.tabs.sendMessage(tabs[0].id, new Object({'action': action, 'data': requestData}), function(response) {
-    //         if (response) {
-    //             console.log('background.js worker received a response from content.js...')
-    //         }
-    //     })
-    // })
-}
+
+const sleep = (ms: number) => {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+};
 
 
-
-
+// Alternative
+// chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+//     chrome.scripting.executeScript({
+//         target: {tabId: tabs[0].id},
+//         files: ['myscript.js'],
+//     });
+// }
 
 // // Raise an alert via Desktop notification
 // // @feature - can add text with changes what happened to the ticket
@@ -164,17 +206,7 @@ const sendMessageToContentScript = (action, requestData) => {
 //   //     ?.focus();
 //   // }
 
-//   chrome.action.setBadgeText({text: "*"})
 
-//   chrome.action.setBadgeBackgroundColor(
-//     {color: '#00FF00'},  // Also green
-//     () => { /* ... */ },
-//   );
-
-//   chrome.tabs.create({
-//     url: `https://redmine.tribepayments.com/issues/${taskId}`,
-//     active: true,
-//   });
 
 //   // let statusName = "Status";
 //   // let triggerStatus = "New";
