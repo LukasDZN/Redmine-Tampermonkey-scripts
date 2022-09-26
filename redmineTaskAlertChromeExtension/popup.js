@@ -106,11 +106,20 @@ var addButton = document.getElementById("addButton");
 var clearButton = document.getElementById("clearButton");
 var version = document.getElementById("version");
 var valueDivInstance; // prettifier object for value dropdown
+// Settings module
 var openSettingsIcon = document.getElementById("openSettingsIcon");
 var settingsModal = document.getElementById('settingsModalId');
 var closeSettingsSpan = document.getElementById('closeSettingsModuleIcon');
 var extensionContent = document.getElementById('extensionContent');
+// Settings sliders
+var newTabEnabledSwitch = document.getElementById('newTabEnabledSwitch');
+var browserAlertEnabledSwitch = document.getElementById('browserAlertEnabledSwitch');
+var osNotificationEnabledSwitch = document.getElementById('osNotificationEnabledSwitch');
+// Settings text input
 var settingsRefreshIntervalInMinutes = document.getElementById('refreshIntervalInMinutes');
+var settingsDomainName = document.getElementById('domainName');
+// Settings save button
+var saveSettingsButton = document.getElementById('saveSettingsButton');
 function removeCreateAlertAndAddWarningWhenUserNotInRedmineTaskPage(callback1, callback2) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         const isCurrentTabARedminePage = /https:\/\/redmine\.tribepayments\.com\/issues\/.+/.test(tabs[0].url);
@@ -150,15 +159,21 @@ function redmineTaskNumberValidationAndStyling() {
     }
 }
 const validatorIntegerMoreThanOne = (input) => {
-    return /^[1-9]{1,}/.test(input);
+    return /^[1-9]{1,}/.test(input) && /^[0-9]+$/.test(input);
 };
-const textFieldValidator = (textInputElement, validator) => {
+const textFieldValidator = (textInputElement, validator, buttonElement = null) => {
     if (textInputElement.value) {
         if (validator(textInputElement.value) === true) {
             textInputElement.classList.remove("validationFailedRedBorder");
+            if (buttonElement !== null) {
+                buttonElement.disabled = false;
+            }
         }
         else {
             textInputElement.classList.add("validationFailedRedBorder");
+            if (buttonElement !== null) {
+                buttonElement.disabled = true;
+            }
         }
     }
 };
@@ -266,7 +281,7 @@ function clearAndDisplayAlerts() {
                 <div id="activeAlertId">${object.redmineTaskId}</div>
                 <div id="activeAlertField">${object.fieldToCheckLabel}</div>
                 <div id="activeAlertValue">${object.valueToCheckLabel}</div>
-                <button class="activeAlertDelete" id="activeAlertDelete${object.uniqueTimestampId}">X</button>
+                <button class="genericButton activeAlertDelete" id="activeAlertDelete${object.uniqueTimestampId}">X</button>
               </div>
             `);
                     let deleteButton = document.getElementById(`activeAlertDelete${object.uniqueTimestampId}`);
@@ -304,7 +319,7 @@ function deleteSingleAlertFromStorageLocal(uniqueTimestampId) {
         }
     });
 }
-function asyncGetStorageLocal(key = null) {
+function asyncGetStorageLocal(key) {
     return new Promise((resolve) => {
         chrome.storage.sync.get(key, resolve);
     });
@@ -319,41 +334,102 @@ const initializeStorageLocalSettingsObject = async () => {
     const settings = storageLocalObjects.redmineTaskNotificationsExtensionSettings;
     if (settings === undefined) {
         // default settings
-        await asyncSetStorageLocal('redmineTaskNotificationsExtensionSettings', new Object({
+        await asyncSetStorageLocal(null, new Object({
             browserAlertEnabled: true,
             newTabEnabled: false,
             newWindowEnabled: false,
             osNotificationEnabled: false,
             playASoundEnabled: false,
-            refreshIntervalInMinutes: 10
+            refreshIntervalInMinutes: 10,
+            domainName: '',
         }));
         console.log('chrome.storage.sync initial settings value was set...');
     }
 };
+const closeActions = () => {
+    settingsModal.style.display = 'none';
+    openSettingsIcon.style.display = 'block';
+    closeSettingsSpan.style.display = 'none';
+    extensionContent.classList.remove('blackOpaque', 'hideScrollbar');
+};
 const settingModalDisplay = () => {
     // When the user clicks the button, open the settingModal
     openSettingsIcon?.addEventListener('click', function () {
+        clearAndDisplaySettings();
         settingsModal.style.display = 'block';
         openSettingsIcon.style.display = 'none';
         closeSettingsSpan.style.display = 'block';
-        extensionContent.style.display = 'none';
+        extensionContent.classList.add('blackOpaque', 'hideScrollbar');
     });
     // When the user clicks on <span> (x), close the settingModal
     closeSettingsSpan?.addEventListener('click', function () {
-        settingsModal.style.display = 'none';
-        openSettingsIcon.style.display = 'block';
-        closeSettingsSpan.style.display = 'none';
-        extensionContent.style.display = 'block';
+        closeActions();
     });
     // When the user clicks anywhere outside of the settingModal, close it
-    window?.addEventListener('click', function (event) {
-        if (event.target == settingsModal) {
-            settingsModal.style.display = 'none';
-            openSettingsIcon.style.display = 'block';
-            closeSettingsSpan.style.display = 'none';
-            extensionContent.style.display = 'block';
-        }
-    });
+    // Note: for this to work, there needs to be a background div
+    // window?.addEventListener('click', function (event) {
+    //   if (event.target !== settingsModal) {
+    //     closeActions()
+    //   }
+    // });
+};
+// function asyncGetStorageLocal(key) {
+//   return new Promise((resolve) => {
+//       chrome.storage.sync.get(key, resolve);
+//   });
+// }
+// function asyncSetStorageLocal(key, newValue) {
+//   return new Promise((resolve) => {
+//       chrome.storage.sync.set({[key]: newValue}, resolve);
+//   });
+// }
+const clearAndDisplaySettings = async () => {
+    const storageLocalObjects = await asyncGetStorageLocal(null);
+    let settingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings;
+    if (settingsObject) {
+        // Display data from storage.local
+        // Sliders
+        const ifValueTrueThenCheckboxChecked = (value, checkboxElement) => {
+            if (value && checkboxElement) {
+                if (value === true) {
+                    checkboxElement.checked = true;
+                }
+            }
+        };
+        ifValueTrueThenCheckboxChecked(settingsObject.newTabEnabled, newTabEnabledSwitch);
+        ifValueTrueThenCheckboxChecked(settingsObject.browserAlertEnabled, browserAlertEnabledSwitch);
+        ifValueTrueThenCheckboxChecked(settingsObject.osNotificationEnabled, osNotificationEnabledSwitch);
+        // Input fields
+        const setInputFieldValue = (value, inputFieldElement) => {
+            if (value && inputFieldElement) {
+                inputFieldElement.value = value;
+            }
+        };
+        setInputFieldValue(settingsObject.refreshIntervalInMinutes, settingsRefreshIntervalInMinutes);
+        setInputFieldValue(settingsObject.domainName, settingsDomainName);
+        // Build a new settings item
+        // It needs to be settings that were initially retrieved vs some new updated values -> basically get all values from UI
+        let updatedSettingsObject = new Object({
+            browserAlertEnabled: browserAlertEnabledSwitch.checked ? true : false,
+            newTabEnabled: browserAlertEnabledSwitch.checked ? true : false,
+            newWindowEnabled: false,
+            osNotificationEnabled: browserAlertEnabledSwitch.checked ? true : false,
+            playASoundEnabled: false,
+            refreshIntervalInMinutes: settingsRefreshIntervalInMinutes.value,
+            domainName: settingsDomainName.value,
+        });
+        // Enable setting save button upon change
+        // if (updatedSettingsObject !== settingsObject) {
+        //   make button active
+        // }
+        // Or, track whether there were changes to a slider / text field
+        // Save settings
+        saveSettingsButton?.addEventListener('click', () => {
+            asyncSetStorageLocal(null, updatedSettingsObject);
+            // close module on save
+            closeActions();
+        });
+    }
 };
 // You can't await async function within forEach loop.
 // Debugging all of the changes
@@ -442,7 +518,7 @@ const sleep = (ms) => {
     });
     settingModalDisplay();
     settingsRefreshIntervalInMinutes.addEventListener('input', function () {
-        textFieldValidator(settingsRefreshIntervalInMinutes, validatorIntegerMoreThanOne);
+        textFieldValidator(settingsRefreshIntervalInMinutes, validatorIntegerMoreThanOne, saveSettingsButton);
     });
 })();
 // User setting to choose the type of alert.

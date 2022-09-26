@@ -23,7 +23,7 @@
         font-size: 16px;
         margin: 0;
         padding: 0;
-        min-width: 700px;
+        width: 715px;
         min-height: 600px;
         /* background-color: rgb(241, 241, 241); */
       }
@@ -42,12 +42,17 @@
         text-align: center;
       }
 
+      /* text area placeholder text color */
       ::placeholder {
         color: lightgray;
       }
 
-      .marginBelow2rem {
+      .marginBelowSmall {
         margin-bottom: 1.5rem;
+      }
+
+      .marginAboveSmall {
+        margin-top: 1rem;
       }
 
       hr {
@@ -109,8 +114,10 @@
         display: flex;
         /* justify-content: space-between; */
         padding: 0.5rem 1rem;
-        background-image: linear-gradient(62deg, #f9ffa7 0%, #ffcc8a 100%);
-        border-radius: 4px;
+        /* background-image: linear-gradient(62deg, #f9ffa7 0%, #ffcc8a 100%); */
+        background-color: #f0f1ff;
+        outline: solid 1px lightgray;
+        border-radius: 3px;
         margin-bottom: 0.3rem;
       }
 
@@ -150,23 +157,58 @@
       }
 
       .footnote {
-        font-size: 0.6rem;
+        font-size: 0.7rem;
         color: lightgray;
       }
 
-      button {
+
+      
+      /* Button */
+
+      .genericButton {
         border-radius: 4px;
         border: 1px solid rgb(83, 83, 83);
         outline: none;
+        background-color: gray;
+        color: white;
+        margin: auto;
+        /* padding: 0.5rem; */
+      }
+
+      .genericButton:hover {
+        cursor: pointer;
+      }
+
+      .genericButton:disabled {
+        background-color: #dadada!important;
+        cursor: default;
+      }
+
+        /* Other buttons */
+
+          /* Add alert */
+
+      #addButton {
         background-color: rgb(102, 228, 144);
         color: rgb(255, 255, 255);
         font-size: 1.2rem;
         font-weight: bold;
-        margin: auto;
       }
+        
+      #addButton:hover {
+        background-color: rgb(158, 240, 185);
+      }
+
+      #addButton:active {
+        background-color: rgb(80, 206, 122);
+      }
+
+          /* Delete active alert */
 
       .activeAlertDelete {
         background-color: rgb(255 128 128);
+        font-size: 1.2rem;
+        font-weight: bold;
       }
 
       .activeAlertDelete:hover {
@@ -177,22 +219,28 @@
         background-color: rgb(196, 82, 82);
       }
 
-      button:hover {
-        background-color: rgb(158, 240, 185);
-        cursor: pointer;
-      }
-
-      button:active {
-        background-color: rgb(80, 206, 122);
-      }
-
-      button:disabled {
-        background-color: #dadada;
-      }
-
       .validationFailedRedBorder {
         outline: 2px solid red;
       }
+
+          /* Save settings */
+
+      #saveSettingsButton {
+        background-color: rgb(58 180 99);
+        padding: 0.2rem 0.5rem;
+      }
+
+      #saveSettingsButton:hover {
+        background-color: rgb(95, 216, 135);
+      }
+
+      #saveSettingsButton:active {
+        background-color: rgb(132, 240, 168);;
+      }
+
+      /* --- */
+
+
 
       #triggeredSpan, #createSpan {
         text-decoration: underline;
@@ -255,6 +303,7 @@
       }
 
       
+      /* Scrollbar */
       ::-webkit-scrollbar {
         width: 20px;
       }
@@ -279,27 +328,54 @@
         background-clip: content-box;
       }
 
-      #openSettingsIcon > img, #closeSettingsModuleIcon {
-        float: right;
-        height: 1rem;
-        width: auto;
+
+
+      #openSettingsIcon > img {
+        /* float: right; */
+        position: fixed;
+        top: 0.2rem;
+        right: 0.2rem; 
         filter: invert(50%);
-        margin-top: 0.45rem;
-        margin-right: 0.3rem;
-        font-size: 2.4rem;
-        color: lightgray;
       }
 
-      #openSettingsIcon > img:hover, #closeSettingsModuleIcon {
+      #openSettingsIcon > img {
+        height: 1rem;
+        width: auto;
+        margin-top: 0.45rem;
+        margin-right: 0.3rem;
+      }
+
+      #openSettingsIcon > img:hover {
         cursor: pointer;
         filter: invert(60%);
-        color: gray;
       }
 
       #openSettingsIcon > img:active {
         filter: invert(70%);
-        color: black;
       }
+
+
+
+      #closeSettingsModuleIcon {
+        position: fixed;
+        top: 10px;
+        right: 24px;
+        font-size: 2.4rem;
+      }
+
+      #closeSettingsModuleIcon {
+        color: rgb(172, 172, 172);
+      }
+
+      #closeSettingsModuleIcon:hover {
+        cursor: pointer;
+        color: rgb(124, 124, 124);
+      }
+
+      #closeSettingsModuleIcon:active {
+        color: rgb(80, 80, 80);
+      }
+      
 
       /* Settings modal content */
 
@@ -330,19 +406,43 @@
       #settingsModalContentClass {
         background-color: #fefefe;
         color: #000;
-        margin: 2rem auto 4rem auto;
-        padding: 2.5rem;
+        /* margin: 1.5rem auto 1.5rem auto; */
+        padding: 1.5rem 2rem 2rem 2rem;
         border: 1px solid #888;
         width: fit-content;
         border-radius: 6px;
         font-family: Inter, sans-serif;
         height: auto;
         overflow: auto;
+        max-height: 85vh;
       }
 
       #settingsModalId {
         font-size: 0.8rem;
+        margin-top: 1rem;
+        margin-bottom: 2rem;
       }
+
+      .blackOpaque {
+        opacity: 0.3;
+      }
+
+      .hideScrollbar {
+        overflow: hidden;
+      }
+
+      .zIndex10 {
+        z-index: 10;
+      }
+
+      .stickySettingsModule {
+        position: fixed;
+        top: 0; 
+        left: 0;
+        transform: translate(calc(50vw - 50%));
+      }
+
+      /* Setting modal slider switches */
 
       .switch {
         position: relative;
@@ -397,7 +497,6 @@
         transform: translateX(26px);
       }
 
-      /* Rounded sliders */
       .slider.round {
         border-radius: 34px;
       }
@@ -417,9 +516,6 @@
       <img src="gearIcon.png" />
     </div>
 
-    <!-- Close X icon -->
-    <span id="closeSettingsModuleIcon" style="display: none;">&times;</span>
-
     <div>
       <div class="modal-header">
         <h1 class="logo">
@@ -430,17 +526,21 @@
       </div>
 
     <!-- Settings module -->
-    <div id="settingsModalId" style="display: none;">
+    <div id="settingsModalId" class="zIndex10 stickySettingsModule" style="display: none;">
       <div id="settingsModalContentClass">
-        <h1 class="marginBelow2rem">Settings</h1>
+
+        <!-- Close X icon -->
+        <span id="closeSettingsModuleIcon" style="display: none;">&times;</span>
+
+        <h1 class="marginBelowSmall">Settings</h1>
 
         <h3>Alert types</h3>
-        <p class="marginBelow2rem">Choose how you would like to be informed about a triggered alert.</p>
+        <p class="marginBelowSmall">Choose how you would like to be informed about a triggered alert.</p>
 
         <div class="settingConfigDiv gridWrapper">
           <p>Open the triggered task in a new tab.</p>
           <label class="switch">
-            <input type="checkbox" checked>
+            <input type="checkbox" id="newTabEnabledSwitch">
             <span class="slider round"></span>
           </label>
         </div>
@@ -448,7 +548,7 @@
         <div class="settingConfigDiv gridWrapper">
           <p>Display a browser alert.</p>
           <label class="switch">
-            <input type="checkbox" checked>
+            <input type="checkbox" id="browserAlertEnabledSwitch">
             <span class="slider round"></span>
           </label>
         </div>
@@ -456,7 +556,7 @@
         <div class="settingConfigDiv gridWrapper">
           <p>Display an OS notification.</p>
           <label class="switch">
-            <input type="checkbox" checked>
+            <input type="checkbox" id="osNotificationEnabledSwitch">
             <span class="slider round"></span>
           </label>
         </div>
@@ -466,16 +566,16 @@
           <input type="text" id="refreshIntervalInMinutes" placeholder="10" required />
         </div>
 
-        <div>
+        <div class="marginBelowSmall">
           <p>Configure a domain name in order for the extension to function properly.</p>
           <input type="text" id="domainName" placeholder="https://mydomain.com" required />
         </div>
 
-        <button id="saveSettingsButton">Save</button>
+        <button id="saveSettingsButton" class="genericButton">Save</button>
 
-        <!-- <div class="footnote marginBelow2rem" style="">
-          Settings will be saved after exiting.
-        </div> -->
+        <div class="footnote marginAboveSmall">
+          Settings are synced between browsers that are using the same Google account.
+        </div>
 
         </div>
     </div>
@@ -515,7 +615,7 @@
 
           <div class="flex-container-child-createAlert">
             <label for="addButton">Create</label>
-            <button name="addButton" id="addButton">+</button>
+            <button name="addButton" class="genericButton" id="addButton">+</button>
           </div>
         </div>
       </section>

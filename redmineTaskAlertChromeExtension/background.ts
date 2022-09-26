@@ -5,12 +5,12 @@ const redmineIssueUrl = `${domainName}/issues/`
 
 // https://stackoverflow.com/questions/47075437/cannot-find-namespace-name-chrome
 // These make sure that our function is run every time the browser is opened.
-chrome.runtime.onInstalled.addListener(function () {
-  initializeAlarm();
-});
-chrome.runtime.onStartup.addListener(function () {
-  initializeAlarm();
-});
+// chrome.runtime.onInstalled.addListener(function () {
+//   initializeAlarm();
+// });
+// chrome.runtime.onStartup.addListener(function () {
+//   initializeAlarm();
+// });
 
 
 // async function initializeAlarm() {
@@ -29,11 +29,11 @@ async function initializeAlarm() {
             chrome.alarms.create('mainFunction', { periodInMinutes: 0.2 });
         }
     })
-}
 
-chrome.alarms.onAlarm.addListener(() => {
-    main()
-})
+    chrome.alarms.onAlarm.addListener(() => {
+        main()
+    })
+}
 
 const main = async () => {
     const storageLocalObjects = await asyncGetStorageLocal(null);
