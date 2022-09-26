@@ -278,7 +278,7 @@ function clearAndDisplayAlerts() {
           activeAlertsListTbody?.insertAdjacentHTML(
             "beforeend",
             `
-              <tr>
+              <tr id="trId${object.uniqueTimestampId}">
                 <td>${object.redmineTaskId}</td>
                 <td>${object.fieldToCheckLabel}</td>
                 <td>${object.valueToCheckLabel}</td>
@@ -287,8 +287,12 @@ function clearAndDisplayAlerts() {
             `
           );
           let deleteButton = document.getElementById(`activeAlertDelete${object.uniqueTimestampId}`) as HTMLButtonElement;
+          let deleteTr = document.getElementById(`trId${object.uniqueTimestampId}`) as HTMLButtonElement;
           deleteButton.addEventListener("click", function() {
-            deleteSingleAlertFromStorageLocal(object.uniqueTimestampId)
+            deleteTr.classList.add('opacityZero')
+            deleteTr.addEventListener('transitionend', () => {
+              deleteSingleAlertFromStorageLocal(object.uniqueTimestampId)
+            })
           });
         } else if (object.triggeredInThePast === true) {
           triggeredAlertsListTbody?.insertAdjacentHTML(

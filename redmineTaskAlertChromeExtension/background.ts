@@ -83,7 +83,7 @@ const main = async () => {
                             }
                             // Create and focus on a new Redmine tab with the triggered task page
                             if (extensionSettingsObject.browserAlertEnabled === true) {
-                                await sleep(3 * 1000)
+                                await sleep(2 * 1000)
                                 sendMessageToActiveTabContentScript('raiseAlert', new Object({
                                     'text': `#${alertObject.redmineTaskId} triggered an alert because "${alertObject.fieldToCheckLabel}" value has changed to "${alertObject.valueToCheckLabel}" (at ${alertObject.triggeredAtReadableDate}).`
                                 }))

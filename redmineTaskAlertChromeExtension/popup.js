@@ -329,7 +329,7 @@ function clearAndDisplayAlerts() {
             data.redmineTaskNotificationsExtension.forEach(object => {
                 if (object.triggeredInThePast === false) {
                     activeAlertsListTbody?.insertAdjacentHTML("beforeend", `
-              <tr>
+              <tr id="trId${object.uniqueTimestampId}">
                 <td>${object.redmineTaskId}</td>
                 <td>${object.fieldToCheckLabel}</td>
                 <td>${object.valueToCheckLabel}</td>
@@ -337,8 +337,12 @@ function clearAndDisplayAlerts() {
               </tr>
             `);
                     let deleteButton = document.getElementById(`activeAlertDelete${object.uniqueTimestampId}`);
+                    let deleteTr = document.getElementById(`trId${object.uniqueTimestampId}`);
                     deleteButton.addEventListener("click", function () {
-                        deleteSingleAlertFromStorageLocal(object.uniqueTimestampId);
+                        deleteTr.classList.add('opacityZero');
+                        deleteTr.addEventListener('transitionend', () => {
+                            deleteSingleAlertFromStorageLocal(object.uniqueTimestampId);
+                        });
                     });
                 }
                 else if (object.triggeredInThePast === true) {

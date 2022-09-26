@@ -124,6 +124,10 @@
         border-radius: 6px;
         /* border-spacing: 0 1em; */
       }
+
+      .opacityZero {
+        opacity: 0;
+      }
       
       .genericTable > thead, .genericTable > tbody {
         border-radius: 6px;
@@ -156,6 +160,10 @@
       .genericTable > thead > tr > th, .genericTable > tbody > tr > td {
         padding: 0.5rem 1rem;
         font-size: 0.9rem;
+      }
+
+      .genericTable > tbody > tr {
+        transition: opacity 0.3s ease-in-out;
       }
 
       .genericTable > tbody > tr > td {
