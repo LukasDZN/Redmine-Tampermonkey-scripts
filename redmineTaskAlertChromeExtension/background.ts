@@ -19,9 +19,9 @@ chrome.runtime.onStartup.addListener(function () {  // only called when Chrome s
 //     // "Chrome limits alarms to at most once every 1 minute"
 //     // To help you debug your app or extension, when you've loaded it unpacked, there's no limit to how often the alarm can fire.
 //     chrome.alarms.create('mainFunction', delayInMinutes = { periodInMinutes: alertCheckFrequencyInMinutes });
-        // chrome.alarms.onAlarm.addListener(() => {
-        //     main()
-        // })
+//     chrome.alarms.onAlarm.addListener(() => {
+//         main()
+//     })
 // }
 
 function initializeAlarm() {
@@ -46,7 +46,12 @@ const main = async () => {
     let newDateFormatted = ("0" + d.getDate()).slice(-2) + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
 
     let alertObjectArray = storageLocalObjects.redmineTaskNotificationsExtension 
-    const redmineIssueUrl = `${alertObjectArray.domainName}/issues/`
+    const extensionSettingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings
+    let domainName = extensionSettingsObject.domainName.trim()
+    if (domainName.endsWith('/')) {
+        domainName = domainName.slice(0, -1)
+    }
+    const redmineIssueUrl = `${domainName}/issues/`
     if (!!alertObjectArray.length) {
         let editedObjectsOfAlertObjectArray = [];
         for (const alertObject of alertObjectArray) {
@@ -64,9 +69,7 @@ const main = async () => {
                         alertObject.triggeredAtReadableDate = newDateFormatted;
                         editedObjectsOfAlertObjectArray.push(alertObject)
 
-                        const extensionSettingsObject = storageLocalObjects.redmineTaskNotificationsExtensionSettings
                         if (extensionSettingsObject) {
-
                             // Raise a browser alert in the currently active tab (either newly created or present one depending on user preference)
                             if (extensionSettingsObject.newTabEnabled === true) {
                                 chrome.tabs.create({ url: redmineIssueUrl + alertObject.redmineTaskId });

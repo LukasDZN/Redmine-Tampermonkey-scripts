@@ -218,7 +218,7 @@ function saveAlertToStorageLocal() {
         chrome.tabs.sendMessage(tabs[0].id, new Object({'action': "getUserInitials"}), function(response) {
           response.data
         });
-        })
+      })
 
       
       fetch('https://docs.google.com/forms/u/0/d/e/1FAIpQLSeCG85Vno3ZbydBiJjwP6P-nYj-1ZElDBEznt7n4LK5cfJFag/formResponse', {
