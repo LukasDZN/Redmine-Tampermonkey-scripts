@@ -294,7 +294,7 @@ input:checked + .slider:before {
 	border: 1px solid transparent;
 	border-radius: 0.3rem;
 	color: #023164;
-	   background-color: #cce5ff;
+	background-color: #cce5ff;
 	border-color: #b8daff;
 	font-size: 14px;
 }

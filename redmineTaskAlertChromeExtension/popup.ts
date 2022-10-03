@@ -217,24 +217,26 @@ function saveAlertToStorageLocal() {
       chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
         chrome.tabs.sendMessage(tabs[0].id, new Object({'action': "getUserInitials"}), function(response) {
           response.data
+
+          fetch('https://docs.google.com/forms/u/0/d/e/1FAIpQLSeCG85Vno3ZbydBiJjwP6P-nYj-1ZElDBEznt7n4LK5cfJFag/formResponse', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },    
+            body: new URLSearchParams({
+              "entry.1257070925": newDateFormatted,  // timestamp
+              "entry.1232033723": response.data,  // user (readable)
+              "entry.1273942264": redmineTaskNumberDiv.value,  // task id
+              "entry.1822505748": fieldDiv.options[fieldDiv.selectedIndex].text,  // field name
+              "entry.1949912164": valueDiv.options[valueDiv.selectedIndex].text,  // field value
+              "entry.879864049": settings,  // settings object      
+            })
+          });
+
         });
+
       })
 
-      
-      fetch('https://docs.google.com/forms/u/0/d/e/1FAIpQLSeCG85Vno3ZbydBiJjwP6P-nYj-1ZElDBEznt7n4LK5cfJFag/formResponse', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },    
-        body: new URLSearchParams({
-          "entry.1257070925": newDateFormatted,  // timestamp
-          "entry.1232033723": response.data,  // user (readable)
-          "entry.1273942264": redmineTaskNumberDiv.value,  // task id
-          "entry.1822505748": fieldDiv.options[fieldDiv.selectedIndex].text,  // field name
-          "entry.1949912164": valueDiv.options[valueDiv.selectedIndex].text,  // field value
-          "entry.879864049": settings,  // settings object      
-        })
-      });
     } catch (e) {
       console.log(e)
     }
