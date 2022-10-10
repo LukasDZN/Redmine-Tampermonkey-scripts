@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         TribeRedmineUI
+// @name         ldRedmineUi
 // @version      0.1
 // @author       ld
 // @match        redmine.tribepayments.com/*
@@ -76,9 +76,6 @@ It should be disabled by default.
 - Feature: Load last note draft.
 - Feature: Custom query filtering
 - Load settings after the rest of the page has loaded to avoid reducing page load time
-
-Unrealistic goals:
-- Dark mode and modern redesign - Discord inspired.
 
 Add a settings dropdown menu to the settings icon
 https://www.w3schools.com/howto/howto_js_dropdown.asp
