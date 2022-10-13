@@ -10,84 +10,8 @@
 // @require      https://code.jquery.com/jquery-3.6.0.js
 // ==/UserScript==
 
-/* Notes */
-
-/*
-TODO:
-- [DONE] Center the modal window
-- [DONE] Move the close X button to the right corner
-- [DONE] Make a list of possible config statuses
-- [DONE] Add config statuses
-- [DONE] Implement check mark indicating that the setting is active --> Add toggles for each config status
-- [DONE] Resize the slider
-- [DONE] Display the toggles next to the description instead of below it
-- [DONE] Finalize module design
-- [DONE] Add a scrollbar because the list is too long
-
-- [DONE] Add nested config statuses -> alternative was done without nesting - simply a menu category
-- [DONE] Created automatic button insert according to available statuses
-
-Settings content changes depending on which page you're on.
-Can't know your support statuses list without being on the page or at least having visited it once since installing.
-Once a user goes to the support ticket page, statuses will be parsed and saved.
-To make sure a user never sees an empty config page for statuses - a fetch request could be made.
-If settings change per page - it can be difficult to understand what kind of settings exist overall.
-Instruct the user to go to a task issue page to set the setting. (if no status is found -> display instruction text / or if no status is found - send a fetch request [implement if it's easy])
-Where should the settings button exist in general? Top right corner in all pages? -> yes.
-What if a new status is added or removed?
-It can either be checked periodically every day or just run the function at the end of the script to reduce processing time.
-It should be disabled by default.
-
-- [DONE] Change settings button position
-- [DONE] Make support buttons automatically appear in the config module
-- [DONE] Save and change config statuses to local storage using sliders
-- [DONE] Add a "Save" button (which closes the modal window upon clicking) -> no need for a button now.
-- [DONE] Refactoring button code - making it a separate function instead of two blocks of code
-
-- [DONE] This should load for every page. Functions should be separated by page regex match.
-- This should also work on pages such as time logging.
-
-- [DONE] Update DOM after adding a new button
-- [DONE] Add a "Toggle config mode" button and make it functional.
-- [DONE] Detect form reset / page reload
-
-- [DONE] Parse through the noted types of fields (during New/Edit/Copy actions)
-- [DONE] Add a save button (after each div) (it shouldn't be very visible, maybe small and gray)
-- [DONE] When clicked -> it saves field name and value
-	- [DONE] A button appears with that text
-- [DONE] Value is displayed as a button -> use previous code
-- [DONE] There's a delete button that deletes it from localStorage and removes the button from DOM
-- [DONE] Save and X to remove existing field pre-set when Creating / Editing / Copying a task.
-- There's a 'primary' checkmark -> if an item is marked as primary, it will load each time for all projects.
-
-- https://redmine.tribepayments.com/issues/73347 -> handle errors somehow. If status cannot be changed it's okay that the buttons do not load. Just handle the error.
-- Enable setting toggle for all other functions
-- Note disappears when clicking "Hide"
-- Bug: Note not rendering images properly. Change note design to white.
-- Add Redmine task field templating (option to select primary / add current / delete icon)
-- Add Redmine task templating (option to select primary / add current / delete icon)
-- Feature: Create a slider for task progress
-- [DONE] Architecture refactoring
-	- [DONE] Structure CSS to load at the top.
-	- [DONE] Then define all of the functions.
-	- [DONE] Then call the functions according to the page.
-	- [DONE] Some constants might change per page.
-
-- Feature: Load last note draft.
-- Feature: Custom query filtering
-- Load settings after the rest of the page has loaded to avoid reducing page load time
-
-Add a settings dropdown menu to the settings icon
-https://www.w3schools.com/howto/howto_js_dropdown.asp
-
-*/
-
 /* CSS */
-
 GM_addStyle(`
-
-
-
 /* Task description and notes */
 
 div.cf_90.attribute {
@@ -499,16 +423,16 @@ var $ = window.jQuery;
 /* Constants */
 
 const devProjectsArray = [
-	'  » Bank',
-	'  » Gateway',
-	'  » ISAC-POS',
-	'  » -=MISC=-',
-	'  » Bill',
-	'  » ISAC-ACQ',
-	'  » ISAC-ISS',
-	'  » OpenBank',
-	'  » Risk',
-	'  » Wallet',
+  "  » Bank",
+  "  » Gateway",
+  "  » ISAC-POS",
+  "  » -=MISC=-",
+  "  » Bill",
+  "  » ISAC-ACQ",
+  "  » ISAC-ISS",
+  "  » OpenBank",
+  "  » Risk",
+  "  » Wallet",
 ];
 // Remaining non-dev projects:
 // 'Incidents'
@@ -528,97 +452,95 @@ const redmineTaskFieldIdsString = `
 const currentPageUrl = window.location.href;
 
 function getProjectStatusColorPatterns() {
-	const taskSelectedProjectText =
-		getTaskSelectedOptionText('#issue_project_id');
-	const taskSelectedTrackerText =
-		getTaskSelectedOptionText('#issue_tracker_id');
+  const taskSelectedProjectText = getTaskSelectedOptionText("#issue_project_id");
+  const taskSelectedTrackerText = getTaskSelectedOptionText("#issue_tracker_id");
 
-	// default color pattern if project match is not found
-	// Button color regex (from Tampermonkey convenience script)
-	let statusColorPatterns = {
-		'^Pending Approval$': '#fcf3cf',
-		'^Not Approved$': '#eafaf1',
-		'^New$': '#82e0aa',
-		'^In Progress.*': '#f7db6f',
-		'^Resolved$': '#85c1e9',
-		'^Feedback$': '#ec7063',
-		'^Closed$': '#d5d8dc',
-		'^Rejected$': '#abb2b9',
-		'^Suspended$': '#fdedec',
-		'^Pending.*': '#f7f2dc',
-	};
+  // default color pattern if project match is not found
+  // Button color regex (from Tampermonkey convenience script)
+  let statusColorPatterns = {
+    "^Pending Approval$": "#fcf3cf",
+    "^Not Approved$": "#eafaf1",
+    "^New$": "#82e0aa",
+    "^In Progress.*": "#f7db6f",
+    "^Resolved$": "#85c1e9",
+    "^Feedback$": "#ec7063",
+    "^Closed$": "#d5d8dc",
+    "^Rejected$": "#abb2b9",
+    "^Suspended$": "#fdedec",
+    "^Pending.*": "#f7f2dc",
+  };
 
-	// Incidents
-	const incidentStatusColorPatterns = {
-		'^Scheduled$': '#fcf3cf',
-		'^In Progress.*': '#f7db6f',
-		'^Resolved$': '#85c1e9',
-		'^Feedback$': '#ec7063',
-		'^Closed$': '#d5d8dc',
-		'^Rejected$': '#abb2b9',
-	};
+  // Incidents
+  const incidentStatusColorPatterns = {
+    "^Scheduled$": "#fcf3cf",
+    "^In Progress.*": "#f7db6f",
+    "^Resolved$": "#85c1e9",
+    "^Feedback$": "#ec7063",
+    "^Closed$": "#d5d8dc",
+    "^Rejected$": "#abb2b9",
+  };
 
-	/* RFC project */
-	// Tracker order is according to deployment procedure
-	// Status last changed by TL - '#f7db6f'
-	// Status last changed by QA - '#85c1e9'
-	// Status last changed by Deployer - '#fcf3cf'
+  /* RFC project */
+  // Tracker order is according to deployment procedure
+  // Status last changed by TL - '#f7db6f'
+  // Status last changed by QA - '#85c1e9'
+  // Status last changed by Deployer - '#fcf3cf'
 
-	// Release tracker
-	const ReleaseStatusColorPatterns = {
-		'^New$': '#82e0aa',
-		'^Related.*': '#fcf3cf',
-		'^Merged.*': '#fcf3cf',
-		'^Tested.*': '#85c1e9',
-		'^Closed$': '#d5d8dc',
-	};
+  // Release tracker
+  const ReleaseStatusColorPatterns = {
+    "^New$": "#82e0aa",
+    "^Related.*": "#fcf3cf",
+    "^Merged.*": "#fcf3cf",
+    "^Tested.*": "#85c1e9",
+    "^Closed$": "#d5d8dc",
+  };
 
-	// RFC tracker
-	const RfcStatusColorPatterns = {
-		'^New$': '#82e0aa',
-		'^Merged.*': '#fcf3cf',
-		'^Tested.*': '#85c1e9',
-		'^Ready.*': '#f7db6f',
-		'^Authorized.*': '#f7db6f',
-		'^In Progress.*': '#fcf3cf',
-		'^Applied.*': '#fcf3cf',
-		'^Verified (OK).*': '#85c1e9',
-		'^Closed$': '#d5d8dc',
-		'^Roll-backed.*': '#ec7063',
-	};
+  // RFC tracker
+  const RfcStatusColorPatterns = {
+    "^New$": "#82e0aa",
+    "^Merged.*": "#fcf3cf",
+    "^Tested.*": "#85c1e9",
+    "^Ready.*": "#f7db6f",
+    "^Authorized.*": "#f7db6f",
+    "^In Progress.*": "#fcf3cf",
+    "^Applied.*": "#fcf3cf",
+    "^Verified (OK).*": "#85c1e9",
+    "^Closed$": "#d5d8dc",
+    "^Roll-backed.*": "#ec7063",
+  };
 
-	if (taskSelectedProjectText === 'RFC') {
-		if (taskSelectedTrackerText === 'Release') {
-			statusColorPatterns = ReleaseStatusColorPatterns;
-		} else if (taskSelectedTrackerText === 'RFC') {
-			statusColorPatterns = RfcStatusColorPatterns;
-		}
-	} else if (taskSelectedProjectText === 'Incidents') {
-		statusColorPatterns = incidentStatusColorPatterns;
-	}
+  if (taskSelectedProjectText === "RFC") {
+    if (taskSelectedTrackerText === "Release") {
+      statusColorPatterns = ReleaseStatusColorPatterns;
+    } else if (taskSelectedTrackerText === "RFC") {
+      statusColorPatterns = RfcStatusColorPatterns;
+    }
+  } else if (taskSelectedProjectText === "Incidents") {
+    statusColorPatterns = incidentStatusColorPatterns;
+  }
 
-	return statusColorPatterns;
+  return statusColorPatterns;
 }
 
 /* Helper functions */
 
 function formRefreshWatcher() {
-	setTimeout(function () {
-		// targetNode is created with a slight delay on page load and might not be found
-		// Select the node that will be observed for mutations
-		const targetNode = document.querySelector('.ui-autocomplete');
-		// Options for the observer (which mutations to observe)
-		const config = { attributes: true };
-		// Callback function to execute when mutations are observed
-		const callback = () => {
-			parseTaskFieldsAndAddTemplateButtons();
-			formRefreshWatcher();
-		};
-		// Create an observer instance linked to the callback function
-		const observer = new MutationObserver(callback);
-		// Start observing the target node for configured mutations
-		observer.observe(targetNode, config);
-	}, 100);
+  setTimeout(function () {
+    // targetNode is created with a slight delay on page load and might not be found
+    // Select the node that will be observed for mutations
+    const targetNode = document.querySelector(".ui-autocomplete");
+    // Options for the observer (which mutations to observe)
+    const config = { attributes: true };
+    // Callback function to execute when mutations are observed
+    const callback = () => {
+      parseTaskFieldsAndAddTemplateButtons();
+      formRefreshWatcher();
+    };
+    // Create an observer instance linked to the callback function
+    const observer = new MutationObserver(callback);
+    // Start observing the target node for configured mutations
+    observer.observe(targetNode, config);
+  }, 100);
 }
 
 // const devProjectsArray = [
@@ -635,197 +557,170 @@ function formRefreshWatcher() {
 // ];
 
 function getTaskSelectedOptionText(taskFieldId) {
-	const projectIdElement = document.querySelector(taskFieldId);
-	const selectedOptions = projectIdElement.options;
-	const selectedOptionIndex = projectIdElement.selectedIndex;
-	const selectedProjectOptionText = selectedOptions[selectedOptionIndex].text;
-	return selectedProjectOptionText;
+  const projectIdElement = document.querySelector(taskFieldId);
+  const selectedOptions = projectIdElement.options;
+  const selectedOptionIndex = projectIdElement.selectedIndex;
+  const selectedProjectOptionText = selectedOptions[selectedOptionIndex].text;
+  return selectedProjectOptionText;
 }
 
 function showcaseTaskPhase() {
-	const project = getTaskSelectedOptionText('#issue_project_id');
-	if (devProjectsArray.includes(project)) {
-		const taskStatus = getTaskSelectedOptionText('#issue_status_id');
-		const mrStatus = getTaskSelectedOptionText(
-			'#issue_custom_field_values_26'
-		);
-		const testStatus = getTaskSelectedOptionText(
-			'#issue_custom_field_values_4'
-		);
-		const deployedLiveDate = document.querySelector(
-			'#issue_custom_field_values_9'
-		).value;
-		let taskPhase = '';
-		let warningMessage = '';
+  const project = getTaskSelectedOptionText("#issue_project_id");
+  if (devProjectsArray.includes(project)) {
+    const taskStatus = getTaskSelectedOptionText("#issue_status_id");
+    const mrStatus = getTaskSelectedOptionText("#issue_custom_field_values_26");
+    const testStatus = getTaskSelectedOptionText("#issue_custom_field_values_4");
+    const deployedLiveDate = document.querySelector("#issue_custom_field_values_9").value;
+    let taskPhase = "";
+    let warningMessage = "";
 
-		if (taskStatus === 'In Progress' || taskStatus === 'Feedback') {
-			taskPhase = 'Development';
-		} else if (taskStatus === 'Resolved') {
-			if (mrStatus === 'REVIEW') {
-				taskPhase = 'Code review';
-			} else if (mrStatus === 'DONE') {
-				if (testStatus === 'tested') {
-					taskPhase = 'Pending deployment';
-				} else {
-					taskPhase = 'Testing';
-				}
-			}
-		} else if ((taskStatus === 'Closed') && (mrStatus === 'MERGED' && deployedLiveDate !== '')) {
-			taskPhase = 'Deployed';
-		} else if ((taskStatus === 'Resolved') && (mrStatus === 'MERGED' && deployedLiveDate !== '')) {
-			taskPhase = 'Deployed';
-			warningMessage = ' (Warning: deployed task not closed.)'
-		}
-		if (taskPhase !== '') {
-			const taskHeaderText =
-				document.querySelector('#content > h2').innerText;
-			document.querySelector(
-				'#content > h2'
-			).innerHTML = `${taskHeaderText} <span style="font-family: monospace; padding: 0.15em 0.5em 0.15em 0.4em; margin-left: 0.2em; border-radius: 6px; outline: #628DB6 solid 2px;"> &#8594 ${taskPhase}${warningMessage}</span>`;
-		}
-	}
+    if (taskStatus === "In Progress" || taskStatus === "Feedback") {
+      taskPhase = "Development";
+    } else if (taskStatus === "Resolved") {
+      if (mrStatus === "REVIEW") {
+        taskPhase = "Code review";
+      } else if (mrStatus === "DONE") {
+        if (testStatus === "tested") {
+          taskPhase = "Pending deployment";
+        } else {
+          taskPhase = "Testing";
+        }
+      }
+    } else if (taskStatus === "Closed" && mrStatus === "MERGED" && deployedLiveDate !== "") {
+      taskPhase = "Deployed";
+    } else if (taskStatus === "Resolved" && mrStatus === "MERGED" && deployedLiveDate !== "") {
+      taskPhase = "Deployed";
+      warningMessage = " (Warning: deployed task not closed.)";
+    }
+    if (taskPhase !== "") {
+      const taskHeaderText = document.querySelector("#content > h2").innerText;
+      document.querySelector(
+        "#content > h2"
+      ).innerHTML = `${taskHeaderText} <span style="font-family: monospace; padding: 0.15em 0.5em 0.15em 0.4em; margin-left: 0.2em; border-radius: 6px; outline: #628DB6 solid 2px;"> &#8594 ${taskPhase}${warningMessage}</span>`;
+    }
+  }
 }
 
 /* Button functions */
 
 function prettifyEditButton() {
-	document.querySelector('.icon-edit').classList.add('fill');
+  document.querySelector(".icon-edit").classList.add("fill");
 }
 
 function addStatusButton(htmlColorCodeWithHashtag, buttonText, statusId) {
-	// Identify div to add the button to
-	let topHorizontalToolbar = document.querySelector('#content > h2');
-	const quickButtonId = `quickButtonId${statusId}`;
-	let btn = `<a class="fill" id="${quickButtonId}" style="background-color:${htmlColorCodeWithHashtag}!important">${buttonText}</a>`;
-	topHorizontalToolbar.insertAdjacentHTML('afterend', btn);
-	document
-		.querySelector(`#${quickButtonId}`)
-		.addEventListener('click', function () {
-			document.querySelector('#issue_status_id').value = statusId;
-			document.querySelector('#issue-form').submit();
-		});
+  // Identify div to add the button to
+  let topHorizontalToolbar = document.querySelector("#content > h2");
+  const quickButtonId = `quickButtonId${statusId}`;
+  let btn = `<a class="fill" id="${quickButtonId}" style="background-color:${htmlColorCodeWithHashtag}!important">${buttonText}</a>`;
+  topHorizontalToolbar.insertAdjacentHTML("afterend", btn);
+  document.querySelector(`#${quickButtonId}`).addEventListener("click", function () {
+    document.querySelector("#issue_status_id").value = statusId;
+    document.querySelector("#issue-form").submit();
+  });
 }
 
 function addQuickButtons(issueFieldId) {
-	let issueStatusTextAndValueDOMObject =
-		createRedmineEditFieldValueAndTextObject(issueFieldId);
-	const issueFieldValue = document.querySelector(issueFieldId).value;
-	const statusColorPatterns = getProjectStatusColorPatterns();
-	for (let [key, value] of Object.entries(issueStatusTextAndValueDOMObject)) {
-		// Map colors to status values
-		let currentButtonColor = ''; // Default button color if no color is found
-		for (let [string, color] of Object.entries(statusColorPatterns)) {
-			if (value.match(new RegExp(string, 'i'))) {
-				currentButtonColor = color;
-				break;
-			}
-		}
-		if (localStorage.getItem(key) === 'Active' && issueFieldValue !== key) {
-			addStatusButton(currentButtonColor, value, key);
-		}
-	}
+  let issueStatusTextAndValueDOMObject = createRedmineEditFieldValueAndTextObject(issueFieldId);
+  const issueFieldValue = document.querySelector(issueFieldId).value;
+  const statusColorPatterns = getProjectStatusColorPatterns();
+  for (let [key, value] of Object.entries(issueStatusTextAndValueDOMObject)) {
+    // Map colors to status values
+    let currentButtonColor = ""; // Default button color if no color is found
+    for (let [string, color] of Object.entries(statusColorPatterns)) {
+      if (value.match(new RegExp(string, "i"))) {
+        currentButtonColor = color;
+        break;
+      }
+    }
+    if (localStorage.getItem(key) === "Active" && issueFieldValue !== key) {
+      addStatusButton(currentButtonColor, value, key);
+    }
+  }
 }
 
 function createAndAddHyperlinkCopyButton() {
-	// Identify div to add the button to
-	let taskName = document.querySelector('#content > h2');
+  // Identify div to add the button to
+  let taskName = document.querySelector("#content > h2");
 
-	// Preparing content to write to clipboard
-	let taskTitle = document.querySelector('head > title').text.slice(0, -17); // Turn header element into text, then remove " - TribePayments" part of the string
-	// Remove the " - <Project name>" from the end of the string
-	let cleanedStringEndingIndex = taskTitle.lastIndexOf(' - ');
-	let cleanedTaskTitle = taskTitle.substring(0, cleanedStringEndingIndex);
-	// Create a hyperlink
-	$('#footer').append(
-		`<a href="${currentPageUrl}" style="color: white">${cleanedTaskTitle}</a>`
-	);
-	// This is a working solution that copies a hyperlink | Source: https://stackoverflow.com/questions/53003980/how-to-copy-a-hypertext-link-into-clipboard-with-javascript-and-preserve-its-lin
-	const onClick = evt => {
-		const link = document.querySelector('#footer > a:nth-child(2)'); // select hyperlink to copy from DOM
-		const range = document.createRange();
-		range.selectNode(link);
-		const selection = window.getSelection();
-		selection.removeAllRanges();
-		selection.addRange(range);
+  // Preparing content to write to clipboard
+  let taskTitle = document.querySelector("head > title").text.slice(0, -17); // Turn header element into text, then remove " - TribePayments" part of the string
+  // Remove the " - <Project name>" from the end of the string
+  let cleanedStringEndingIndex = taskTitle.lastIndexOf(" - ");
+  let cleanedTaskTitle = taskTitle.substring(0, cleanedStringEndingIndex);
+  // Create a hyperlink
+  $("#footer").append(`<a href="${currentPageUrl}" style="color: white">${cleanedTaskTitle}</a>`);
+  // This is a working solution that copies a hyperlink | Source: https://stackoverflow.com/questions/53003980/how-to-copy-a-hypertext-link-into-clipboard-with-javascript-and-preserve-its-lin
+  const onClick = (evt) => {
+    const link = document.querySelector("#footer > a:nth-child(2)"); // select hyperlink to copy from DOM
+    const range = document.createRange();
+    range.selectNode(link);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
 
-		document.execCommand('copy'); // deprecated but still works
-		// navigator.clipboard.writeText(); --> for future use (and should be added to button onclick function)
-	};
-	taskName.addEventListener('click', function () {
-		// navigator.clipboard.writeText(link)
-		onClick();
-	});
+    document.execCommand("copy"); // deprecated but still works
+    // navigator.clipboard.writeText(); --> for future use (and should be added to button onclick function)
+  };
+  taskName.addEventListener("click", function () {
+    // navigator.clipboard.writeText(link)
+    onClick();
+  });
 }
 
-function createTemplateButton(
-	redmineTaskFieldId,
-	redmineTaskFieldValue,
-	createdBy
-) {
-	const taskFieldHtmlElement = document.getElementById(redmineTaskFieldId);
-	const taskTemplateButtonId = 'paramSaveTemplateButton' + redmineTaskFieldId;
-	// Preparing button values - truncating if the value is too long
-	const redmineTaskFieldValueMaxLength = 55;
-	let redmineTaskFieldValueTruncated = redmineTaskFieldValue;
-	if (redmineTaskFieldValue.length > redmineTaskFieldValueMaxLength) {
-		redmineTaskFieldValueTruncated =
-			redmineTaskFieldValue.substring(0, 55) + '...';
-	}
-	// Insert a template button (without click action)
-	if (createdBy === 'newlyInjectedButtonByPressingPlus') {
-		display = 'inline-block';
-	} else if (createdBy === 'loadedOnPageRender') {
-		display = 'none';
-	}
-	const deleteParamTemplateBtnId =
-		'deleteParamTemplateBtn' + redmineTaskFieldId;
-	let templateButtonHtml = `<button type="button" title="${redmineTaskFieldValue}" class="fill paramSaveFill paramTemplateBtnFill" id="${taskTemplateButtonId}" value="${redmineTaskFieldValue}">${redmineTaskFieldValueTruncated}</button><button style="display: ${display};" type="button" class="deleteParamTemplateBtnFill hiddenByDefault" id="${deleteParamTemplateBtnId}">✖</button>`;
-	taskFieldHtmlElement.insertAdjacentHTML('afterend', templateButtonHtml);
-	// Add click action for the button
-	const thisTemplateButtonElement =
-		document.getElementById(taskTemplateButtonId);
-	thisTemplateButtonElement.addEventListener('click', function () {
-		document.getElementById(redmineTaskFieldId).value = this.value;
-	});
-	// Add click action for the X delete button
-	document
-		.getElementById(deleteParamTemplateBtnId)
-		.addEventListener('click', function () {
-			let currentValue = localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
-			let parsedValue = JSON.parse(currentValue);
-			let index = parsedValue.indexOf(this.value); // removes this value from the array
-			parsedValue.splice(index, 1);
-			localStorage.setItem(
-				redmineTaskFieldId,
-				JSON.stringify(parsedValue)
-			);
-			this.remove(); // removes the X button
-			thisTemplateButtonElement.remove(); // removes the template button
-		});
+function createTemplateButton(redmineTaskFieldId, redmineTaskFieldLabel, redmineTaskFieldValue, createdBy) {
+  const taskFieldHtmlElement = document.getElementById(redmineTaskFieldId);
+  const taskTemplateButtonId = "paramSaveTemplateButton" + redmineTaskFieldId;
+  // Preparing button values - truncating if the value is too long
+  const redmineTaskFieldLabelMaxLength = 55;
+  let redmineTaskFieldLabelTruncated = redmineTaskFieldLabel;
+  if (redmineTaskFieldLabel.length > redmineTaskFieldLabelMaxLength) {
+    redmineTaskFieldLabelTruncated = redmineTaskFieldLabel.substring(0, 55) + "...";
+  }
+  // Insert a template button (without click action)
+  if (createdBy === "newlyInjectedButtonByPressingPlus") {
+    display = "inline-block";
+  } else if (createdBy === "loadedOnPageRender") {
+    display = "none";
+  }
+  const deleteParamTemplateBtnId = "deleteParamTemplateBtn" + redmineTaskFieldId;
+  let templateButtonHtml = `<button type="button" class="fill paramSaveFill paramTemplateBtnFill" id="${taskTemplateButtonId}" value="${redmineTaskFieldValue}">${redmineTaskFieldLabelTruncated}</button><button style="display: ${display};" type="button" class="deleteParamTemplateBtnFill hiddenByDefault" id="${deleteParamTemplateBtnId}">✖</button>`;
+  taskFieldHtmlElement.insertAdjacentHTML("afterend", templateButtonHtml);
+  // Add click action for the button
+  const thisTemplateButtonElement = document.getElementById(taskTemplateButtonId);
+  thisTemplateButtonElement.addEventListener("click", function () {
+    document.getElementById(redmineTaskFieldId).value = this.value;
+  });
+  // Add click action for the X delete button
+  document.getElementById(deleteParamTemplateBtnId).addEventListener("click", function () {
+    let currentValue = localStorage.getItem(redmineTaskFieldId);
+    let parsedValue = JSON.parse(currentValue);
+    let index = parsedValue.indexOf(this.value); // removes this value from the array
+    parsedValue.splice(index, 1);
+    localStorage.setItem(redmineTaskFieldId, JSON.stringify(parsedValue));
+    this.remove(); // removes the X button
+    thisTemplateButtonElement.remove(); // removes the template button
+  });
 }
 
 function addToggleConfigModeButton(pageName) {
-	let contentDivElement;
-	if (pageName === 'taskDetailsPage') {
-		contentDivElement = document.querySelector('#update > h3');
-	} else if (pageName === 'newPage') {
-		contentDivElement = document.querySelector('#content > h2');
-	}
-	const newIssueConfigToggleBtn = `<button type="button" class="fill paramSaveFill" id="newIssueConfigToggleBtnId">Toggle config mode</button>`;
-	contentDivElement.insertAdjacentHTML('afterend', newIssueConfigToggleBtn);
-	const thisNewIssueConfigToggleBtnId = document.getElementById(
-		'newIssueConfigToggleBtnId'
-	);
-	thisNewIssueConfigToggleBtnId.addEventListener('click', function () {
-		document.querySelectorAll('.hiddenByDefault').forEach(function (item) {
-			try {
-				item.style.display =
-					item.style.display === 'none' ? 'inline-block' : 'none';
-			} catch (error) {
-				console.log(error);
-			}
-		});
-	});
+  let contentDivElement;
+  if (pageName === "taskDetailsPage") {
+    contentDivElement = document.querySelector("#update > h3");
+  } else if (pageName === "newPage") {
+    contentDivElement = document.querySelector("#content > h2");
+  }
+  const newIssueConfigToggleBtn = `<button type="button" class="fill paramSaveFill" id="newIssueConfigToggleBtnId">Toggle config mode</button>`;
+  contentDivElement.insertAdjacentHTML("afterend", newIssueConfigToggleBtn);
+  const thisNewIssueConfigToggleBtnId = document.getElementById("newIssueConfigToggleBtnId");
+  thisNewIssueConfigToggleBtnId.addEventListener("click", function () {
+    document.querySelectorAll(".hiddenByDefault").forEach(function (item) {
+      try {
+        item.style.display = item.style.display === "none" ? "inline-block" : "none";
+      } catch (error) {
+        console.log(error);
+      }
+    });
+  });
 }
 
 /* Task content (description, notes) */
@@ -833,76 +728,68 @@ function addToggleConfigModeButton(pageName) {
 /* Removing UI elements */
 
 function removeUiElements() {
-	let removeClassesList = [
-		'other-formats',
-		'.icon-comment',
-		'.next-prev-links',
-		'#content > p',
-		'#add_to_important_list',
-		'icon-fav-off',
-		// '#sidebar',
-	];
-	removeClassesList.forEach(className =>
-		document.querySelectorAll(className).forEach(e => e.remove())
-	);
+  let removeClassesList = [
+    "other-formats",
+    ".icon-comment",
+    ".next-prev-links",
+    "#content > p",
+    "#add_to_important_list",
+    "icon-fav-off",
+    // '#sidebar',
+  ];
+  removeClassesList.forEach((className) => document.querySelectorAll(className).forEach((e) => e.remove()));
 
-	document
-		.querySelectorAll('#add_to_important_list')
-		.forEach(e => e.remove());
+  document.querySelectorAll("#add_to_important_list").forEach((e) => e.remove());
 }
 // removeUiElements();
 
 /* Task status background highlight */
 
 function taskStatusBackgroundHighlight() {
-	// Map colors to status values
-	let highlightColor = ''; // Default button color if no color is found
-	const statusElement = document.querySelector(
-		'div.status.attribute > div.value'
-	);
-	const statusValue = statusElement.textContent;
-	const statusColorPatterns = getProjectStatusColorPatterns();
-	for (let [string, color] of Object.entries(statusColorPatterns)) {
-		if (statusValue.match(new RegExp(string, 'i'))) {
-			highlightColor = color;
-			break;
-		}
-	}
-	// Replace status text with styled content
-	statusElement.innerHTML = `<span style="background-color: ${highlightColor}; padding-left: 1em; padding-right: 1em; border-radius: 3px;">${statusValue}</span>`;
+  // Map colors to status values
+  let highlightColor = ""; // Default button color if no color is found
+  const statusElement = document.querySelector("div.status.attribute > div.value");
+  const statusValue = statusElement.textContent;
+  const statusColorPatterns = getProjectStatusColorPatterns();
+  for (let [string, color] of Object.entries(statusColorPatterns)) {
+    if (statusValue.match(new RegExp(string, "i"))) {
+      highlightColor = color;
+      break;
+    }
+  }
+  // Replace status text with styled content
+  statusElement.innerHTML = `<span style="background-color: ${highlightColor}; padding-left: 1em; padding-right: 1em; border-radius: 3px;">${statusValue}</span>`;
 }
 
 /* Priority visualization */
 
 const priorityNameAndColorObject = {
-	'Very low': '#E5E4E2',
-	Low: '#ACCFF3',
-	Normal: '#72CB57',
-	High: '#F6BC00',
-	Urgent: '#FF5733',
-	Immediate: '#900C3F',
+  "Very low": "#E5E4E2",
+  Low: "#ACCFF3",
+  Normal: "#72CB57",
+  High: "#F6BC00",
+  Urgent: "#FF5733",
+  Immediate: "#900C3F",
 };
 
 function priorityVisualization() {
-	let highlightColor = ''; // Default button color if no color is found
-	const priorityElement = document.querySelector(
-		'div.priority.attribute > div.value'
-	);
-	const priorityValue = priorityElement.textContent;
-	for (let [string, color] of Object.entries(priorityNameAndColorObject)) {
-		if (priorityValue === string) {
-			highlightColor = color;
-			break;
-		}
-	}
-	// Replace priority text with styled content
-	priorityElement.innerHTML = `<span>${priorityValue}</span><span style="color: ${highlightColor}; font-size: 1.4em; ">&nbsp;&#x2776;</span>`;
+  let highlightColor = ""; // Default button color if no color is found
+  const priorityElement = document.querySelector("div.priority.attribute > div.value");
+  const priorityValue = priorityElement.textContent;
+  for (let [string, color] of Object.entries(priorityNameAndColorObject)) {
+    if (priorityValue === string) {
+      highlightColor = color;
+      break;
+    }
+  }
+  // Replace priority text with styled content
+  priorityElement.innerHTML = `<span>${priorityValue}</span><span style="color: ${highlightColor}; font-size: 1.4em; ">&nbsp;&#x2776;</span>`;
 }
 
 /* Sticky note text editor */
 
 function addStickyNoteTextEditor() {
-	GM_addStyle(`
+  GM_addStyle(`
 
 	/* This is the outer part of the Note text box*/
 	.stickyNotes {
@@ -929,7 +816,7 @@ function addStickyNoteTextEditor() {
 
 	`);
 
-	GM_addStyle(`
+  GM_addStyle(`
 
 	.showButton {
 		position: fixed;
@@ -949,108 +836,92 @@ function addStickyNoteTextEditor() {
 
 	`);
 
-	// --- Add Note text area --------------------------------------------------------
+  // --- Add Note text area --------------------------------------------------------
 
-	$('#issue-form > div > fieldset:nth-child(3)').addClass('stickyNotes');
+  $("#issue-form > div > fieldset:nth-child(3)").addClass("stickyNotes");
 
-	// Dealing with Textarea Height
-	function calcHeight(value) {
-		let numberOfLineBreaks = (value.match(/\n/g) || []).length;
-		// min-height + lines x line-height
-		let newHeight = numberOfLineBreaks * 20; // Change the first number to adjust the initial height
-		if (newHeight > 850) {
-			newHeight = 850;
-		}
-		if (newHeight < 200) {
-			newHeight = 200;
-		}
-		return newHeight;
-	}
+  // Dealing with Textarea Height
+  function calcHeight(value) {
+    let numberOfLineBreaks = (value.match(/\n/g) || []).length;
+    // min-height + lines x line-height
+    let newHeight = numberOfLineBreaks * 20; // Change the first number to adjust the initial height
+    if (newHeight > 850) {
+      newHeight = 850;
+    }
+    if (newHeight < 200) {
+      newHeight = 200;
+    }
+    return newHeight;
+  }
 
-	let textArea = document.querySelector('#issue_notes'); // select the text note inner field
+  let textArea = document.querySelector("#issue_notes"); // select the text note inner field
 
-	// Initial height
-	$('#issue_notes').val('\n\n\n\n\n\n'); // Populate the text area with newlines
-	$('textarea').prop('selectionEnd', 1); // text-cursor position (2nd line from the top)
-	textArea.style.height = calcHeight(textArea.value) + 'px';
+  // Initial height
+  $("#issue_notes").val("\n\n\n\n\n\n"); // Populate the text area with newlines
+  $("textarea").prop("selectionEnd", 1); // text-cursor position (2nd line from the top)
+  textArea.style.height = calcHeight(textArea.value) + "px";
 
-	// Constantly recalculating the height & Saving the textarea value to local storage
-	textArea.addEventListener('keyup', () => {
-		textArea.style.height = calcHeight(textArea.value) + 'px';
-		saveNoteToLocalStorage();
-	});
+  // Constantly recalculating the height & Saving the textarea value to local storage
+  textArea.addEventListener("keyup", () => {
+    textArea.style.height = calcHeight(textArea.value) + "px";
+    saveNoteToLocalStorage();
+  });
 
-	// Remove the "Notes" title from textbox top
-	document
-		.querySelector('#issue-form > div > fieldset.stickyNotes > legend')
-		.remove();
+  // Remove the "Notes" title from textbox top
+  document.querySelector("#issue-form > div > fieldset.stickyNotes > legend").remove();
 
-	// --- Add a submit button to the Note area ---------------------------------------
+  // --- Add a submit button to the Note area ---------------------------------------
 
-	$(function noteSubmitButton() {
-		// Identify div to add the button to
-		let noteArea = $('.stickyNotes');
+  $(function noteSubmitButton() {
+    // Identify div to add the button to
+    let noteArea = $(".stickyNotes");
 
-		// a button is equal to
-		let btn = $(
-			'<input type="submit" name="commit" value="Submit" data-disable-with="Submit">'
-		);
-		// a button's on-click action is
-		btn.click(function () {
-			clearNoteFromLocalStorage();
-			$('#issue-form').submit();
-		});
-		// Add the button
-		noteArea.append(btn);
-	});
+    // a button is equal to
+    let btn = $('<input type="submit" name="commit" value="Submit" data-disable-with="Submit">');
+    // a button's on-click action is
+    btn.click(function () {
+      clearNoteFromLocalStorage();
+      $("#issue-form").submit();
+    });
+    // Add the button
+    noteArea.append(btn);
+  });
 
-	// --- Save note content to Local Storage ------------------------------------------
+  // --- Save note content to Local Storage ------------------------------------------
 
-	var RedmineTaskNumber = window.location.href
-		.split('/issues/')[1]
-		.substring(0, 5);
+  var RedmineTaskNumber = window.location.href.split("/issues/")[1].substring(0, 5);
 
-	// Set Item
-	/* localStorage.setItem(key, value); */
-	function saveNoteToLocalStorage() {
-		localStorage.setItem(
-			RedmineTaskNumber,
-			document.querySelector('#issue_notes').value
-		);
-	}
+  // Set Item
+  function saveNoteToLocalStorage() {
+    localStorage.setItem(RedmineTaskNumber, document.querySelector("#issue_notes").value);
+  }
 
-	// Retrieve
-	/* let lastname = localStorage.getItem(key); */
-	// On-load --> set the textarea to the last saved value
-	document.querySelector('#issue_notes').value =
-		localStorage.getItem(RedmineTaskNumber);
+  // Retrieve
+  // On-load --> set the textarea to the last saved value
+  document.querySelector("#issue_notes").value = localStorage.getItem(RedmineTaskNumber);
 
-	// Local storage for this particular page is cleared upon clicking "Submit"
-	function clearNoteFromLocalStorage() {
-		localStorage.removeItem(RedmineTaskNumber);
-	}
+  // Local storage for this particular page is cleared upon clicking "Submit"
+  function clearNoteFromLocalStorage() {
+    localStorage.removeItem(RedmineTaskNumber);
+  }
 
-	// Add the clearNoteFromLocalStorage function to the submit buttons
-	try {
-		document
-			.querySelector('#issue-form > input[type=submit]:nth-child(7)')
-			.addEventListener('click', function () {
-				clearNoteFromLocalStorage();
-			}); // Clear local storage when clicking "Submit" }
-	} catch (e) {
-		document
-			.querySelector('#issue-form > input[type=submit]:nth-child(7)')
-			.addEventListener('click', function () {
-				clearNoteFromLocalStorage();
-			}); // Clear local storage when clicking "Submit"}
-	}
+  // Add the clearNoteFromLocalStorage function to the submit buttons
+  try {
+    document.querySelector("#issue-form > input[type=submit]:nth-child(7)").addEventListener("click", function () {
+      clearNoteFromLocalStorage();
+    }); // Clear local storage when clicking "Submit" }
+  } catch (e) {
+    document.querySelector("#issue-form > input[type=submit]:nth-child(7)").addEventListener("click", function () {
+      clearNoteFromLocalStorage();
+    }); // Clear local storage when clicking "Submit"}
+  }
 
-	// --- Add a hide button to the Note area ------------------------------------------
-	/**
-	 * Note hide button
-	 */
+  // --- Add a hide button to the Note area ------------------------------------------
+  /**
+   * Note hide button
+   */
 
-	GM_addStyle(`
+  GM_addStyle(`
 
 	.hideButton {
 		margin-left: 5px !important;
@@ -1058,133 +929,123 @@ function addStickyNoteTextEditor() {
 
 	`);
 
-	$(function noteHide() {
-		// Identify div to add the button to
-		let noteArea = $('.stickyNotes');
+  $(function noteHide() {
+    // Identify div to add the button to
+    let noteArea = $(".stickyNotes");
 
-		// a button is equal to
-		let btnHide = $(
-			'<input type="button" class="hideButton" value="Hide">'
-		);
+    // a button is equal to
+    let btnHide = $('<input type="button" class="hideButton" value="Hide">');
 
-		// "Hide" button's onClick action
-		function hideNote() {
-			// onClick -> Hide the text area
-			$('#issue-form > div > fieldset.stickyNotes').hide();
-			$('#footer > input:nth-child(5)').hide();
+    // "Hide" button's onClick action
+    function hideNote() {
+      // onClick -> Hide the text area
+      $("#issue-form > div > fieldset.stickyNotes").hide();
+      $("#footer > input:nth-child(5)").hide();
 
-			// Add "Show note" button
-			$(function unhideNote() {
-				let minimizedBtn = $(
-					'<input type="button" class="showButton Resolved" value="Show note">'
-				);
-				// a button's on-click action is
-				minimizedBtn.click(function () {
-					document.querySelector('#issue-form > div > fieldset.stickyNotes').show(); // todo
-					// document.querySelector("#update") -> this should be set to inline-block
-					$('#footer > input').hide();
-				});
+      // Add "Show note" button
+      $(function unhideNote() {
+        let minimizedBtn = $('<input type="button" class="showButton Resolved" value="Show note">');
+        // a button's on-click action is
+        minimizedBtn.click(function () {
+          document.querySelector("#issue-form > div > fieldset.stickyNotes").show(); // todo
+          // document.querySelector("#update") -> this should be set to inline-block
+          $("#footer > input").hide();
+        });
 
-				// Add the button
-				$('div#footer').append(minimizedBtn);
-			});
-		}
-		hideNote();
-		btnHide.click(hideNote);
+        // Add the button
+        $("div#footer").append(minimizedBtn);
+      });
+    }
+    hideNote();
+    btnHide.click(hideNote);
 
-		// Add the button
-		noteArea.append(btnHide);
-	});
+    // Add the button
+    noteArea.append(btnHide);
+  });
 }
 
 /* Parsing functions */
 
 function createRedmineEditFieldValueAndTextObject(editFieldElementId) {
-	const editFieldElement = document.querySelector(editFieldElementId);
-	const redmineEditFieldValueAndTextObject = {};
-	for (let i = 0; i < editFieldElement.children.length; i++) {
-		redmineEditFieldValueAndTextObject[
-			editFieldElement.children.item(i).value
-		] = editFieldElement.children.item(i).text;
-	}
-	return redmineEditFieldValueAndTextObject;
+  const editFieldElement = document.querySelector(editFieldElementId);
+  const redmineEditFieldValueAndTextObject = {};
+  for (let i = 0; i < editFieldElement.children.length; i++) {
+    redmineEditFieldValueAndTextObject[editFieldElement.children.item(i).value] =
+      editFieldElement.children.item(i).text;
+  }
+  return redmineEditFieldValueAndTextObject;
 }
 
 // Parse the create page / copied task page fields
 function parseTaskFieldsAndAddTemplateButtons() {
-	document
-		.querySelectorAll(redmineTaskFieldIdsString)
-		.forEach(function (taskFieldHtmlElement) {
-			try {
-				const redmineTaskFieldId = taskFieldHtmlElement.id;
+  document.querySelectorAll(redmineTaskFieldIdsString).forEach(function (taskFieldHtmlElement) {
+    try {
+      const redmineTaskFieldId = taskFieldHtmlElement.id;
+      // Add a save button (" + ") to the field
+      const plusButtonId = "paramSave" + taskFieldHtmlElement.id;
+      const plusButtonHtml = `<input style="display: none;" type="button" class="fill paramSaveFill paramSaveFillPlus hiddenByDefault" id="${plusButtonId}" value="+">`;
+      taskFieldHtmlElement.insertAdjacentHTML("afterend", plusButtonHtml);
+      // Add onclick action to the save button (" + ")
+      document.getElementById(plusButtonId).addEventListener("click", function () {
+        const redmineTaskFieldValue = taskFieldHtmlElement.value;
+        const redmineTaskFieldLabel =
+          taskFieldHtmlElement.textContent !== ""
+            ? taskFieldHtmlElement.selectedOptions[0].textContent
+            : redmineTaskFieldValue;
+        // If the value doesn't exist yet - add new value
+        if (localStorage.getItem(redmineTaskFieldId) === null) {
+          localStorage.setItem(
+            redmineTaskFieldId,
+            JSON.stringify([
+              {
+                redmineTaskFieldLabel: redmineTaskFieldLabel,
+                redmineTaskFieldValue: redmineTaskFieldValue,
+              },
+            ])
+          );
+          // Append results and overwrite existing value
+        } else if (localStorage.getItem(redmineTaskFieldId) !== null) {
+          let currentValue = localStorage.getItem(redmineTaskFieldId); // possible value: "[{redmineTaskFieldLabel: redmineTaskFieldLabel, redmineTaskFieldValue: redmineTaskFieldValue}, {}, {}]"
+          let parsedValue = JSON.parse(currentValue);
+          parsedValue.push({
+            redmineTaskFieldLabel: redmineTaskFieldLabel,
+            redmineTaskFieldValue: redmineTaskFieldValue,
+          });
+          localStorage.setItem(redmineTaskFieldId, JSON.stringify(parsedValue));
+        }
+        // Dynamically create a template button for the saved value
+        createTemplateButton(
+          redmineTaskFieldId,
+          redmineTaskFieldLabel,
+          redmineTaskFieldValue,
+          "newlyInjectedButtonByPressingPlus"
+        );
+      });
+      // Upon page load - create template buttons using the localStorage values
+      if (localStorage.getItem(redmineTaskFieldId) !== null) {
+        const currentValue = localStorage.getItem(redmineTaskFieldId); // possible value: "[{redmineTaskFieldLabel: redmineTaskFieldLabel, redmineTaskFieldValue: redmineTaskFieldValue}, {}, {}]"
+        const parsedValue = JSON.parse(currentValue);
 
-				// Add a save button (" + ") to the field
-				const plusButtonId = 'paramSave' + taskFieldHtmlElement.id;
-				const plusButtonHtml = `<input style="display: none;" type="button" class="fill paramSaveFill paramSaveFillPlus hiddenByDefault" id="${plusButtonId}" value="+">`;
-				taskFieldHtmlElement.insertAdjacentHTML(
-					'afterend',
-					plusButtonHtml
-				);
-				// Add onclick action to the save button (" + ")
-				document
-					.getElementById(plusButtonId)
-					.addEventListener('click', function () {
-						const redmineTaskFieldValue =
-							taskFieldHtmlElement.value;
-
-						// If the value doesn't exist yet - add new value
-						if (localStorage.getItem(redmineTaskFieldId) === null) {
-							localStorage.setItem(
-								redmineTaskFieldId,
-								JSON.stringify([redmineTaskFieldValue])
-							);
-							// Append results and overwrite existing value
-						} else if (
-							localStorage.getItem(redmineTaskFieldId) !== null
-						) {
-							let currentValue =
-								localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
-							let parsedValue = JSON.parse(currentValue);
-							parsedValue.push(redmineTaskFieldValue);
-							localStorage.setItem(
-								redmineTaskFieldId,
-								JSON.stringify(parsedValue)
-							);
-						}
-						// Dynamically create a template button for the saved value
-						createTemplateButton(
-							redmineTaskFieldId,
-							redmineTaskFieldValue,
-							'newlyInjectedButtonByPressingPlus'
-						);
-					});
-
-				// Upon page load - create template buttons using the localStorage values
-				if (localStorage.getItem(redmineTaskFieldId) !== null) {
-					let currentValue = localStorage.getItem(redmineTaskFieldId); // possible value: "['some', 'value', 'here']"
-					let parsedValue = JSON.parse(currentValue);
-
-					parsedValue.forEach(function (
-						redmineTaskFieldValueFromArray
-					) {
-						createTemplateButton(
-							redmineTaskFieldId,
-							redmineTaskFieldValueFromArray,
-							'loadedOnPageRender'
-						);
-					});
-				}
-			} catch (error) {
-				console.log(error);
-			}
-		});
+        parsedValue.forEach(function (labelAndValueObject) {
+          createTemplateButton(
+            redmineTaskFieldId,
+            labelAndValueObject.redmineTaskFieldLabel,
+            labelAndValueObject.redmineTaskFieldValue,
+            "loadedOnPageRender"
+          );
+        });
+      }
+    } catch (error) {
+      console.log("Error in parseTaskFieldsAndAddTemplateButtons: " + error);
+    }
+  });
 }
 
 /* Settings modal */
 
 function insertSettingsModalIconAndSettingsContent() {
-	let SettingsModal = $(
-		`
+  let SettingsModal = $(
+    `
 		<a id="modalOpenIconId" class="icon icon-settings dropdownIcon"></a>
 		<div id="settingsModalId" class="settingsModal">
 			<div class="settingsModalContentClass">
@@ -1245,47 +1106,46 @@ function insertSettingsModalIconAndSettingsContent() {
 				</div>
 		</div>
 		`
-	);
-	$('#loggedas').prepend(SettingsModal);
+  );
+  $("#loggedas").prepend(SettingsModal);
 
-	// Get the modal
-	var modal = document.getElementById('settingsModalId');
-	// Get the button that opens the modal
-	var btn = document.getElementById('modalOpenIconId');
-	// Get the <span> element that closes the modal
-	var span = document.getElementsByClassName('close')[0];
-	// When the user clicks the button, open the modal
-	btn.onclick = function () {
-		modal.style.display = 'block';
-	};
-	// When the user clicks on <span> (x), close the modal
-	span.onclick = function () {
-		modal.style.display = 'none';
-	};
-	// When the user clicks anywhere outside of the modal, close it
-	window.onclick = function (event) {
-		if (event.target == modal) {
-			modal.style.display = 'none';
-		}
-	};
+  // Get the modal
+  var modal = document.getElementById("settingsModalId");
+  // Get the button that opens the modal
+  var btn = document.getElementById("modalOpenIconId");
+  // Get the <span> element that closes the modal
+  var span = document.getElementsByClassName("close")[0];
+  // When the user clicks the button, open the modal
+  btn.onclick = function () {
+    modal.style.display = "block";
+  };
+  // When the user clicks on <span> (x), close the modal
+  span.onclick = function () {
+    modal.style.display = "none";
+  };
+  // When the user clicks anywhere outside of the modal, close it
+  window.onclick = function (event) {
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+  };
 
-	// Add redmine fields to the config module by parsing the DOM
-	const supportButtonConfigDiv = document.getElementById('supportButtonDiv');
-	let issueStatusTextAndValueDOMObject =
-		createRedmineEditFieldValueAndTextObject('#issue_status_id');
-	for (let [key, value] of Object.entries(issueStatusTextAndValueDOMObject)) {
-		// Check if item exists in localStorage. If it doesn't - add the status to the localStorage.
-		if (localStorage.getItem(key) === null) {
-			localStorage.setItem(key, 'Inactive'); // config set to inactive by default
-		}
+  // Add redmine fields to the config module by parsing the DOM
+  const supportButtonConfigDiv = document.getElementById("supportButtonDiv");
+  let issueStatusTextAndValueDOMObject = createRedmineEditFieldValueAndTextObject("#issue_status_id");
+  for (let [key, value] of Object.entries(issueStatusTextAndValueDOMObject)) {
+    // Check if item exists in localStorage. If it doesn't - add the status to the localStorage.
+    if (localStorage.getItem(key) === null) {
+      localStorage.setItem(key, "Inactive"); // config set to inactive by default
+    }
 
-		// Check the status of the item in localStorage and set the checkbox accordingly
-		let isActive = ''; // unchecked by default
-		if (localStorage.getItem(key) === 'Active') {
-			isActive = ' checked';
-		}
-		// Create a slider which is either checked or unchecked according to the localStorage status
-		let supportButtonSetting = `
+    // Check the status of the item in localStorage and set the checkbox accordingly
+    let isActive = ""; // unchecked by default
+    if (localStorage.getItem(key) === "Active") {
+      isActive = " checked";
+    }
+    // Create a slider which is either checked or unchecked according to the localStorage status
+    let supportButtonSetting = `
 	<div class="settingConfigDiv gridWrapper">
 		<p>${value}</p>
 		<label class="switch">
@@ -1294,53 +1154,45 @@ function insertSettingsModalIconAndSettingsContent() {
 		</label>
 	</div>
 	`;
-		supportButtonConfigDiv.innerHTML += supportButtonSetting;
+    supportButtonConfigDiv.innerHTML += supportButtonSetting;
 
-		setTimeout(function () {
-			// this is needed because otherwise the event listener won't work. Exact ms needed unknown.
-			// On checkbox click, change the status of the localStorage item to either "Active" or "Inactive"
-			document.getElementById(key).addEventListener('click', function () {
-				if (this.checked) {
-					localStorage.setItem(key, 'Active');
-				} else {
-					localStorage.setItem(key, 'Inactive');
-					document.getElementById('quickButtonId' + key).remove();
-				}
-			});
-		}, 500);
-	}
+    setTimeout(function () {
+      // this is needed because otherwise the event listener won't work. Exact ms needed unknown.
+      // On checkbox click, change the status of the localStorage item to either "Active" or "Inactive"
+      document.getElementById(key).addEventListener("click", function () {
+        if (this.checked) {
+          localStorage.setItem(key, "Active");
+        } else {
+          localStorage.setItem(key, "Inactive");
+          document.getElementById("quickButtonId" + key).remove();
+        }
+      });
+    }, 500);
+  }
 }
 
 /* Keyboard shortcut for Edit and Submit (alt + q and alt + w) */
 
 function addKeyboardShortcutForEditAndSubmit() {
-	try {
-		document.querySelector(
-			'#content > div:nth-child(6) > a.icon.icon-edit'
-		).accessKey = 'q'; // Edit task when shortcut Alt + q is pressed
-		document.querySelector(
-			'#issue-form > input[type=submit]:nth-child(7)'
-		).accessKey = 'w'; // Save task when shortcut Alt + w is pressed
-	} catch (e) {
-		console.log('First block: ' + e);
+  try {
+    document.querySelector("#content > div:nth-child(6) > a.icon.icon-edit").accessKey = "q"; // Edit task when shortcut Alt + q is pressed
+    document.querySelector("#issue-form > input[type=submit]:nth-child(7)").accessKey = "w"; // Save task when shortcut Alt + w is pressed
+  } catch (e) {
+    console.log("First block: " + e);
 
-		try {
-			document.querySelector(
-				'#content > div:nth-child(2) > a.icon.icon-edit'
-			).accessKey = 'q'; // Edit task when shortcut Alt + q is pressed (when "Successful update." is displayed)
-			document.querySelector(
-				'#issue-form > input[type=submit]:nth-child(7)'
-			).accessKey = 'w'; // Save task when shortcut Alt + w is pressed
-		} catch (e) {
-			console.log('Second block: ' + e);
-		}
-	}
+    try {
+      document.querySelector("#content > div:nth-child(2) > a.icon.icon-edit").accessKey = "q"; // Edit task when shortcut Alt + q is pressed (when "Successful update." is displayed)
+      document.querySelector("#issue-form > input[type=submit]:nth-child(7)").accessKey = "w"; // Save task when shortcut Alt + w is pressed
+    } catch (e) {
+      console.log("Second block: " + e);
+    }
+  }
 }
 
 /* Search bar */
 
 function searchBarImprovements() {
-	document.querySelector('#q').classList.add('searchLength');
+  document.querySelector("#q").classList.add("searchLength");
 }
 
 /* Highlight terms */
@@ -1368,10 +1220,10 @@ GM_addStyle(`
 // document.querySelector("#content > div.issue.tracker-1.status-2.priority-4.priority-high2.child.details > div.attributes > div:nth-child(2) > div:nth-child(2) > div.cf_26.attribute > div.value").classList.add("fieldOfInterest") // working
 
 function highlight(jsPath, highlightFieldList) {
-	let field = document.querySelector(jsPath).innerText;
-	if (highlightFieldList.includes(field)) {
-		field.addClass('fieldOfInterest');
-	}
+  let field = document.querySelector(jsPath).innerText;
+  if (highlightFieldList.includes(field)) {
+    field.addClass("fieldOfInterest");
+  }
 }
 // https://stackoverflow.com/questions/25487402/javascript-select-nested-class-element/25487543
 
@@ -1395,57 +1247,46 @@ function highlight(jsPath, highlightFieldList) {
 
 /* Main */
 document.onreadystatechange = function () {
-	if (document.readyState === 'interactive') {
-		// Functions to run on every page
-		searchBarImprovements();
-		insertSettingsModalIconAndSettingsContent();
-		// Functions to run on a specific page
-		if (
-			/https:\/\/redmine\.tribepayments\.com\/issues\/.+/.test(
-				currentPageUrl
-			) === true // Task details page (Edit module)
-		) {
-			prettifyEditButton();
-			showcaseTaskPhase();
-			addQuickButtons('#issue_status_id');
-			createAndAddHyperlinkCopyButton();
-			parseTaskFieldsAndAddTemplateButtons(); // does this work here? When editing a task?
-			addToggleConfigModeButton('taskDetailsPage'); // does this work here? When editing a task?
-			addStickyNoteTextEditor();
-			taskStatusBackgroundHighlight();
-			priorityVisualization();
-			addKeyboardShortcutForEditAndSubmit();
-		} else if (
-			/https:\/\/redmine\.tribepayments\.com\/projects\/.+\/issues\/(new|.+\/copy)/.test(
-				currentPageUrl
-			) === true // New task or Copy task page
-		) {
-			// addQuickButtons();
-			formRefreshWatcher();
-			parseTaskFieldsAndAddTemplateButtons();
-			addToggleConfigModeButton('newPage');
-			addKeyboardShortcutForEditAndSubmit();
-		} else if (
-			/https:\/\/redmine\.tribepayments\.com\/projects\/.+\/wiki.*/.test(
-				currentPageUrl
-			) === true // Wiki page
-		) {
-			// wiki redesign
-			addKeyboardShortcutForEditAndSubmit();
-		} else {
-			// Design inserts
-		}
-	}
+  if (document.readyState === "interactive") {
+    // Functions to run on every page
+    searchBarImprovements();
+    insertSettingsModalIconAndSettingsContent();
+    // Functions to run on a specific page
+    if (/https:\/\/redmine\.tribepayments\.com\/issues\/.+/.test(currentPageUrl) === true) {
+      // Task details page (Edit module)
+      prettifyEditButton();
+      showcaseTaskPhase();
+      addQuickButtons("#issue_status_id");
+      createAndAddHyperlinkCopyButton();
+      parseTaskFieldsAndAddTemplateButtons();
+      addToggleConfigModeButton("taskDetailsPage");
+      addStickyNoteTextEditor();
+      taskStatusBackgroundHighlight();
+      priorityVisualization();
+      addKeyboardShortcutForEditAndSubmit();
+    } else if (
+      /https:\/\/redmine\.tribepayments\.com\/projects\/.+\/issues\/(new|.+\/copy)/.test(currentPageUrl) === true
+    ) {
+      // New task or Copy task page
+      // addQuickButtons();
+      formRefreshWatcher();
+      parseTaskFieldsAndAddTemplateButtons();
+      addToggleConfigModeButton("newPage");
+      addKeyboardShortcutForEditAndSubmit();
+    } else if (
+      /https:\/\/redmine\.tribepayments\.com\/projects\/.+\/wiki.*/.test(currentPageUrl) === true // Wiki page
+    ) {
+      // wiki redesign
+      addKeyboardShortcutForEditAndSubmit();
+    } else {
+      // Design inserts
+    }
+  }
 };
-
 
 // # To do
 // - Implement slider without configuration (temporary)
 // - Refactor settings storage
-
-
-
-
 
 // table td {
 //     outline: white solid 1px;
@@ -1463,16 +1304,11 @@ document.onreadystatechange = function () {
 //     direction: rtl;
 // }
 
-
-
-
 // // Helper function
-// function selectOptionFromElement(id, valueToSelect) {    
+// function selectOptionFromElement(id, valueToSelect) {
 //     let element = document.getElementById(id);
 //     element.value = valueToSelect;
 // }
-
-
 
 // // Find percentage
 // const donePercentageStr = document.querySelector("td.closed").title.replace('%', '')
@@ -1492,16 +1328,11 @@ document.onreadystatechange = function () {
 // document.querySelectorAll('.timelineBlock').forEach((timelineBlock) => {
 //   timelineBlock.addEventListener('click', () => {
 //     // Set the done percentage (from a list of options)
-//     selectOptionFromElement('issue_done_ratio', donePercentageStr);    
+//     selectOptionFromElement('issue_done_ratio', donePercentageStr);
 //     // Submit the form
 //     document.querySelector('#issue-form').submit()
 //   });
 // });
-
-
-
-
-
 
 // /* This is all for later implementation */
 
@@ -1520,18 +1351,6 @@ document.onreadystatechange = function () {
 // functionName()}
 // }
 
-
-
-
-
-
-
-
-
-
 // Display settings for all pages:
 // Unique ID for each project?
 // This is also not a must have feature.
-
-
-
