@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ldRedmineUi
-// @version      0.1
+// @version      1.0.0
 // @author       ld
 // @match        redmine.tribepayments.com/*
 // @grant        GM_addStyle
@@ -12,420 +12,520 @@
 
 /* CSS */
 GM_addStyle(`
-/* Task description and notes */
-
-div.cf_90.attribute {
-	font-size: 1em;
-	border-radius: 6px;
-	box-shadow: rgba(6, 24, 44, 0.2) 0px 0px 0px 2px, rgba(6, 24, 44, 0.45) 0px 4px 6px -1px, rgba(255, 255, 255, 0.08) 0px 1px 0px inset !important;
-	background-color: white;
-	padding: 0.5em 1em;
-	margin: 0.8em 0.4em;
-}
-
-/* Page Global CSS */
-.tab-content {
-	border: none;
-}
-
-#footer, #footer > a {
-	border-top: none;
-	color: white;
-}
-
-/*
-input {
-	font-family: Inter, "Helvetica Neue", Helvetica, sans-serif;
-	background-color: #80cc74;
-}
-*/
-
-p {
-	margin-top: 10px !important;
-	margin-bottom: 10px !important;
-}
-
-/* Top bar of the whole page that is initially blue */
-/* div#header {
-	background-color: blue;
-}*/
-
-
-
-/* Settings modal */
-
-/* The Modal (background) */
-.settingsModal {
-	display: none; /* Hidden by default */
-	position: fixed; /* Stay in place */
-	z-index: 1; /* Sit on top */
-	padding-top: 100px; /* Location of the box */
-	left: 0;
-	top: 0;
-	width: 100%; /* Full width */
-	height: 100%; /* Full height */
-	overflow: auto; /* Enable scroll if needed */
-	background-color: rgb(0,0,0); /* Fallback color */
-	background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-	margin-left: 0!important; /* Remove the margin otherwise there's a gap */
-}
-
-/* settingsModal Content */
-.settingsModalContentClass {
-	background-color: #fefefe;
-	color: #000;
-	margin: auto;
-	padding: 2.5rem;
-	border: 1px solid #888;
-	width: fit-content;
-	border-radius: 6px;
-	font-family: Inter, sans-serif;
-	height: auto;
-	margin-bottom: 20%;
-	overflow: auto;
-}
-
-/* The Close Button */
-.close {
-	color: #aaaaaa;
-	float: right;
-	font-size: 28px;
-	font-weight: bold;
-}
-
-.close:hover,
-	.close:focus {
-	color: #000;
-	text-decoration: none;
-	cursor: pointer;
-}
-
-
-/* Settings modal content */
-
-/* settingDiv */
-.settingConfigDiv {
-	margin-top: 10px;
-	margin-bottom: 10px;
-	align-items: center;
-}
-
-.gridWrapper {
-	display: grid;
-	grid-template-columns: 60% 40%;
-}
-
-p {
-	color: #000000;
-	font-size: 14px;
-}
-
-#settingsModalId > div > hr {
-	margin-top: 14px;
-	margin-bottom: 28px;
-}
-
-#settingsModalId > div > h1 {
-	margin-top: 18px!important;
-	margin-bottom: 26px!important;
-	font-size: 28px!important;
-}
-
-#settingsModalId > div > h2 {
-	margin-top: 16px!important;
-	margin-bottom: 18px!important;
-	font-size: 22px!important;
-}
-
-#settingsModalId > div > h3 {
-	margin-top: 18px!important;
-	margin-bottom: 16px!important;
-	font-size: 18px!important;
-}
-
-.switch {
-	position: relative;
-	display: inline-block;
-	width: 60px;
-	height: 34px;
-	transform: scale(0.8);
-}
-
-.switch input {
-	opacity: 0;
-	width: 0;
-	height: 0;
-}
-
-.slider {
-	position: absolute;
-	cursor: pointer;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background-color: #ccc;
-	-webkit-transition: .4s;
-	transition: .4s;
-	transform: scale(0.8);
-}
-
-.slider:before {
-	position: absolute;
-	content: "";
-	height: 26px;
-	width: 26px;
-	left: 4px;
-	bottom: 4px;
-	background-color: white;
-	-webkit-transition: .4s;
-	transition: .4s;
-}
-
-input:checked + .slider {
-	background-color: #00C853;
-}
-
-input:focus + .slider {
-	box-shadow: 0 0 1px #00C853;
-}
-
-input:checked + .slider:before {
-	-webkit-transform: translateX(26px);
-	-ms-transform: translateX(26px);
-	transform: translateX(26px);
-}
-
-/* Rounded sliders */
-.slider.round {
-	border-radius: 34px;
-}
-
-.slider.round:before {
-	border-radius: 50%;
-}
-
-.alertBox {
-	position: relative;
-	padding: 0.75rem 1.25rem;
-	padding-left: 1rem;
-	padding-top: 0.35rem;
-	padding-bottom: 0.75rem;
-	margin-bottom: 1rem;
-	border: 1px solid transparent;
-	border-radius: 0.3rem;
-	color: #023164;
-	background-color: #cce5ff;
-	border-color: #b8daff;
-	font-size: 14px;
-}
-
-.alertBox > span {
-	font-size: 1.8em;
-}
-
-.paramSaveFillPlus {
-	background-color: #e7ffd4;
-}
-
-.paramFavoriteFill {
-	background-color: #ffeaa4;
-  line-height: 4px;
-  font-size: 1rem;
-  padding: 0.25rem;
-}
-.paramFavoriteFill:hover {
-  cursor: pointer;
-  background-color: #ffe282;
-}
-.paramFavoriteFill:active {
-  background-color: #ffd23c;
-}
-
-
-/* Buttons */
-
-/* optional - add  "input[type="submit"]' as a selector below in order to style the submit button */
-.fill, input[type="submit"]{
-	font-family: "Inter", sans-serif!important;
-	font-size: 12px;
-	font-weight: 600;
-	line-height: 1.15;
-	background-color: #e1ecf4;
-	border-radius: 5px;
-	border: 1px solid transparent;
-	box-shadow: rgba(255, 255, 255, .7) 0 1px 0 0 inset;
-	box-sizing: border-box;
-	color: #0d3d61;
-	cursor: pointer;
-	display: inline-block;
-	margin: 2px;
-	padding: 8px 4px;
-	outline: none;
-	position: relative;
-	text-align: center;
-	text-decoration: none;
-	user-select: none;
-	-webkit-user-select: none;
-	touch-action: manipulation;
-	vertical-align: middle;
-	white-space: nowrap;
-	box-shadow: inset 0 0 100px 100px rgba(0, 0, 0, 0.03);
-}
-
-.fill:hover,
-.fill:focus {
-	/* color: #2c5777;
-	text-decoration: none;
-	box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.25); */
-	filter: brightness(76%) contrast(190%);
-	text-decoration: none;
-	color: #0d3d61;
-	/* -webkit-text-stroke: 0.03vw #0d3d61; */
-}
-
-.paramSaveFill {
-	min-width: 20px;
-	padding: 0px 4px;
-	font-weight: bold;
-}
-
-/* Edit button */
-a.icon.icon-edit.fill {
-    padding-left: 2em;
-    padding-right: 1.2em;
-    padding-top: 0.4em;
-    padding-bottom: 0.5em;
-    display: inline;
-    outline: #462068 solid 1px;
-}
-
-/* Submit button */
-input[type="submit"] {
-	text-align: center;
-	font-size: 12px;
-	font-weight: 600;
-	background-color: #05DCA2;
-	padding-top: 8px;
-	padding-bottom: 12px;
-	padding-left: 20px;
-	padding-right: 20px;
-	margin-top: 10px;
-	margin-bottom: 10px;
-	margin-left: 10px;
-	margin-right: 10px;
-	min-width: 70px;
-	min-height: 30px;
-	color: white;
-}
-
-input[type="submit"]:hover {
-	background-color: #05DCA2;
-	text-decoration: none;
-	box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.25);
-}
-
-
-
-/* Template buttons */
-
-/* X delete symbol after each template content button */
-.paramTemplateBtnFill {
-	padding-left: 0.4rem;
-}
-
-.deleteParamTemplateBtnFill {
-	color: #C70039;
-	font-size: 0.8em;
-	margin-left: 0;
-	padding: 0.3rem;
-	margin-right: 0.6rem;
-	font-weight: 100;
-	border: none;
-	background-color: transparent;
-	cursor: pointer;
-}
-
-.deleteParamTemplateBtnFill:hover {
-	background-color: #e8d6dc;
-}
-
-
-
-h2 {
-	font-size: 1.6em;
-}
-
-.fontsize16 {
-	font-size: 1em;
-}
-
-
-
-/* Copy task hyperlink */
-#content > h2 {
-	cursor: pointer;
-}
-
-#content > h2:after {
-	padding-left: 6px;
-	padding-top: 4px;
-	cursor: pointer;
-	/* content: "❐"; */
-	font-size: 1em;
-	color: #0d3d61;
-}
-
-#content > h2:hover, #content > h2:hover:after {
-	color: #377FB4;
-}
-
-#content > h2:active, #content > h2:active:after {
-	color: #82e0aa;
-}
-
-
-
-/* Search bar */
-
-.searchLength {
-	width: 50vw !important;
-}
-
-
-
-/* Progress bar */
-
-.progressBar {
-	width: 10em;
-	height: 0.5em;
-	background: repeating-linear-gradient(
-		to right,
-		#ddd,
-		#ddd 4%,
-		transparent 4%,
-		transparent 5%
-	  ),
-	  repeating-linear-gradient(
-		to right,
-		green,
-		green 8%,
-		transparent 8%,
-		transparent 10%
-	  );
-  
-	background-size: 200%, 100%;
-	background-position: -100%;
-	background-repeat: repeat-y;
-}
-
-
-
-/* Misc */
-
-.contextual {
-	color: white;
-}
+  /* Task description and notes */
+
+  div.cf_90.attribute {
+    font-size: 1em;
+    border-radius: 6px;
+    box-shadow: rgba(6, 24, 44, 0.2) 0px 0px 0px 2px, rgba(6, 24, 44, 0.45) 0px 4px 6px -1px, rgba(255, 255, 255, 0.08) 0px 1px 0px inset !important;
+    background-color: white;
+    padding: 0.5em 1em;
+    margin: 0.8em 0.4em;
+  }
+
+  /* Page Global CSS */
+  .tab-content {
+    border: none;
+  }
+
+  #footer, #footer > a {
+    border-top: none;
+    color: white;
+  }
+
+  /*
+  input {
+    font-family: Inter, "Helvetica Neue", Helvetica, sans-serif;
+    background-color: #80cc74;
+  }
+  */
+
+  p {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+  }
+
+  /* Top bar of the whole page that is initially blue */
+  /* div#header {
+    background-color: blue;
+  }*/
+
+
+
+  /* Settings modal */
+
+  #modalOpenIconId:hover {
+    cursor: pointer;
+  }
+
+  /* The Modal (background) */
+  .settingsModal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    margin-left: 0!important; /* Remove the margin otherwise there's a gap */
+  }
+
+  /* settingsModal Content */
+  .settingsModalContentClass {
+    background-color: #fefefe;
+    color: #000;
+    margin: auto;
+    padding: 2.5rem;
+    border: 1px solid #888;
+    width: fit-content;
+    border-radius: 6px;
+    font-family: Inter, sans-serif;
+    height: auto;
+    margin-bottom: 20%;
+    overflow: auto;
+  }
+
+  /* The Close Button */
+  .close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .close:hover,
+    .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+
+  /* Settings modal content */
+
+  /* settingDiv */
+  .settingConfigDiv {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+
+  .gridWrapper {
+    display: grid;
+    grid-template-columns: 60% 40%;
+  }
+
+  p {
+    color: #000000;
+    font-size: 14px;
+  }
+
+  #settingsModalId > div > hr {
+    margin-top: 14px;
+    margin-bottom: 28px;
+  }
+
+  #settingsModalId > div > h1 {
+    margin-top: 18px!important;
+    margin-bottom: 26px!important;
+    font-size: 28px!important;
+  }
+
+  #settingsModalId > div > h2 {
+    margin-top: 16px!important;
+    margin-bottom: 18px!important;
+    font-size: 22px!important;
+  }
+
+  #settingsModalId > div > h3 {
+    margin-top: 18px!important;
+    margin-bottom: 16px!important;
+    font-size: 18px!important;
+  }
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+    transform: scale(0.8);
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+    transform: scale(0.8);
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  input:checked + .slider {
+    background-color: #00C853;
+  }
+
+  input:focus + .slider {
+    box-shadow: 0 0 1px #00C853;
+  }
+
+  input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+
+  .alertBox {
+    position: relative;
+    padding: 0.75rem 1.25rem;
+    padding-left: 1rem;
+    padding-top: 0.35rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 0.3rem;
+    color: #023164;
+    background-color: #cce5ff;
+    border-color: #b8daff;
+    font-size: 14px;
+  }
+
+  .alertBox > span {
+    font-size: 1.8em;
+  }
+
+  .paramSaveFillPlus {
+    background-color: #e7ffd4;
+  }
+
+  .paramFavoriteFill {
+    background-color: #ffeaa4;
+    line-height: 4px;
+    font-size: 1rem;
+    padding: 0.25rem;
+  }
+  .paramFavoriteFill:hover {
+    cursor: pointer;
+    background-color: #ffe282;
+  }
+  .paramFavoriteFill:active {
+    background-color: #ffd23c;
+  }
+
+
+  /* Buttons */
+
+  /* optional - add  "input[type="submit"]' as a selector below in order to style the submit button */
+  .fill, input[type="submit"]{
+    font-family: "Inter", sans-serif!important;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.15;
+    background-color: #e1ecf4;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    box-shadow: rgba(255, 255, 255, .7) 0 1px 0 0 inset;
+    box-sizing: border-box;
+    color: #0d3d61;
+    cursor: pointer;
+    display: inline-block;
+    margin: 2px;
+    padding: 8px 4px;
+    outline: none;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    vertical-align: middle;
+    white-space: nowrap;
+    box-shadow: inset 0 0 100px 100px rgba(0, 0, 0, 0.03);
+  }
+
+  .fill:hover,
+  .fill:focus {
+    /* color: #2c5777;
+    text-decoration: none;
+    box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.25); */
+    filter: brightness(76%) contrast(190%);
+    text-decoration: none;
+    color: #0d3d61;
+    /* -webkit-text-stroke: 0.03vw #0d3d61; */
+  }
+
+  .paramSaveFill {
+    min-width: 20px;
+    padding: 0px 4px;
+    font-weight: bold;
+  }
+
+  /* Edit button */
+  a.icon.icon-edit.fill {
+      padding-left: 2em;
+      padding-right: 1.2em;
+      padding-top: 0.4em;
+      padding-bottom: 0.5em;
+      display: inline;
+      outline: #462068 solid 1px;
+  }
+
+  /* Submit button */
+  input[type="submit"] {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: #05DCA2;
+    padding-top: 8px;
+    padding-bottom: 12px;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    min-width: 70px;
+    min-height: 30px;
+    color: white;
+  }
+
+  input[type="submit"]:hover {
+    background-color: #05DCA2;
+    text-decoration: none;
+    box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.25);
+  }
+
+
+
+  /* Template buttons */
+
+  /* X delete symbol after each template content button */
+  .paramTemplateBtnFill {
+    padding-left: 0.4rem;
+  }
+
+  .deleteParamTemplateBtnFill {
+    color: #C70039;
+    font-size: 0.8em;
+    margin-left: 0;
+    padding: 0.3rem;
+    margin-right: 0.6rem;
+    font-weight: 100;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+  }
+
+  .deleteParamTemplateBtnFill:hover {
+    background-color: #e8d6dc;
+  }
+
+
+
+  h2 {
+    font-size: 1.6em;
+  }
+
+  .fontsize16 {
+    font-size: 1em;
+  }
+
+
+
+  /* Copy task hyperlink */
+  #content > h2 {
+    cursor: pointer;
+  }
+
+  #content > h2:after {
+    padding-left: 6px;
+    padding-top: 4px;
+    cursor: pointer;
+    /* content: "❐"; */
+    font-size: 1em;
+    color: #0d3d61;
+  }
+
+
+  /* Search bar */
+
+  /*.searchLength {
+    width: 50vw !important;
+  }
+  */
+
+
+
+  /* Progress bar */
+
+  .progressBar {
+    width: 10em;
+    height: 0.5em;
+    background: repeating-linear-gradient(
+      to right,
+      #ddd,
+      #ddd 4%,
+      transparent 4%,
+      transparent 5%
+      ),
+      repeating-linear-gradient(
+      to right,
+      green,
+      green 8%,
+      transparent 8%,
+      transparent 10%
+      );
+    
+    background-size: 200%, 100%;
+    background-position: -100%;
+    background-repeat: repeat-y;
+  }
+
+
+
+  /* Misc */
+
+  .contextual {
+    color: white;
+  }
+
+`);
+
+const wikiRedesign = () => {
+  GM_addStyle(`
+    #header {
+    background: rgb(2,0,36);
+    background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(136,0,255,1) 100%);
+    }
+
+    .wiki.wiki-page {
+        /* https://support.smartbear.com/swaggerhub/docs/organizations/custom-rules.html */
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 10.5px;
+        margin-block-end: 10.5px;
+        margin-block-start: 10.5px;
+        margin-bottom: 10.5px;
+        line-height: 20px;
+        width: 50%;
+        max-width: 800px;
+        font-family: 'Segoe UI','Open Sans',Arial,Verdana;
+        font-size: 15px;
+        text-align: left;
+    }
+
+    .wiki.wiki-page h1,h2,h3,h4 {
+        font-family: "Open Sans",sans-serif;
+        letter-spacing: 0.24px;
+        line-height: 33.6px;
+        margin-block-end: 0px;
+        margin-block-start: 48px;
+    }
+
+    .wiki.wiki-page h1 {
+        font-size: 28px;
+        margin-top: 48px;
+    }
+
+    .wiki.wiki-page h2 {
+        font-size: 22px;
+        margin-top: 36px
+    }
+
+    .wiki.wiki-page h3 {
+        font-size: 18px;
+        margin-top: 24px;
+    }
+
+    .wiki.wiki-page a {
+        line-height: 1.5;
+    }
+
+    .wiki.wiki-page p {
+        margin: 1.4ex 0 1.4ex 0;
+    }
+
+    .wiki.wiki-page a:hover {
+        text-decoration: none;
+        color: darkblue;
+        -webkit-text-stroke: 0.5px darkblue;
+    }
+
+
+    /* TOC */
+    div.wiki ul.toc {
+        background-color: #EDEDFF;
+        border-radius: 10px;
+        overflow-wrap: break-word;
+    }
+
+    div.wiki ul.toc a {
+        font-size: 14px;
+    }
+
+    /* Breadcrumb */
+    #content > p.breadcrumb {
+        font-size: 20px;
+    }
+
+    #content > p.breadcrumb > a {
+        font-family: "Inter", sans-serif;
+        font-size: 16px;
+        color: purple;
+    }
+
+    #content > p.breadcrumb > a:hover {
+        text-decoration: none;
+        color: purple;
+        -webkit-text-stroke: 0.5px purple;
+    }
+
+    textarea#content_text {
+      font-size: 15px !important;
+      font-family: "Inter", sans-serif!important;
+    }
+
+    `);
+};
+
+//-------------------------- WIKI INNER PAGE --------------------------------
+
+GM_addStyle(`
 
 `);
 
@@ -590,13 +690,13 @@ function showcaseTaskPhase() {
       taskPhase = "Deployed";
     } else if (taskStatus === "Resolved" && mrStatus === "MERGED" && deployedLiveDate !== "") {
       taskPhase = "Deployed";
-      warningMessage = " (Warning: deployed task not closed.)";
+      warningMessage = " (Warning: deployed task not closed)";
     }
     if (taskPhase !== "") {
       const taskHeaderText = document.querySelector("#content > h2").innerText;
       document.querySelector(
         "#content > h2"
-      ).innerHTML = `${taskHeaderText} <span style="font-family: monospace; padding: 0.15em 0.5em 0.15em 0.4em; margin-left: 0.2em; border-radius: 6px; outline: #628DB6 solid 2px;"> &#8594 ${taskPhase}${warningMessage}</span>`;
+      ).innerHTML = `${taskHeaderText} <span style="font-family: monospace; padding: 0.15em 0.5em 0.15em 0.4em; margin-left: 0.2em; border-radius: 6px; outline: #628DB6 solid 2px;"> &#8594 ${taskPhase}<span style="color: #d04829;">${warningMessage}</span></span>`;
     }
   }
 }
@@ -639,6 +739,15 @@ function addQuickButtons(issueFieldId) {
 }
 
 function createAndAddHyperlinkCopyButton() {
+  GM_addStyle(`
+    #content > h2:hover, #content > h2:hover:after {
+      color: #377FB4;
+    }
+    #content > h2:active, #content > h2:active:after {
+      color: #82e0aa;
+    }
+  `);
+
   // Identify div to add the button to
   let taskName = document.querySelector("#content > h2");
 
@@ -713,7 +822,7 @@ function createTemplateButton(redmineTaskFieldId, redmineTaskFieldLabel, redmine
     let currentArray = localStorage.getItem(redmineTaskFieldId);
     let parsedArrayValue = JSON.parse(currentArray);
     // Find the array object
-    for (let i = 0; i < parsedArrayValue.length; i++) {      
+    for (let i = 0; i < parsedArrayValue.length; i++) {
       if (parsedArrayValue[i].redmineTaskFieldValue === redmineTaskFieldValue) {
         parsedArrayValue[i].isFavorite = parsedArrayValue[i].isFavorite ? false : true;
         continue;
@@ -762,20 +871,20 @@ function addToggleConfigModeButton(pageName) {
 
 /* Removing UI elements */
 
-function removeUiElements() {
-  let removeClassesList = [
-    "other-formats",
-    ".icon-comment",
-    ".next-prev-links",
-    "#content > p",
-    "#add_to_important_list",
-    "icon-fav-off",
-    // '#sidebar',
-  ];
-  removeClassesList.forEach((className) => document.querySelectorAll(className).forEach((e) => e.remove()));
+// function removeUiElements() {
+//   let removeClassesList = [
+//     "other-formats",
+//     ".icon-comment",
+//     ".next-prev-links",
+//     "#content > p",
+//     "#add_to_important_list",
+//     "icon-fav-off",
+//     // '#sidebar',
+//   ];
+//   removeClassesList.forEach((className) => document.querySelectorAll(className).forEach((e) => e.remove()));
 
-  document.querySelectorAll("#add_to_important_list").forEach((e) => e.remove());
-}
+//   document.querySelectorAll("#add_to_important_list").forEach((e) => e.remove());
+// }
 
 /* Task status background highlight */
 
@@ -822,181 +931,109 @@ function priorityVisualization() {
 
 /* Sticky note text editor */
 
-function addStickyNoteTextEditor() {
-  GM_addStyle(`
+// function addStickyNoteTextEditor() {
+//   GM_addStyle(`
 
-	/* This is the outer part of the Note text box*/
-	.stickyNotes {
-		position: fixed !important;
-		bottom: 0 !important;
-		right: 20px !important;
-		min-width: 800px !important;
-		max-width: 1600px !important;
-		width: 40vw !important;
-		background: #283747 !important;
-		border-radius: 10px !important;
-		box-shadow: rgba(0, 0, 0, 0.25) 0px 0.0625em 0.0625em, rgba(0, 0, 0, 0.25) 0px 0.125em 0.5em, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset !important;
-	}
+// 	/* This is the outer part of the Note text box*/
+// 	.stickyNotes {
+// 		position: fixed !important;
+// 		bottom: 0 !important;
+// 		right: 20px !important;
+// 		min-width: 800px !important;
+// 		max-width: 1600px !important;
+// 		width: 40vw !important;
+//     max-height: 80vh !important;
+// 		background: #283747 !important;
+// 		border-radius: 10px !important;
+// 		box-shadow: rgba(0, 0, 0, 0.25) 0px 0.0625em 0.0625em, rgba(0, 0, 0, 0.25) 0px 0.125em 0.5em, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset !important;
+// 	}
 
-	textarea#issue_notes {
-		font-size: 1.3em;
-		font-family: Inter, "Helvetica Neue", Helvetica, sans-serif !important;
-	}
+// 	textarea#issue_notes {
+// 		font-size: 1.3em;
+// 		font-family: Inter, "Helvetica Neue", Helvetica, sans-serif !important;
+// 	}
 
-	/* Set 'Private notes' text to be white (because it's on black background). */
-	fieldset.stickyNotes {
-		color: #fff !important;
-	}
+// 	/* Set 'Private notes' text to be white (because it's on black background). */
+// 	fieldset.stickyNotes {
+// 		color: #fff !important;
+// 	}
 
-	`);
+// 	`);
 
-  GM_addStyle(`
+//   GM_addStyle(`
 
-	.showButton {
-		position: fixed;
-		bottom: 0;
-		background-color: #283747;
-		color: white;
-		border-radius: 10px;
-		min-width: 100px;
-		min-height: 30px;
-		font-family: Inter, "Helvetica Neue", Helvetica, sans-serif;
-	}
+// 	.showButton {
+// 		position: fixed;
+// 		bottom: 0;
+// 		background-color: #283747;
+// 		color: white;
+// 		border-radius: 10px;
+// 		min-width: 100px;
+// 		min-height: 30px;
+// 		font-family: Inter, "Helvetica Neue", Helvetica, sans-serif;
+// 	}
 
-	.showButton:hover {
-		background-color: #283747;
-		box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.25);
-	}
+// 	.showButton:hover {
+// 		background-color: #283747;
+// 		box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.25);
+// 	}
 
-	`);
+// 	`);
 
-  // --- Add Note text area --------------------------------------------------------
+//   // --- Add Note text area --------------------------------------------------------
 
-  $("#issue-form > div > fieldset:nth-child(3)").addClass("stickyNotes");
+//   document.querySelector("#issue-form > div > fieldset:nth-child(3)").classList.add("stickyNotes");
+//   document.querySelector(".stickyNotes legend").remove();
 
-  // Dealing with Textarea Height
-  function calcHeight(value) {
-    let numberOfLineBreaks = (value.match(/\n/g) || []).length;
-    // min-height + lines x line-height
-    let newHeight = numberOfLineBreaks * 20; // Change the first number to adjust the initial height
-    if (newHeight > 850) {
-      newHeight = 850;
-    }
-    if (newHeight < 200) {
-      newHeight = 200;
-    }
-    return newHeight;
-  }
+//   let textArea = document.querySelector("#issue_notes"); // select the text note inner field
 
-  let textArea = document.querySelector("#issue_notes"); // select the text note inner field
+//   // Constantly recalculating the height & Saving the textarea value to local storage
+//   textArea.addEventListener("keyup", () => {
+//     this.style.height = "";
+//     this.style.height = this.scrollHeight + "px";
+//   });
 
-  // Initial height
-  $("#issue_notes").val("\n\n\n\n\n\n"); // Populate the text area with newlines
-  $("textarea").prop("selectionEnd", 1); // text-cursor position (2nd line from the top)
-  textArea.style.height = calcHeight(textArea.value) + "px";
+//   // --- Add a submit button to the Note area ---------------------------------------
 
-  // Constantly recalculating the height & Saving the textarea value to local storage
-  textArea.addEventListener("keyup", () => {
-    textArea.style.height = calcHeight(textArea.value) + "px";
-    saveNoteToLocalStorage();
-  });
+//   let noteArea = document.querySelector(".stickyNotes");
 
-  // Remove the "Notes" title from textbox top
-  document.querySelector("#issue-form > div > fieldset.stickyNotes > legend").remove();
+//   // a button is equal to
+//   let submitBtnHtml =
+//     '<input type="submit" id="noteSubmitButton" name="commit" value="Submit" data-disable-with="Submit">';
+//   // Add the button
+//   noteArea.insertAdjacentHTML("beforeend", submitBtnHtml);
+//   // a button's on-click action is
+//   document.querySelector("#noteSubmitButton").addEventListener("click", () => {
+//     clearNoteFromLocalStorage();
+//     document.querySelector("#issue-form").submit();
+//   });
 
-  // --- Add a submit button to the Note area ---------------------------------------
+//   // --- Note hide button ------------------------------------------
+//   GM_addStyle(`
 
-  $(function noteSubmitButton() {
-    // Identify div to add the button to
-    let noteArea = $(".stickyNotes");
+// 	.hideButton {
+// 		margin-left: 5px !important;
+// 	}
 
-    // a button is equal to
-    let btn = $('<input type="submit" name="commit" value="Submit" data-disable-with="Submit">');
-    // a button's on-click action is
-    btn.click(function () {
-      clearNoteFromLocalStorage();
-      $("#issue-form").submit();
-    });
-    // Add the button
-    noteArea.append(btn);
-  });
+// 	`);
 
-  // --- Save note content to Local Storage ------------------------------------------
+//   // a button is equal to
+//   let viewNoteBtn = '<input type="button" id="toggleNoteViewBtn" class="hideButton" value="Hide">';
+//   let minimizedBtn = $('<input type="button" class="showButton Resolved" value="Show note">');
+//   // Add the button
+//   noteArea.insertAdjacentHTML("beforeend", viewNoteBtn);
+//   document.querySelector("div#footer").insertAdjacentHTML("beforeend", minimizedBtn);
 
-  var RedmineTaskNumber = window.location.href.split("/issues/")[1].substring(0, 5);
+//   document.querySelector("#toggleNoteViewBtn").addEventListener("click", () => {
 
-  // Set Item
-  function saveNoteToLocalStorage() {
-    localStorage.setItem(RedmineTaskNumber, document.querySelector("#issue_notes").value);
-  }
-
-  // Retrieve
-  // On-load --> set the textarea to the last saved value
-  document.querySelector("#issue_notes").value = localStorage.getItem(RedmineTaskNumber);
-
-  // Local storage for this particular page is cleared upon clicking "Submit"
-  function clearNoteFromLocalStorage() {
-    localStorage.removeItem(RedmineTaskNumber);
-  }
-
-  // Add the clearNoteFromLocalStorage function to the submit buttons
-  try {
-    document.querySelector("#issue-form > input[type=submit]:nth-child(7)").addEventListener("click", function () {
-      clearNoteFromLocalStorage();
-    }); // Clear local storage when clicking "Submit" }
-  } catch (e) {
-    document.querySelector("#issue-form > input[type=submit]:nth-child(7)").addEventListener("click", function () {
-      clearNoteFromLocalStorage();
-    }); // Clear local storage when clicking "Submit"}
-  }
-
-  // --- Add a hide button to the Note area ------------------------------------------
-  /**
-   * Note hide button
-   */
-
-  GM_addStyle(`
-
-	.hideButton {
-		margin-left: 5px !important;
-	}
-
-	`);
-
-  $(function noteHide() {
-    // Identify div to add the button to
-    let noteArea = $(".stickyNotes");
-
-    // a button is equal to
-    let btnHide = $('<input type="button" class="hideButton" value="Hide">');
-
-    // "Hide" button's onClick action
-    function hideNote() {
-      // onClick -> Hide the text area
-      $("#issue-form > div > fieldset.stickyNotes").hide();
-      $("#footer > input:nth-child(5)").hide();
-
-      // Add "Show note" button
-      $(function unhideNote() {
-        let minimizedBtn = $('<input type="button" class="showButton Resolved" value="Show note">');
-        // a button's on-click action is
-        minimizedBtn.click(function () {
-          document.querySelector("#issue-form > div > fieldset.stickyNotes").show(); // todo
-          // document.querySelector("#update") -> this should be set to inline-block
-          $("#footer > input").hide();
-        });
-
-        // Add the button
-        $("div#footer").append(minimizedBtn);
-      });
-    }
-    hideNote();
-    btnHide.click(hideNote);
-
-    // Add the button
-    noteArea.append(btnHide);
-  });
-}
+//     // a button's on-click action is
+//     minimizedBtn.click(function () {
+//       document.querySelector("#issue-form > div > fieldset.stickyNotes").show(); // todo
+//       // document.querySelector("#update") -> this should be set to inline-block
+//       $("#footer > input").hide();
+//     });
+//   });
+// }
 
 /* Parsing functions */
 
@@ -1076,7 +1113,16 @@ function parseTaskFieldsAndAddTemplateButtons() {
           );
         });
       }
+    } catch (error) {
+      console.log("Error in parseTaskFieldsAndAddTemplateButtons: " + error);
+    }
+  });
+}
 
+function prefillIsFavoriteFields() {
+  document.querySelectorAll(redmineTaskFieldIdsString).forEach(function (taskFieldHtmlElement) {
+    try {
+      const redmineTaskFieldId = taskFieldHtmlElement.id;
       // While parsing, find fields with isFavorite: true
       // If isFavorite: true - preset the field value.
 
@@ -1092,7 +1138,7 @@ function parseTaskFieldsAndAddTemplateButtons() {
         }
       }
     } catch (error) {
-      console.log("Error in parseTaskFieldsAndAddTemplateButtons: " + error);
+      console.log("Error in prefillIsFavoriteFields: " + error);
     }
   });
 }
@@ -1105,58 +1151,96 @@ function insertSettingsModalIconAndSettingsContent() {
 		<a id="modalOpenIconId" class="icon icon-settings dropdownIcon"></a>
 		<div id="settingsModalId" class="settingsModal">
 			<div class="settingsModalContentClass">
-				<span class="close">&times;</span>
+				  <span class="close">&times;</span>
 
 					<h1>Settings</h1>
 					<p>Here you can change the settings of the Tampermonkey script.</p>
-					<hr>
 
 					<div class="alertBox"><span>&#x1F6C8;</span> Note: refresh the page to see the changes.</div>
 
+          <hr>
 
+					<h3>Feature settings</h3>
+          
+          <div id="settingsList">
 
-					<h3>Current page statuses</h3>
+          <div class="settingConfigDiv gridWrapper">
+          <p>Enable wiki redesign</p>
+          <label class="switch">
+            <input type="checkbox" id="wikiRedesign">
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+          <div class="settingConfigDiv gridWrapper">
+            <p>Visualize the priority field within a task</p>
+            <label class="switch">
+              <input type="checkbox" id="visualizePriority">
+              <span class="slider round"></span>
+            </label>
+          </div>  
+
+          <div class="settingConfigDiv gridWrapper">
+            <p>Visualize the status field within a task</p>
+            <label class="switch">
+              <input type="checkbox" id="visualizeStatus">
+              <span class="slider round"></span>
+            </label>
+         </div>
+
+        <div class="settingConfigDiv gridWrapper">
+          <p>Display task's development phase next to task title</p>
+          <label class="switch">
+            <input type="checkbox" id="displayTaskPhase">
+            <span class="slider round"></span>
+          </label>
+         </div>
+
+         <div class="settingConfigDiv gridWrapper">
+           <p>Enable task hyperlink copying when clicking on the task title within a task</p>
+           <label class="switch">
+             <input type="checkbox" id="copyTaskHyperlink">
+             <span class="slider round"></span>
+           </label>
+         </div>
+
+					<div class="settingConfigDiv gridWrapper">
+						<p>Enable "% Done" interactive slider</p>
+						<label class="switch">
+							<input type="checkbox" id="percentDoneInteractiveSlider">
+							<span class="slider round"></span>
+						</label>
+					</div>
+
+          <!-- 
+            <div class="settingConfigDiv gridWrapper">
+              <p>Enable floating note field</p>
+              <label class="switch">
+                <input type="checkbox" id="floatingNoteField">
+                <span class="slider round"></span>
+              </label>
+            </div>
+          -->
+
+          <div class="settingConfigDiv gridWrapper">
+            <p>Highlight the edit button</p>
+            <label class="switch">
+              <input type="checkbox" id="highlightEditButton">
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+         
+
+         </div>
+
+         <hr>
+
+          <h3>Current page statuses</h3>
 
 					<p>Show or hide buttons for the following statuses:</p>
 
 					<div id="supportButtonDiv"></div>
-
-
-
-
-					<h3>Other settings</h3>
-
-					<div class="settingConfigDiv gridWrapper">
-						<p>Wiki redesign</p>
-						<label class="switch">
-							<input type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-					</div>
-
-					<div class="settingConfigDiv gridWrapper">
-						<p>Task redesign</p>
-						<label class="switch">
-							<input type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-					</div>
-
-					<div class="settingConfigDiv gridWrapper">
-						<p>Copy button</p>
-						<label class="switch">
-							<input type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-					</div>
-
-					<div class="settingConfigDiv gridWrapper">
-						<p>Floating note field</p>
-						<label class="switch">
-							<input type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-					</div>
 
 
 				</div>
@@ -1164,6 +1248,8 @@ function insertSettingsModalIconAndSettingsContent() {
 		`
   );
   $("#loggedas").prepend(SettingsModal);
+
+  // Settings modal control
 
   // Get the modal
   var modal = document.getElementById("settingsModalId");
@@ -1186,22 +1272,23 @@ function insertSettingsModalIconAndSettingsContent() {
     }
   };
 
-  // Add redmine fields to the config module by parsing the DOM
-  const supportButtonConfigDiv = document.getElementById("supportButtonDiv");
-  let issueStatusTextAndValueDOMObject = createRedmineEditFieldValueAndTextObject("#issue_status_id");
-  for (let [key, value] of Object.entries(issueStatusTextAndValueDOMObject)) {
-    // Check if item exists in localStorage. If it doesn't - add the status to the localStorage.
-    if (localStorage.getItem(key) === null) {
-      localStorage.setItem(key, "Inactive"); // config set to inactive by default
-    }
+  try {
+    // Adding "quick status" buttons by parsing the DOM
+    const supportButtonConfigDiv = document.getElementById("supportButtonDiv");
+    let issueStatusTextAndValueDOMObject = createRedmineEditFieldValueAndTextObject("#issue_status_id");
+    for (let [key, value] of Object.entries(issueStatusTextAndValueDOMObject)) {
+      // Check if item exists in localStorage. If it doesn't - add the status to the localStorage.
+      if (localStorage.getItem(key) === null) {
+        localStorage.setItem(key, "Inactive"); // config set to inactive by default
+      }
 
-    // Check the status of the item in localStorage and set the checkbox accordingly
-    let isActive = ""; // unchecked by default
-    if (localStorage.getItem(key) === "Active") {
-      isActive = " checked";
-    }
-    // Create a slider which is either checked or unchecked according to the localStorage status
-    let supportButtonSetting = `
+      // Check the status of the item in localStorage and set the checkbox accordingly
+      let isActive = ""; // unchecked by default
+      if (localStorage.getItem(key) === "Active") {
+        isActive = " checked";
+      }
+      // Create a slider which is either checked or unchecked according to the localStorage status
+      let supportButtonSetting = `
 	<div class="settingConfigDiv gridWrapper">
 		<p>${value}</p>
 		<label class="switch">
@@ -1210,22 +1297,71 @@ function insertSettingsModalIconAndSettingsContent() {
 		</label>
 	</div>
 	`;
-    supportButtonConfigDiv.innerHTML += supportButtonSetting;
+      supportButtonConfigDiv.innerHTML += supportButtonSetting;
 
-    setTimeout(function () {
-      // this is needed because otherwise the event listener won't work. Exact ms needed unknown.
-      // On checkbox click, change the status of the localStorage item to either "Active" or "Inactive"
-      document.getElementById(key).addEventListener("click", function () {
-        if (this.checked) {
-          localStorage.setItem(key, "Active");
-        } else {
-          localStorage.setItem(key, "Inactive");
-          document.getElementById("quickButtonId" + key).remove();
-        }
-      });
-    }, 500);
+      setTimeout(function () {
+        // this is needed because otherwise the event listener won't work. Exact ms needed unknown.
+        // On checkbox click, change the status of the localStorage item to either "Active" or "Inactive"
+        document.getElementById(key).addEventListener("click", function () {
+          if (this.checked) {
+            localStorage.setItem(key, "Active");
+          } else {
+            localStorage.setItem(key, "Inactive");
+            try {
+              document.getElementById("quickButtonId" + key).remove();
+            } catch (e) {
+              /* if the switch is toggled multiple times and the page is not refreshed - it will throw an error */
+            }
+          }
+        });
+      }, 500);
+    }
+  } catch (e) {
+    /* This whole block should be moved to a separate function and not run on wiki pages */
   }
 }
+
+const attemptToInitializeSettingsInLocalStorage = () => {
+  if (localStorage.getItem("ldRedmineUiSettings")) {
+    return;
+  }
+  const initialSettings = {
+    percentDoneInteractiveSlider: false,
+    copyTaskHyperlink: false,
+    floatingNoteField: false,
+    wikiRedesign: false,
+    highlightEditButton: false,
+    visualizePriority: false,
+    visualizeStatus: false,
+    displayTaskPhase: false,
+  };
+  localStorage.setItem("ldRedmineUiSettings", JSON.stringify(initialSettings));
+};
+
+const setSettingSliderAccordingToLocalStorageValue = () => {
+  const stringStorage = localStorage.getItem("ldRedmineUiSettings");
+  const storageObject = JSON.parse(stringStorage);
+
+  // Display saved value
+  document.querySelectorAll('#settingsList input[type="checkbox"]').forEach((element) => {
+    let settingSliderValue = storageObject[element.id];
+    if (settingSliderValue) {
+      element.checked = true;
+    } else {
+      element.checked = false;
+    }
+
+    // Add on-click action for the slider
+    element.addEventListener("click", () => {
+      // Get values
+      const stringStorage = localStorage.getItem("ldRedmineUiSettings");
+      const storageObject = JSON.parse(stringStorage);
+      // Write data to local storage
+      storageObject[element.id] = element.checked;
+      localStorage.setItem("ldRedmineUiSettings", JSON.stringify(storageObject));
+    });
+  });
+};
 
 /* Keyboard shortcut for Edit and Submit (alt + q and alt + w) */
 
@@ -1247,9 +1383,9 @@ function addKeyboardShortcutForEditAndSubmit() {
 
 /* Search bar */
 
-function searchBarImprovements() {
-  document.querySelector("#q").classList.add("searchLength");
-}
+// function searchBarImprovements() {
+//   document.querySelector("#q").classList.add("searchLength");
+// }
 
 /* Highlight terms */
 
@@ -1282,38 +1418,102 @@ function highlight(jsPath, highlightFieldList) {
 
 /* Progress slider */
 
-// function changeProgress(progressBarId, progressValue, animDurPerStep = 15) {
-//   var progressBar = document.getElementById(progressBarId);
-//   var oldProgressValue = -parseInt(window.getComputedStyle(progressBar).getPropertyValue("background-position"));
-//   if (progressValue > 100) progressValue = 100;
-//   else if (progressValue < 0) progressValue = 0;
-//   else progressValue = Math.round(progressValue / 10) * 10;
+const donePercentSlider = () => {
+  GM_addStyle(`
 
-//   var steps = Math.abs(oldProgressValue - progressValue) / 10;
-//   var totalAnimDur = animDurPerStep * steps;
+    table.progress td.done {
+      background-color: #33b533!important;
+    }
+    
+    div.value > table.progress td {
+      border-radius: 1px;
+      outline: white solid 1px;
+    }
 
-//   progressBar.style.transition = totalAnimDur + "ms steps(" + steps + ")";
-//   progressBar.style.backgroundPosition = -progressValue + "%";
-// }
+    /* on-hover, change the background color of a table element and all of the subsequent elements. */
+    div.value > table.progress td:hover ~ td, div.value > table.progress td:hover {
+      background: #33b533!important;
+      transition: all 0.3s ease-in;
+      cursor: pointer;
+    }
+
+    /* Reverse table item order so that we can use ~ td and highlight only the preceding elements */
+    div.value > table.progress {
+      direction: rtl;
+    }
+
+  `);
+
+  // Find percentage
+  const donePercentageStr = document.querySelector(".progress.attribute > .value > p.percent").textContent.replace("%", "");
+  const donePercentageInt = parseInt(donePercentageStr);
+
+  // Prepare ul elements
+  let arrayOfNewChildren = [];
+  for (let i = 100; i > 0; i -= 10) {
+    console.log(donePercentageInt);
+    arrayOfNewChildren.push(
+      `<td style="width: 10%;" title="${i}" id="${i}" class="timelineBlock ${
+        i <= donePercentageInt ? "done" : "todo"
+      }"></td>`
+    );
+  }
+
+  // Insert ul elements
+  // for each 10% add an element with "done" and add the remaining as "todo"
+  const progressBlock = document.querySelector("div.progress.attribute > div.value > table > tbody > tr");
+  progressBlock.innerHTML = arrayOfNewChildren.join("");
+
+  // Helper function
+  function selectOptionFromElement(id, valueToSelect) {
+    let element = document.getElementById(id);
+    element.value = valueToSelect;
+  }
+
+  // For each child, add an onclick action to submit form with done%
+  document.querySelectorAll(".timelineBlock").forEach((timelineBlock) => {
+    timelineBlock.addEventListener("click", () => {
+      // Set the done percentage (from a list of options)
+      selectOptionFromElement("issue_done_ratio", timelineBlock.id);
+      // Submit the form
+      document.querySelector("#issue-form").submit();
+    });
+  });
+};
+
+const runIfSettingIsActive = (settingName, callback, argumentString = null) => {
+  const stringStorage = localStorage.getItem("ldRedmineUiSettings");
+  const storageObject = JSON.parse(stringStorage);
+  if (storageObject[settingName] === true) {
+    if (argumentString) {
+      callback(argumentString);
+    } else {
+      callback();
+    }
+  }
+};
 
 /* Main */
 document.onreadystatechange = function () {
   if (document.readyState === "interactive") {
     // Functions to run on every page
-    searchBarImprovements();
+    // runIfSettingIsActive('', searchBarImprovements)
     insertSettingsModalIconAndSettingsContent();
+    attemptToInitializeSettingsInLocalStorage();
+    setSettingSliderAccordingToLocalStorageValue();
     // Functions to run on a specific page
     if (/https:\/\/redmine\.tribepayments\.com\/issues\/.+/.test(currentPageUrl) === true) {
       // Task details page (Edit module)
-      prettifyEditButton();
-      showcaseTaskPhase();
-      addQuickButtons("#issue_status_id");
-      createAndAddHyperlinkCopyButton();
-      parseTaskFieldsAndAddTemplateButtons();
+      runIfSettingIsActive("percentDoneInteractiveSlider", donePercentSlider);
+      runIfSettingIsActive("highlightEditButton", prettifyEditButton);
+      runIfSettingIsActive("displayTaskPhase", showcaseTaskPhase);
+      runIfSettingIsActive("copyTaskHyperlink", createAndAddHyperlinkCopyButton);
+      // runIfSettingIsActive("floatingNoteField", addStickyNoteTextEditor);
+      runIfSettingIsActive("visualizeStatus", taskStatusBackgroundHighlight);
+      runIfSettingIsActive("visualizePriority", priorityVisualization);
       addToggleConfigModeButton("taskDetailsPage");
-      addStickyNoteTextEditor();
-      taskStatusBackgroundHighlight();
-      priorityVisualization();
+      addQuickButtons("#issue_status_id");
+      parseTaskFieldsAndAddTemplateButtons();
       addKeyboardShortcutForEditAndSubmit();
       // removeUiElements();
     } else if (
@@ -1324,81 +1524,12 @@ document.onreadystatechange = function () {
       formRefreshWatcher();
       parseTaskFieldsAndAddTemplateButtons();
       addToggleConfigModeButton("newPage");
+      prefillIsFavoriteFields();
       addKeyboardShortcutForEditAndSubmit();
-    } else if (
-      /https:\/\/redmine\.tribepayments\.com\/projects\/.+\/wiki.*/.test(currentPageUrl) === true // Wiki page
-    ) {
-      // wiki redesign
+    } else if (/https:\/\/redmine\.tribepayments\.com\/projects\/.+\/wiki.*/.test(currentPageUrl) === true) {
+      // Wiki page
+      runIfSettingIsActive("wikiRedesign", wikiRedesign);
       addKeyboardShortcutForEditAndSubmit();
-    } else {
-      // Design inserts
     }
   }
 };
-
-// # To do
-// - Implement slider without configuration (temporary)
-// - Refactor settings storage
-
-// table td {
-//     outline: white solid 1px;
-// }
-// @todo bug: solve left item missing outline
-
-/* on-hover, change the background color of a table element and all of the subsequent elements. */
-// table.progress td:hover ~ td, table.progress td:hover {
-//     background: #7575ec!important;
-//     transition: all 0.3s ease-in;
-// }
-
-// /* Reverse table item order so that we can use ~ td and highlight only the preceding elements */
-// table.progress {
-//     direction: rtl;
-// }
-
-// // Helper function
-// function selectOptionFromElement(id, valueToSelect) {
-//     let element = document.getElementById(id);
-//     element.value = valueToSelect;
-// }
-
-// // Find percentage
-// const donePercentageStr = document.querySelector("td.closed").title.replace('%', '')
-// const donePercentageInt = parseInt(donePercentageStr)
-
-// // Prepare ul elements
-// let arrayOfNewChildren = [];
-// for (int i = 0; i < 100; i+=10) {
-// arrayOfNewChildren.push(`<td style="width: 10%;" title=${i} class="timelineBlock ${i <= donePercentageStr ? "done" : "todo"}"></td>`)
-// }
-
-// // Insert ul elements
-// // for each 10% add an element with "done" and add the remaining as "todo"
-// document.querySelector("div.progress.attribute > div.value > table > tbody > tr").replaceChildren(...arrayOfNewChildren);
-
-// // For each child, add an onclick action to submit form with done%
-// document.querySelectorAll('.timelineBlock').forEach((timelineBlock) => {
-//   timelineBlock.addEventListener('click', () => {
-//     // Set the done percentage (from a list of options)
-//     selectOptionFromElement('issue_done_ratio', donePercentageStr);
-//     // Submit the form
-//     document.querySelector('#issue-form').submit()
-//   });
-// });
-
-// /* This is all for later implementation */
-
-// // Create a setting option for the slider within setting module pop up
-// - Insert HTML
-// - onClick -> write to localStorage
-
-// // Read all enabled settings
-// const settingsObject = localStorage.read().settings
-
-// // Function which checks whether the setting is enabled, if yes, runs a callback function
-// runIfSettingIsEnabled(settingName="enableCustomDonePercentSlider", displayCustomDonePercentSlider)
-
-// function runIfSettingIsEnabled(isSettingNameEnabled, functionName) {
-// if (isSettingNameEnabled === true) {
-// functionName()}
-// }
