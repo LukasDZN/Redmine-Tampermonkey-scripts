@@ -1173,7 +1173,7 @@ function insertSettingsModalIconAndSettingsContent() {
         </div>
 
           <div class="settingConfigDiv gridWrapper">
-            <p>Visualize the priority field within a task</p>
+            <p>Add background highlight for the priority field within a task</p>
             <label class="switch">
               <input type="checkbox" id="visualizePriority">
               <span class="slider round"></span>
@@ -1181,7 +1181,7 @@ function insertSettingsModalIconAndSettingsContent() {
           </div>  
 
           <div class="settingConfigDiv gridWrapper">
-            <p>Visualize the status field within a task</p>
+            <p>Add an indicator icon for the status field within a task</p>
             <label class="switch">
               <input type="checkbox" id="visualizeStatus">
               <span class="slider round"></span>
@@ -1189,7 +1189,7 @@ function insertSettingsModalIconAndSettingsContent() {
          </div>
 
         <div class="settingConfigDiv gridWrapper">
-          <p>Display task's development phase next to task title</p>
+          <p>Display the task's development phase next to task title</p>
           <label class="switch">
             <input type="checkbox" id="displayTaskPhase">
             <span class="slider round"></span>
@@ -1205,7 +1205,7 @@ function insertSettingsModalIconAndSettingsContent() {
          </div>
 
 					<div class="settingConfigDiv gridWrapper">
-						<p>Enable "% Done" interactive slider</p>
+						<p>Enable "% Done" interactive picker</p>
 						<label class="switch">
 							<input type="checkbox" id="percentDoneInteractiveSlider">
 							<span class="slider round"></span>
