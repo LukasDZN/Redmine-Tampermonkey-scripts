@@ -639,20 +639,24 @@ function getProjectStatusColorPatterns() {
 
 function formRefreshWatcher() {
   setTimeout(function () {
-    // targetNode is created with a slight delay on page load and might not be found
-    // Select the node that will be observed for mutations
-    const targetNode = document.querySelector(".ui-autocomplete");
-    // Options for the observer (which mutations to observe)
-    const config = { attributes: true };
-    // Callback function to execute when mutations are observed
-    const callback = () => {
-      parseTaskFieldsAndAddTemplateButtons();
-      formRefreshWatcher();
-    };
-    // Create an observer instance linked to the callback function
-    const observer = new MutationObserver(callback);
-    // Start observing the target node for configured mutations
-    observer.observe(targetNode, config);
+    try {
+      // targetNode is created with a slight delay on page load and might not be found
+      // Select the node that will be observed for mutations
+      const targetNode = document.querySelector(".ui-autocomplete");
+      // Options for the observer (which mutations to observe)
+      const config = { attributes: true };
+      // Callback function to execute when mutations are observed
+      const callback = () => {
+        parseTaskFieldsAndAddTemplateButtons();
+        formRefreshWatcher();
+      };
+      // Create an observer instance linked to the callback function
+      const observer = new MutationObserver(callback);
+      // Start observing the target node for configured mutations
+      observer.observe(targetNode, config);
+    } catch (e) {
+      // console.log('Mutation observer error')
+    }
   }, 100);
 }
 
@@ -776,7 +780,19 @@ function createAndAddHyperlinkCopyButton() {
   });
 }
 
-function createTemplateButton(redmineTaskFieldId, redmineTaskFieldLabel, redmineTaskFieldValue, isFavorite, createdBy) {
+function createTemplateButton(
+  redmineTaskFieldId,
+  redmineTaskFieldLabel,
+  redmineTaskFieldValue,
+  isFavorite,
+  project,
+  uniqueId,
+  createdBy
+) {
+  if (project !== document.querySelector("body").classList[0].replace("project-", "")) {
+    // console.log(`createTemplateButton warning: attemped button to create does not belong to this project.`)
+    return;
+  }
   const taskFieldHtmlElement = document.getElementById(redmineTaskFieldId);
   const taskTemplateButtonId = "paramSaveTemplateButton" + redmineTaskFieldId + new Date().getTime().toString();
   // Preparing button values - truncating if the value is too long
@@ -798,9 +814,9 @@ function createTemplateButton(redmineTaskFieldId, redmineTaskFieldLabel, redmine
   const favoriteBtnText = isFavorite ? "★" : "☆";
 
   let templateButtonHtml = `
-  <button type="button" class="fill paramSaveFill paramTemplateBtnFill" id="${taskTemplateButtonId}" title="${redmineTaskFieldLabel}" value="${redmineTaskFieldValue}">${redmineTaskFieldLabelTruncated}</button>
-  <button style="display: ${display};" type="button" class="paramFavoriteFill hiddenByDefault ${allFavoriteBtns}" title="Pre-fill this value as default on page load." id="${favoriteBtnId}">${favoriteBtnText}</button>
-  <button style="display: ${display};" type="button" class="deleteParamTemplateBtnFill hiddenByDefault" id="${deleteParamTemplateBtnId}">✖</button>
+    <button type="button" class="fill paramSaveFill paramTemplateBtnFill" id="${taskTemplateButtonId}" title="${redmineTaskFieldLabel}" value="${redmineTaskFieldValue}">${redmineTaskFieldLabelTruncated}</button>
+    <button style="display: ${display};" type="button" class="paramFavoriteFill hiddenByDefault ${allFavoriteBtns}" title="Pre-fill this value as default on page load." id="${favoriteBtnId}">${favoriteBtnText}</button>
+    <button style="display: ${display};" type="button" class="deleteParamTemplateBtnFill hiddenByDefault" id="${deleteParamTemplateBtnId}">✖</button>
   `;
   taskFieldHtmlElement.insertAdjacentHTML("afterend", templateButtonHtml);
 
@@ -837,8 +853,16 @@ function createTemplateButton(redmineTaskFieldId, redmineTaskFieldLabel, redmine
   document.getElementById(deleteParamTemplateBtnId).addEventListener("click", function () {
     let currentValue = localStorage.getItem(redmineTaskFieldId);
     let parsedValue = JSON.parse(currentValue);
-    let index = parsedValue.indexOf(this.value); // removes this value from the array
+
+    let index;
+    for (let i = 0; i < parsedValue.length; i++) {
+      if (parsedValue[i].uniqueId === uniqueId) {
+        index = i;
+        break;
+      }
+    }
     parsedValue.splice(index, 1);
+
     localStorage.setItem(redmineTaskFieldId, JSON.stringify(parsedValue));
     this.remove(); // removes the X button
     thisTemplateButtonElement.remove(); // removes the template button
@@ -1061,10 +1085,16 @@ function parseTaskFieldsAndAddTemplateButtons() {
       // Add onclick action to the save button (" + ")
       document.getElementById(plusButtonId).addEventListener("click", function () {
         const redmineTaskFieldValue = taskFieldHtmlElement.value;
-        const redmineTaskFieldLabel =
-          taskFieldHtmlElement.textContent !== ""
-            ? taskFieldHtmlElement.selectedOptions[0].textContent
-            : redmineTaskFieldValue;
+        let redmineTaskFieldLabel = redmineTaskFieldValue;
+        const uniqueId = new Date().getTime();
+        try {
+          redmineTaskFieldLabel =
+            taskFieldHtmlElement.textContent !== ""
+              ? taskFieldHtmlElement.selectedOptions[0].textContent
+              : redmineTaskFieldValue;
+        } catch (e) {
+          //
+        }
         // If entry doesn't exist yet - create a new entry
         if (localStorage.getItem(redmineTaskFieldId) === null) {
           localStorage.setItem(
@@ -1074,17 +1104,21 @@ function parseTaskFieldsAndAddTemplateButtons() {
                 redmineTaskFieldLabel: redmineTaskFieldLabel,
                 redmineTaskFieldValue: redmineTaskFieldValue,
                 isFavorite: false,
+                project: document.querySelector("body").classList[0].replace("project-", ""),
+                uniqueId: uniqueId,
               },
             ])
           );
           // If entry exists - append entry to an array and overwrite existing value
         } else if (localStorage.getItem(redmineTaskFieldId) !== null) {
-          let currentValue = localStorage.getItem(redmineTaskFieldId); // possible value: "[{redmineTaskFieldLabel: redmineTaskFieldLabel, redmineTaskFieldValue: redmineTaskFieldValue}, {}, {}]"
+          let currentValue = localStorage.getItem(redmineTaskFieldId);
           let parsedValue = JSON.parse(currentValue);
           parsedValue.push({
             redmineTaskFieldLabel: redmineTaskFieldLabel,
             redmineTaskFieldValue: redmineTaskFieldValue,
             isFavorite: false,
+            project: document.querySelector("body").classList[0].replace("project-", ""),
+            uniqueId: uniqueId,
           });
           localStorage.setItem(redmineTaskFieldId, JSON.stringify(parsedValue));
         }
@@ -1094,6 +1128,8 @@ function parseTaskFieldsAndAddTemplateButtons() {
           redmineTaskFieldLabel,
           redmineTaskFieldValue,
           false,
+          document.querySelector("body").classList[0].replace("project-", ""),
+          uniqueId,
           "newlyInjectedButtonByPressingPlus"
         );
       });
@@ -1109,6 +1145,8 @@ function parseTaskFieldsAndAddTemplateButtons() {
             labelAndValueObject.redmineTaskFieldLabel,
             labelAndValueObject.redmineTaskFieldValue,
             labelAndValueObject.isFavorite,
+            labelAndValueObject.project,
+            labelAndValueObject.uniqueId,
             "loadedOnPageRender"
           );
         });
@@ -1123,15 +1161,20 @@ function prefillIsFavoriteFields() {
   document.querySelectorAll(redmineTaskFieldIdsString).forEach(function (taskFieldHtmlElement) {
     try {
       const redmineTaskFieldId = taskFieldHtmlElement.id;
+
       // While parsing, find fields with isFavorite: true
       // If isFavorite: true - preset the field value.
 
       // Find the array object
       let currentArray = localStorage.getItem(redmineTaskFieldId);
       let parsedArrayValue = JSON.parse(currentArray);
+
       if (parsedArrayValue) {
         for (let i = 0; i < parsedArrayValue.length; i++) {
-          if (parsedArrayValue[i].isFavorite) {
+          if (
+            parsedArrayValue[i].isFavorite &&
+            parsedArrayValue[i].project === document.querySelector("body").classList[0].replace("project-", "")
+          ) {
             document.getElementById(redmineTaskFieldId).value = parsedArrayValue[i].redmineTaskFieldValue;
             break;
           }
@@ -1445,7 +1488,9 @@ const donePercentSlider = () => {
   `);
 
   // Find percentage
-  const donePercentageStr = document.querySelector(".progress.attribute > .value > p.percent").textContent.replace("%", "");
+  const donePercentageStr = document
+    .querySelector(".progress.attribute > .value > p.percent")
+    .textContent.replace("%", "");
   const donePercentageInt = parseInt(donePercentageStr);
 
   // Prepare ul elements
@@ -1482,14 +1527,18 @@ const donePercentSlider = () => {
 };
 
 const runIfSettingIsActive = (settingName, callback, argumentString = null) => {
-  const stringStorage = localStorage.getItem("ldRedmineUiSettings");
-  const storageObject = JSON.parse(stringStorage);
-  if (storageObject[settingName] === true) {
-    if (argumentString) {
-      callback(argumentString);
-    } else {
-      callback();
+  try {
+    const stringStorage = localStorage.getItem("ldRedmineUiSettings");
+    const storageObject = JSON.parse(stringStorage);
+    if (storageObject[settingName] === true) {
+      if (argumentString) {
+        callback(argumentString);
+      } else {
+        callback();
+      }
     }
+  } catch (e) {
+    console.log(`Error in runIfSettingIsActive - setting name: "${settingName}" was not applied due to exception.`);
   }
 };
 
