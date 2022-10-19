@@ -823,9 +823,10 @@ function createTemplateButton(
   // Add click action for the button
   const thisTemplateButtonElement = document.getElementById(taskTemplateButtonId);
   thisTemplateButtonElement.addEventListener("click", function () {
-    document.getElementById(redmineTaskFieldId).value = this.value;
+    document.getElementById(redmineTaskFieldId).value = redmineTaskFieldValue;
   });
   const thisFavoriteBtnElem = document.getElementById(favoriteBtnId);
+
   // Add click action for the favorite button
   thisFavoriteBtnElem.addEventListener("click", function () {
     // Toggle favorite icon
@@ -849,6 +850,7 @@ function createTemplateButton(
     }
     localStorage.setItem(redmineTaskFieldId, JSON.stringify(parsedArrayValue));
   });
+
   // Add click action for the X delete button
   document.getElementById(deleteParamTemplateBtnId).addEventListener("click", function () {
     let currentValue = localStorage.getItem(redmineTaskFieldId);
@@ -1158,32 +1160,35 @@ function parseTaskFieldsAndAddTemplateButtons() {
 }
 
 function prefillIsFavoriteFields() {
-  document.querySelectorAll(redmineTaskFieldIdsString).forEach(function (taskFieldHtmlElement) {
-    try {
-      const redmineTaskFieldId = taskFieldHtmlElement.id;
+  setTimeout(() => {
+    document.querySelectorAll(redmineTaskFieldIdsString).forEach(function (taskFieldHtmlElement) {
+      try {
+        const redmineTaskFieldId = taskFieldHtmlElement.id;
 
-      // While parsing, find fields with isFavorite: true
-      // If isFavorite: true - preset the field value.
+        // While parsing, find fields with isFavorite: true
+        // If isFavorite: true - preset the field value.
 
-      // Find the array object
-      let currentArray = localStorage.getItem(redmineTaskFieldId);
-      let parsedArrayValue = JSON.parse(currentArray);
+        // Find the array object
+        let currentArray = localStorage.getItem(redmineTaskFieldId);
+        let parsedArrayValue = JSON.parse(currentArray);
 
-      if (parsedArrayValue) {
-        for (let i = 0; i < parsedArrayValue.length; i++) {
-          if (
-            parsedArrayValue[i].isFavorite &&
-            parsedArrayValue[i].project === document.querySelector("body").classList[0].replace("project-", "")
-          ) {
-            document.getElementById(redmineTaskFieldId).value = parsedArrayValue[i].redmineTaskFieldValue;
-            break;
+        if (parsedArrayValue) {
+          for (let i = 0; i < parsedArrayValue.length; i++) {
+            if (
+              parsedArrayValue[i].isFavorite &&
+              parsedArrayValue[i].project === document.querySelector("body").classList[0].replace("project-", "")
+            ) {
+              document.getElementById(redmineTaskFieldId).value = parsedArrayValue[i].redmineTaskFieldValue;
+              break;
+            }
           }
         }
+      } catch (error) {
+        console.log("Error in prefillIsFavoriteFields: " + error);
       }
-    } catch (error) {
-      console.log("Error in prefillIsFavoriteFields: " + error);
-    }
-  });
+    });
+  }),
+    200;
 }
 
 /* Settings modal */
