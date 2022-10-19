@@ -333,6 +333,10 @@ GM_addStyle(`
 
   /* Template buttons */
 
+  .paramTemplateBtnFill:active {
+    background-color: #accda6;
+  }
+
   /* X delete symbol after each template content button */
   .paramTemplateBtnFill {
     padding-left: 0.4rem;
@@ -1501,7 +1505,6 @@ const donePercentSlider = () => {
   // Prepare ul elements
   let arrayOfNewChildren = [];
   for (let i = 100; i > 0; i -= 10) {
-    console.log(donePercentageInt);
     arrayOfNewChildren.push(
       `<td style="width: 10%;" title="${i}" id="${i}" class="timelineBlock ${
         i <= donePercentageInt ? "done" : "todo"
