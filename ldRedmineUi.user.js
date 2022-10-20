@@ -666,6 +666,9 @@ function formRefreshWatcher() {
 
 function getTaskSelectedOptionText(taskFieldId) {
   const projectIdElement = document.querySelector(taskFieldId);
+  if (!projectIdElement) {
+    return 
+  }
   const selectedOptions = projectIdElement.options;
   const selectedOptionIndex = projectIdElement.selectedIndex;
   const selectedProjectOptionText = selectedOptions[selectedOptionIndex].text;
@@ -728,21 +731,25 @@ function addStatusButton(htmlColorCodeWithHashtag, buttonText, statusId) {
 }
 
 function addQuickButtons(issueFieldId) {
-  let issueStatusTextAndValueDOMObject = createRedmineEditFieldValueAndTextObject(issueFieldId);
-  const issueFieldValue = document.querySelector(issueFieldId).value;
-  const statusColorPatterns = getProjectStatusColorPatterns();
-  for (let [key, value] of Object.entries(issueStatusTextAndValueDOMObject)) {
-    // Map colors to status values
-    let currentButtonColor = ""; // Default button color if no color is found
-    for (let [string, color] of Object.entries(statusColorPatterns)) {
-      if (value.match(new RegExp(string, "i"))) {
-        currentButtonColor = color;
-        break;
+  try {
+    let issueStatusTextAndValueDOMObject = createRedmineEditFieldValueAndTextObject(issueFieldId);
+    const issueFieldValue = document.querySelector(issueFieldId).value;
+    const statusColorPatterns = getProjectStatusColorPatterns();
+    for (let [key, value] of Object.entries(issueStatusTextAndValueDOMObject)) {
+      // Map colors to status values
+      let currentButtonColor = ""; // Default button color if no color is found
+      for (let [string, color] of Object.entries(statusColorPatterns)) {
+        if (value.match(new RegExp(string, "i"))) {
+          currentButtonColor = color;
+          break;
+        }
+      }
+      if (localStorage.getItem(key) === "Active" && issueFieldValue !== key) {
+        addStatusButton(currentButtonColor, value, key);
       }
     }
-    if (localStorage.getItem(key) === "Active" && issueFieldValue !== key) {
-      addStatusButton(currentButtonColor, value, key);
-    }
+  } catch (e) {
+    //
   }
 }
 
@@ -919,19 +926,23 @@ function addToggleConfigModeButton(pageName) {
 /* Task status background highlight */
 
 function taskStatusBackgroundHighlight() {
-  // Map colors to status values
-  let highlightColor = ""; // Default button color if no color is found
-  const statusElement = document.querySelector("div.status.attribute > div.value");
-  const statusValue = statusElement.textContent;
-  const statusColorPatterns = getProjectStatusColorPatterns();
-  for (let [string, color] of Object.entries(statusColorPatterns)) {
-    if (statusValue.match(new RegExp(string, "i"))) {
-      highlightColor = color;
-      break;
+  try {
+    // Map colors to status values
+    let highlightColor = ""; // Default button color if no color is found
+    const statusElement = document.querySelector("div.status.attribute > div.value");
+    const statusValue = statusElement.textContent;
+    const statusColorPatterns = getProjectStatusColorPatterns();
+    for (let [string, color] of Object.entries(statusColorPatterns)) {
+      if (statusValue.match(new RegExp(string, "i"))) {
+        highlightColor = color;
+        break;
+      }
     }
+    // Replace status text with styled content
+    statusElement.innerHTML = `<span style="background-color: ${highlightColor}; padding-left: 1em; padding-right: 1em; border-radius: 3px;">${statusValue}</span>`;
+  } catch (e) {
+    //
   }
-  // Replace status text with styled content
-  statusElement.innerHTML = `<span style="background-color: ${highlightColor}; padding-left: 1em; padding-right: 1em; border-radius: 3px;">${statusValue}</span>`;
 }
 
 /* Priority visualization */
