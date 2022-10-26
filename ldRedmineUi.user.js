@@ -641,27 +641,51 @@ function getProjectStatusColorPatterns() {
 
 /* Helper functions */
 
-function formRefreshWatcher() {
-  setTimeout(function () {
+const formRefreshWatcher = () => {
+  const redmineTaskFieldIdsString = `
+	#issue_project_id,
+  #issue_status_id,
+  #issue_tracker_id
+	`;
+
+  document.querySelectorAll(redmineTaskFieldIdsString).forEach((taskFieldHtmlElement) => {
     try {
-      // targetNode is created with a slight delay on page load and might not be found
-      // Select the node that will be observed for mutations
-      const targetNode = document.querySelector(".ui-autocomplete");
-      // Options for the observer (which mutations to observe)
-      const config = { attributes: true };
-      // Callback function to execute when mutations are observed
-      const callback = () => {
-        parseTaskFieldsAndAddTemplateButtons();
-        formRefreshWatcher();
-      };
-      // Create an observer instance linked to the callback function
-      const observer = new MutationObserver(callback);
-      // Start observing the target node for configured mutations
-      observer.observe(targetNode, config);
+      taskFieldHtmlElement.addEventListener("change", () => {
+        // console.log('change detected')
+        setTimeout(() => {
+          formRefreshWatcher();
+          parseTaskFieldsAndAddTemplateButtons();
+          if (isConfigModeOnState) {
+            toggleTemplateConfigModeButtonDisplay();
+          }
+        }, 500);
+      });
     } catch (e) {
-      // console.log('Mutation observer error')
+      //
     }
-  }, 100);
+  });
+
+  // Deprecated - no reliable node to track
+  // setTimeout(function () {
+  //   try {
+  //     // targetNode is created with a slight delay on page load and might not be found
+  //     // Select the node that will be observed for mutations
+  //     const targetNode = document.querySelector(".ui-autocomplete");
+  //     // Options for the observer (which mutations to observe)
+  //     const config = { attributes: true };
+  //     // Callback function to execute when mutations are observed
+  //     const callback = () => {
+  //       parseTaskFieldsAndAddTemplateButtons();
+  //       formRefreshWatcher();
+  //     };
+  //     // Create an observer instance linked to the callback function
+  //     const observer = new MutationObserver(callback);
+  //     // Start observing the target node for configured mutations
+  //     observer.observe(targetNode, config);
+  //   } catch (e) {
+  //     // console.log('Mutation observer error')
+  //   }
+  // }, 300);
 }
 
 function getTaskSelectedOptionText(taskFieldId) {
@@ -876,6 +900,7 @@ function createTemplateButton(
   });
 }
 
+var isConfigModeOnState = false;
 function addToggleConfigModeButton(pageName) {
   let contentDivElement;
   if (pageName === "taskDetailsPage") {
@@ -887,13 +912,19 @@ function addToggleConfigModeButton(pageName) {
   contentDivElement.insertAdjacentHTML("afterend", newIssueConfigToggleBtn);
   const thisNewIssueConfigToggleBtnId = document.getElementById("newIssueConfigToggleBtnId");
   thisNewIssueConfigToggleBtnId.addEventListener("click", function () {
-    document.querySelectorAll(".hiddenByDefault").forEach(function (item) {
-      try {
-        item.style.display = item.style.display === "none" ? "inline-block" : "none";
-      } catch (error) {
-        console.log(error);
-      }
-    });
+    isConfigModeOnState = isConfigModeOnState ? false : true;
+    // console.log(isConfigModeOnState)
+    toggleTemplateConfigModeButtonDisplay();
+  });
+}
+
+const toggleTemplateConfigModeButtonDisplay = () => {
+  document.querySelectorAll(".hiddenByDefault").forEach(function (item) {
+    try {
+      item.style.display = item.style.display === "none" ? "inline-block" : "none";
+    } catch (error) {
+      console.log(error);
+    }
   });
 }
 
@@ -1571,6 +1602,7 @@ document.onreadystatechange = function () {
       addToggleConfigModeButton("taskDetailsPage");
       addQuickButtons("#issue_status_id");
       parseTaskFieldsAndAddTemplateButtons();
+      formRefreshWatcher();
       addKeyboardShortcutForEditAndSubmit();
       // removeUiElements();
     } else if (
